@@ -32,7 +32,7 @@ server 目录下运行 npm start 启动服务器
 ### 注意事项
 
 ```txt
-由于使用emotion，每个页面顶部需要加 /* @jsxImportSource @emotion/react */，才能使用css-in-js语法
+由于使用emotion ，每个页面顶部需要加 /* @jsxImportSource @emotion/react */，才能使用css-in-js语法
 ```
 
 ### git 提交规范
