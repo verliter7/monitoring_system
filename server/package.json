@@ -5,13 +5,14 @@
   "main": "app.ts",
   "type": "commonjs",
   "scripts": {
-    "start": "nodemon --watch src/**/* -e ts --exec ts-node ./src/app.ts",
+    "start": "nodemon -r tsconfig-paths/register ./src/app.ts",
     "build": "webpack"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.0.1",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
     "koa-router": "^12.0.0",
@@ -26,6 +27,7 @@
     "nodemon": "^2.0.19",
     "ts-loader": "^9.3.1",
     "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.0.0",
     "webpack": "^5.73.0",
     "webpack-cli": "^4.10.0",
     "webpack-node-externals": "^3.0.0"

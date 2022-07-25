@@ -8,8 +8,8 @@ declare module 'koa' {
   }
 
   interface DefaultContext {
-    defaultResponse(params: Partial<IResponseParam>): void;
-    defaultError(params: Partial<IErrorParam>): void;
+    defaultResponse(params?: Partial<IResponseParam>): void;
+    defaultError(params?: Partial<IErrorParam>): void;
   }
 }
 
@@ -28,20 +28,23 @@ interface IErrorParam {
 const app = new Koa();
 
 app.use(async (ctx, next) => {
-  ctx.defaultResponse = ({ code = 404, data = {}, message = '', success = false }) => {
-    ctx.body = {
-      code,
-      data,
-      message,
-      success,
+  ctx.defaultResponse = (params) => {
+    const defaultParams = {
+      code: 404,
+      data: {},
+      message: '',
+      success: false,
     };
+
+    ctx.body = params ? Object.assign(defaultParams, params) : params;
   };
-  ctx.defaultError = ({ code = 404, message = '发生未知错误！' }) => {
-    ctx.body = {
-      code,
-      message,
-    };
+
+  ctx.defaultError = (error) => {
+    const defaultError = { code: 404, message: '发生未知错误！' };
+
+    ctx.body = error ? Object.assign(defaultError, error) : error;
   };
+
   await next();
 });
 
