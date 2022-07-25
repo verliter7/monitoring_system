@@ -15,7 +15,7 @@ declare module 'koa' {
 
 interface IResponseParam<T = any> {
   code: number;
-  data: Record<string, T>;
+  data: Record<string, T> | null;
   message: string;
   success: boolean;
 }
@@ -40,7 +40,7 @@ app.use(async (ctx, next) => {
   };
 
   ctx.defaultError = (error) => {
-    const defaultError = { code: 404, message: '发生未知错误！' };
+    const defaultError = { code: 400, message: '发生未知错误！' };
 
     ctx.body = error ? Object.assign(defaultError, error) : error;
   };

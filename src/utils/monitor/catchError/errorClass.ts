@@ -1,11 +1,12 @@
 import UAParser from 'ua-parser-js';
 import { randomString, hashCode, objecToQuery } from '../utils';
 
-export interface ISubmitError {
+// 错误基类interface
+export interface IBaseError {
   timeStamp: number;
   appMonitorId: string;
   errorId?: string;
-  url: string;
+  originUrl: string;
   userMonitorId: string;
   osName?: string;
   osVersion?: string;
@@ -14,12 +15,41 @@ export interface ISubmitError {
   bsName?: string;
   bsVersion?: string;
   ua: string;
-  errorType: string;
-  errorMsg: string;
-  errorStack?: string;
 }
 
-// 设置日志对象类的通用属性
+// JS错误interface
+export interface IJsError extends IBaseError {
+  errorType: string;
+  errorMsg: string;
+  errorStack: string;
+}
+
+// Promise错误interface
+export interface IPromiseError extends IBaseError {
+  errorType: string;
+  errorMsg: string;
+  errorStack: string;
+}
+
+// 静态资源错误interface
+export interface IResourceError extends IBaseError {
+  errorType: string;
+  errorMsg: string;
+}
+
+// Http请求错误interface
+export interface IHttpRequestError extends IBaseError {
+  errorType: string;
+  requestUrl: string | URL;
+  method: string;
+  status: number;
+  statusText: string;
+  duration: string;
+}
+
+/**
+ * @description: 设置日志对象类的通用属性
+ */
 export class SetJournalProperty {
   static submitErrorIds = new Set<string>();
   // 保存用户id到localStorage里面
@@ -43,7 +73,7 @@ export class SetJournalProperty {
 
   timeStamp: number;
   appMonitorId: string;
-  url: string;
+  originUrl: string;
   userMonitorId: string;
   osName?: string;
   osVersion?: string;
@@ -59,12 +89,16 @@ export class SetJournalProperty {
     const { name: egName, version: egVersion } = getEngine();
     const { name: bsName, version: bsVersion } = getBrowser();
 
-    this.timeStamp = new Date().getTime(); // 获取本次上报时间戳
-    this.appMonitorId = APP_MONITOR_ID; // 用于区分应用的唯一标识（一个项目对应一个）
-    this.url = window.location.href.split('?')[0].replace('#', ''); // 页面的url
-    this.userMonitorId = `${this.url}@${JSON.parse(
+    // 获取本次上报时间戳
+    this.timeStamp = new Date().getTime();
+    // 用于区分应用的唯一标识（一个项目对应一个）
+    this.appMonitorId = APP_MONITOR_ID;
+    // 页面的url
+    this.originUrl = window.location.href.split('?')[0].replace('#', '');
+    // 用于区分用户，所对应唯一的标识，清理本地数据后失效
+    this.userMonitorId = `${this.originUrl}@${JSON.parse(
       localStorage.getItem('userMonitorId') ?? SetJournalProperty.setUserId(),
-    )}`; // 用于区分用户，所对应唯一的标识，清理本地数据后失效
+    )}`;
     this.osName = osName;
     this.osVersion = osVersion;
     this.egName = egName;
@@ -74,13 +108,25 @@ export class SetJournalProperty {
     this.ua = getUA();
   }
 
-  submitError(serverUrl: string) {
-    const beacon = new Image();
+  /**
+   * @description: 错误上报方法，利用new Image上报，请求报文体积小且没有跨域问题
+   * @param serverUrl
+   */
+  submitError(serverUrl: string, errorInfo: IJsError | IPromiseError | IResourceError | IHttpRequestError) {
+    const delay = Reflect.has(window, 'requestIdleCallback') ? requestIdleCallback : setTimeout;
 
-    beacon.src = serverUrl + encodeURI(objecToQuery(this));
+    // 浏览器任务队列空闲的时候再上报
+    delay(() => {
+      const beacon = new Image();
+
+      beacon.src = serverUrl + encodeURI(objecToQuery(errorInfo));
+    });
   }
 }
 
+/**
+ * @description: JS错误类
+ */
 export class JsError extends SetJournalProperty {
   errorId?: string;
 
@@ -97,14 +143,11 @@ export class JsError extends SetJournalProperty {
 
     this.errorId = getErrorId(submitErrorIds, `${errorMsg}:${errPos}`);
   }
-
-  submitError(serverUrl: string) {
-    const beacon = new Image();
-
-    beacon.src = serverUrl + encodeURI(objecToQuery(this));
-  }
 }
 
+/**
+ * @description: Promise错误类
+ */
 export class PromiseError extends SetJournalProperty {
   errorId?: string;
 
@@ -117,6 +160,9 @@ export class PromiseError extends SetJournalProperty {
   }
 }
 
+/**
+ * @description: 静态资源错误类
+ */
 export class ResourceError extends SetJournalProperty {
   errorId?: string;
 
@@ -126,5 +172,28 @@ export class ResourceError extends SetJournalProperty {
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
     this.errorId = getErrorId(submitErrorIds, resourceUrl);
+  }
+}
+
+/**
+ * @description: Http请求错误类
+ */
+export class HttpRequestError extends SetJournalProperty {
+  errorId?: string;
+
+  constructor(
+    public errorType: string,
+    public requestUrl: string | URL,
+    public method: string,
+    public status: number,
+    public statusText: string,
+    public duration: string,
+    APP_MONITOR_ID: string,
+  ) {
+    super(APP_MONITOR_ID);
+
+    const { getErrorId, submitErrorIds } = SetJournalProperty;
+
+    this.errorId = getErrorId(submitErrorIds, `${errorType}${requestUrl}${method}`);
   }
 }

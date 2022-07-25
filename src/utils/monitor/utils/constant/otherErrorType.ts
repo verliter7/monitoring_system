@@ -1,4 +1,4 @@
 export default {
   RESOURCELOADED: 'ResourceLoadedError',
-  PROMISEREJECTED: 'PromiseRejectedError',
+  HTTPREQUEST: 'HttpRequestError',
 };
