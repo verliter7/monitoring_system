@@ -50,41 +50,26 @@ export default class TransportInstance {
   }
 
   /**
-   * 向外暴露的上报函数
-   * 外部直接调用即可
+   * 对外暴露的上报函数
    * @param kind 上报数据的大类
-   * @param type 上报数据的小类 可以是一个数组
-   * @returns
-   */
-  kernelTransportHandler = (kind: transportKind, type: transportType | Array<transportType>) => {
-    //调用初始化函数 返回一个上报函数
-    const transportHandler = this.initTransportHandler()
-    if (type instanceof Array) {
-      type.forEach((typeItem) => {
-        transportHandler(this.formatTransportData(kind, typeItem))
-      })
-    } else {
-      transportHandler(this.formatTransportData(kind, type))
-    }
-  }
-
-  /**
-   * 格式化数据
-   * @param kind
-   * @param type
+   * @param type 上报数据的小类
    * @param data 要上报的数据
    * @returns
    */
-  formatTransportData = (kind: transportKind, type: transportType): TransportStructure => {
+  kernelTransportHandler = (kind: transportKind, type: transportType, data: Object): void => {
+    const transportHandler = this.initTransportHandler()
+    // 数据聚合
     const transportStructure: TransportStructure = {
       ...this.engineInstance.dimensionInstance.getDimension(), // 维度数据
       kind,
       type,
-      ...this.engineInstance.builderInstance.builderStrategy.get(kind)?.(type), // 上报数据
+      ...data // 上报数据
     };
-
-    return transportStructure;
-  };
+    // 让浏览器空闲时调用上报函数
+    typeof window.requestIdleCallback === 'function'
+      ? requestIdleCallback(() => { transportHandler(transportStructure) })
+      : setTimeout(() => { transportHandler(transportStructure) }, 0)
+  }
 
   // 初始化上报方法
   initTransportHandler = () => {

@@ -44,8 +44,6 @@ export default class BuilderInstance {
     }
 
     function CLSBuilder() {
-      console.log(metrics.get(metricsName.CLS)?.clsValue);
-
       return {
         clsValue: metrics.get(metricsName.CLS)?.clsValue
       }

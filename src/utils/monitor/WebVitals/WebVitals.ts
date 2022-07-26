@@ -72,11 +72,8 @@ export default class WebVitals {
     // 数据上报
     this.engineInstance.transportInstance.kernelTransportHandler(
       transportKind.performance,
-      [
-        transportType.paint,
-        transportType.timing,
-        // transportType.FID
-      ]
+      transportType.paint,
+      this.engineInstance.builderInstance.builderStrategy.get(transportKind.performance)?.(transportType.paint)
     );
   }
 
