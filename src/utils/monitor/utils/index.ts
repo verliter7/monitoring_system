@@ -40,3 +40,18 @@ export function objecToQuery(o: Record<string, any>) {
   }
   return `?${result.join('&')}`;
 }
+
+export function getUrlHref(url: string | URL) {
+  if (url instanceof URL) return url.href;
+
+  try {
+    const newUrl = new URL(url);
+
+    return newUrl.href;
+  } catch (e) {
+    if (url.indexOf('/') === -1) {
+      url = '/' + url;
+    }
+    return window.location.origin + url;
+  }
+}

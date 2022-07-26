@@ -1,51 +1,6 @@
 import UAParser from 'ua-parser-js';
-import { randomString, hashCode, objecToQuery } from '../utils';
-
-// 错误基类interface
-export interface IBaseError {
-  timeStamp: number;
-  appMonitorId: string;
-  errorId?: string;
-  originUrl: string;
-  userMonitorId: string;
-  osName?: string;
-  osVersion?: string;
-  egName?: string;
-  egVersion?: string;
-  bsName?: string;
-  bsVersion?: string;
-  ua: string;
-}
-
-// JS错误interface
-export interface IJsError extends IBaseError {
-  errorType: string;
-  errorMsg: string;
-  errorStack: string;
-}
-
-// Promise错误interface
-export interface IPromiseError extends IBaseError {
-  errorType: string;
-  errorMsg: string;
-  errorStack: string;
-}
-
-// 静态资源错误interface
-export interface IResourceError extends IBaseError {
-  errorType: string;
-  errorMsg: string;
-}
-
-// Http请求错误interface
-export interface IHttpRequestError extends IBaseError {
-  errorType: string;
-  requestUrl: string | URL;
-  method: string;
-  status: number;
-  statusText: string;
-  duration: string;
-}
+import { randomString, hashCode } from '../utils';
+import type { HttpRequestErrorParams, JsErrorParams, PromiseErrorParams, ResourceErrorErrorParams } from './type';
 
 /**
  * @description: 设置日志对象类的通用属性
@@ -107,40 +62,25 @@ export class SetJournalProperty {
     this.bsVersion = bsVersion;
     this.ua = getUA();
   }
-
-  /**
-   * @description: 错误上报方法，利用new Image上报，请求报文体积小且没有跨域问题
-   * @param serverUrl
-   */
-  submitError(serverUrl: string, errorInfo: IJsError | IPromiseError | IResourceError | IHttpRequestError) {
-    const delay = Reflect.has(window, 'requestIdleCallback') ? requestIdleCallback : setTimeout;
-
-    // 浏览器任务队列空闲的时候再上报
-    delay(() => {
-      const beacon = new Image();
-
-      beacon.src = serverUrl + encodeURI(objecToQuery(errorInfo));
-    });
-  }
 }
 
 /**
  * @description: JS错误类
  */
 export class JsError extends SetJournalProperty {
+  errorType: string;
+  errorStack: string;
+  errorMsg: string;
   errorId?: string;
 
-  constructor(
-    public errorType: string,
-    public errorStack: string,
-    public errorMsg: string,
-    APP_MONITOR_ID: string,
-    errPos: string,
-  ) {
+  constructor({ errorType, errorStack, errorMsg, APP_MONITOR_ID, errPos }: JsErrorParams) {
     super(APP_MONITOR_ID);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
+    this.errorType = errorType;
+    this.errorStack = errorStack;
+    this.errorMsg = errorMsg;
     this.errorId = getErrorId(submitErrorIds, `${errorMsg}:${errPos}`);
   }
 }
@@ -149,13 +89,19 @@ export class JsError extends SetJournalProperty {
  * @description: Promise错误类
  */
 export class PromiseError extends SetJournalProperty {
+  errorType: string;
+  errorStack: string;
+  errorMsg: string;
   errorId?: string;
 
-  constructor(public errorType: string, public errorStack: string, public errorMsg: string, APP_MONITOR_ID: string) {
+  constructor({ errorType, errorStack, errorMsg, APP_MONITOR_ID }: PromiseErrorParams) {
     super(APP_MONITOR_ID);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
+    this.errorType = errorType;
+    this.errorStack = errorStack;
+    this.errorMsg = errorMsg;
     this.errorId = getErrorId(submitErrorIds, errorMsg);
   }
 }
@@ -164,13 +110,19 @@ export class PromiseError extends SetJournalProperty {
  * @description: 静态资源错误类
  */
 export class ResourceError extends SetJournalProperty {
+  errorType: string;
+  errorMsg: string;
+  resourceUrl: string;
   errorId?: string;
 
-  constructor(public errorType: string, public errorMsg: string, resourceUrl: string, APP_MONITOR_ID: string) {
+  constructor({ errorType, errorMsg, resourceUrl, APP_MONITOR_ID }: ResourceErrorErrorParams) {
     super(APP_MONITOR_ID);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
+    this.errorType = errorType;
+    this.errorMsg = errorMsg;
+    this.resourceUrl = resourceUrl;
     this.errorId = getErrorId(submitErrorIds, resourceUrl);
   }
 }
@@ -179,21 +131,25 @@ export class ResourceError extends SetJournalProperty {
  * @description: Http请求错误类
  */
 export class HttpRequestError extends SetJournalProperty {
+  errorType: string;
+  requestUrl: string;
+  method: string;
+  status: number;
+  statusText: string;
+  duration: string;
   errorId?: string;
 
-  constructor(
-    public errorType: string,
-    public requestUrl: string | URL,
-    public method: string,
-    public status: number,
-    public statusText: string,
-    public duration: string,
-    APP_MONITOR_ID: string,
-  ) {
+  constructor({ errorType, requestUrl, method, status, statusText, duration, APP_MONITOR_ID }: HttpRequestErrorParams) {
     super(APP_MONITOR_ID);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
+    this.errorType = errorType;
+    this.requestUrl = requestUrl;
+    this.method = method;
+    this.status = status;
+    this.statusText = statusText;
+    this.duration = duration;
     this.errorId = getErrorId(submitErrorIds, `${errorType}${requestUrl}${method}`);
   }
 }
