@@ -3,16 +3,19 @@ import {
   getFP,
   getFCP,
   getLCP,
+  getFMP,
   getFID,
   getCLS,
   getNavigationTiming,
   getResourceFlow,
+  getLongTask,
 } from './GetEntry'
 import {
   LayoutShift,
   ResourceFlowTiming,
 } from "./type";
 import { EngineInstance } from "../WebSdk";
+import { transportCategory, transportKind, transportType } from "../Transport/Transport";
 
 
 export const afterLoad = (callback: any) => {
@@ -48,8 +51,9 @@ export default class WebVitals {
     this.initLCP();
     this.initCLS();
     this.initResourceFlow();
+    this.initLongTask()
 
-    // 这里的 FP/FCP/FID需要在页面成功加载了再进行获取
+    // 这里的 FP/FCP/FID resource需要在页面成功加载了再进行获取
     afterLoad(() => {
       this.initNavigationTiming();
       this.initFP();
@@ -63,27 +67,17 @@ export default class WebVitals {
   perfSendHandler = (): void => {
     // 如果你要监听 FID 数据。你就需要等待 FID 参数捕获完成后进行上报;
     // 如果不需要监听 FID，那么这里你就可以发起上报请求了;
-    let data = this.metrics.getValues()
-    console.log(data);
-    let commitData = {
-      category: 'perf',
-      dimension: {
-        // 用户id，存储于cookie
-        uid: '01',
-        // 会话id，存储于cookiestorage
-        sid: '1024',
-        // 应用id，使用方传入
-        pid: '1920',
-        // 应用版本号
-        release: '1.0.0',
-        // 应用环境
-        environment: 'develepment',
-      },
-      context: data,
-      sdk: {},
-    }
-    let sendFun = this.engineInstance.transportInstance.initTransportHandler()
-    sendFun(commitData);
+    console.log(this.metrics.getValues());
+
+    // 数据上报
+    this.engineInstance.transportInstance.kernelTransportHandler(
+      transportKind.performance,
+      [
+        transportType.paint,
+        transportType.timing,
+        // transportType.FID
+      ]
+    );
   }
 
   //W3C标准化在 w3c/paint-timing 定义了 首次非网页背景像素渲染（fp）(白屏时间) 和  首次内容渲染（fcp)(灰屏时间)，我们可以直接去取;
@@ -124,6 +118,18 @@ export default class WebVitals {
     getLCP(entryHandler);
   };
 
+  // 初始化 FMP 的获取以及返回
+  initFMP = (): void => {
+    const entryHandler = (entry: PerformanceEntry) => {
+      const metrics = {
+        startTime: entry?.startTime.toFixed(2),
+        entry,
+      } as IMetrics
+      this.metrics.set(metricsName.FMP, metrics)
+    }
+    getFMP(entryHandler);
+  }
+
   // 初始化 FID 的获取以及返回
   initFID = (): void => {
     const entryHandler = (entry: PerformanceEventTiming) => {
@@ -136,7 +142,7 @@ export default class WebVitals {
     getFID(entryHandler);
   };
 
-  // 初始化 CLS 的获取以及返回
+  // 初始化 CLS 的获取以及返回 累积布局移动 计算积分
   initCLS = (): void => {
     let clsValue = 0;
     let clsEntries = [];
@@ -183,28 +189,40 @@ export default class WebVitals {
     getCLS(entryHandler);
   };
 
-  // 初始化 NT 的获取以及返回
+  // 初始化 NT 的获取以及返回 以技术为中心的性能指标
   initNavigationTiming = (): void => {
     const navigationTiming = getNavigationTiming();
     const metrics = navigationTiming as IMetrics;
     this.metrics.set(metricsName.NT, metrics);
   };
 
-  // 初始化 RF 的获取以及返回
+  // 初始化 RF 的获取以及返回 静态资源瀑布图
   initResourceFlow = (): void => {
     const resourceFlow: Array<ResourceFlowTiming> = [];
-    const resObserve = getResourceFlow(resourceFlow);
+    const observer = getResourceFlow(resourceFlow);
 
     const stopListening = () => {
-      if (resObserve) {
-        resObserve.disconnect();
-      }
       const metrics = resourceFlow as IMetrics;
       this.metrics.set(metricsName.RF, metrics);
     };
     // 当页面 pageshow 触发时，中止
     window.addEventListener('pageshow', stopListening, { once: true, capture: true });
   };
+
+  // 初始化 longtask 的获取以及返回
+  initLongTask = (): void => {
+    const entryHandler = (entry: PerformanceEntry) => {
+      // 超过100ms就认为是长任务
+      if (entry.duration > 100) {
+        const metrics = {
+          startTime: entry?.startTime.toFixed(2),
+          entry,
+        } as IMetrics
+        this.metrics.set(metricsName.LT, metrics)
+      }
+    }
+    getLongTask(entryHandler)
+  }
 }
 
 

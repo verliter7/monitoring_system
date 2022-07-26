@@ -1,75 +1,90 @@
-import { EngineInstance } from "../WebSdk";
+import { DimensionStructure } from "../DimensionInstance/type";
+import { EngineInstance, initOptions } from "../WebSdk";
 
 export enum transportCategory {
-  // PV访问数据
-  PV = 'pv',
-  // 性能数据
-  PERF = 'perf',
-  // api 请求数据
-  API = 'api',
-  // 报错数据
-  ERROR = 'error',
-  // 自定义行为
-  CUS = 'custom',
+  // PV = 'pv',// PV访问数据
+  // PERF = 'perf',// 性能数据
+  // API = 'api',// api 请求数据
+  // ERROR = 'error',// 报错数据
+  // CUS = 'custom',// 自定义行为
 }
 
-export interface DimensionStructure {
-  // 用户id，存储于cookie
-  uid: string;
-  // 会话id，存储于cookiestorage
-  sid: string;
-  // 应用id，使用方传入
-  pid: string;
-  // 应用版本号
-  release: string;
-  // 应用环境
-  environment: string;
+export enum transportKind {
+  stability = 'stability', // 稳定性
+  performance = 'performance', // 性能
+  business = 'business', // 用户
 }
 
-export interface TransportStructure {
+export enum transportType {
+  error = 'error',
+  xhr = 'xhr',
+  blank = 'blank',
+  timing = 'timing',
+  paint = 'paint', // FP FCP FMP LCP
+  FID = 'FID',
+  LT = 'longTask',
+  CLS = 'CLS',
+  RF = 'resource-flow',
+  PV = 'PV',
+}
+export interface TransportStructure extends DimensionStructure {
   // 上报类别
-  category: transportCategory;
-  // 上报的维度信息
-  dimension: DimensionStructure;
-  // 上报对象(正文)
-  context?: Object;
-  // 上报对象数组
-  contexts?: Array<Object>;
-  // 捕获的sdk版本信息，版本号等...
-  sdk: Object;
+  kind: transportKind, // 大类
+  type: transportType, // 小类
+  // 个性数据
+  [key: string]: any
 }
 
 export interface TransportParams {
+  transportUrl: string,
   [key: string | number]: any
 }
 
 export default class TransportInstance {
   private engineInstance: EngineInstance;
-
-  public kernelTransportHandler: Function;
-
   private options: TransportParams;
 
-  constructor(engineInstance: EngineInstance, options: TransportParams) {
+  constructor(engineInstance: EngineInstance, options?: TransportParams) {
     this.engineInstance = engineInstance;
-    this.options = options;
-    this.kernelTransportHandler = this.initTransportHandler();
+    this.options = options || { transportUrl: '' };
   }
 
-  // 格式化数据,传入部分为 category 和 context \ contexts
-  // formatTransportData = (category: transportCategory, data: Object | Array<Object>): TransportStructure => {
-  //   const transportStructure = {
-  //     category,
-  //     dimension: this.engineInstance.dimensionInstance.getDimension(),
-  //     sdk: getSdkVersion(),
-  //   } as TransportStructure;
-  //   if (data instanceof Array) {
-  //     transportStructure.contexts = data;
-  //   } else {
-  //     transportStructure.context = data;
-  //   }
-  //   return transportStructure;
-  // };
+  /**
+   * 向外暴露的上报函数
+   * 外部直接调用即可
+   * @param kind 上报数据的大类
+   * @param type 上报数据的小类 可以是一个数组
+   * @returns
+   */
+  kernelTransportHandler = (kind: transportKind, type: transportType | Array<transportType>) => {
+    //调用初始化函数 返回一个上报函数
+    const transportHandler = this.initTransportHandler()
+    if (type instanceof Array) {
+      type.forEach((typeItem) => {
+        transportHandler(this.formatTransportData(kind, typeItem))
+      })
+    } else {
+      transportHandler(this.formatTransportData(kind, type))
+    }
+  }
+
+  /**
+   * 格式化数据
+   * @param kind
+   * @param type
+   * @param data 要上报的数据
+   * @returns
+   */
+  formatTransportData = (kind: transportKind, type: transportType): TransportStructure => {
+    const transportStructure: TransportStructure = {
+      ...this.engineInstance.dimensionInstance.getDimension(), // 维度数据
+      kind,
+      type,
+      ...this.engineInstance.builderInstance.builderStrategy.get(kind)?.(type), // 上报数据
+    };
+
+    return transportStructure;
+  };
 
   // 初始化上报方法
   initTransportHandler = () => {
@@ -80,8 +95,6 @@ export default class TransportInstance {
   beaconTransport = (): Function => {
     const handler = (data: TransportStructure) => {
       const status = window.navigator.sendBeacon(this.options.transportUrl, JSON.stringify(data));
-      console.log(status);
-
       // 如果数据量过大，则本次大数据量用 XMLHttpRequest 上报
       if (!status) this.xmlTransport().apply(this, data);
     };

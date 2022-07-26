@@ -55,6 +55,7 @@ export default class UserVitals {
   // 封装用户行为的上报入口
   userSendHandler = (data: IMetrics) => {
     // 进行通知内核实例进行上报;
+    // console.log(this.metrics.getValues());
   };
 
   // 补齐 pathname 和 timestamp 参数

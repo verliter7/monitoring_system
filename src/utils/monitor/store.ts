@@ -6,11 +6,13 @@ export enum metricsName {
   //性能监控
   FP = 'first-paint',
   FCP = 'first-contentful-paint',
+  FMP = 'first-meaningful-paint',
   LCP = 'largest-contentful-paint',
   FID = 'first-input-delay',
   CLS = 'cumulative-layout-shift',
   NT = 'navigation-timing',
   RF = 'resource-flow',
+  LT = 'longtask',
   //用户行为
   PI = 'page-information',
   OI = 'origin-information',
