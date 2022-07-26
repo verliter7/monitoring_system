@@ -13,6 +13,8 @@
     "antv": "^0.2.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router": "^6.3.0",
+    "react-router-dom": "^6.3.0",
     "ua-parser-js": "^1.0.2",
     "umi-request": "^1.4.0"
   },

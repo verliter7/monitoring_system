@@ -1,5 +1,4 @@
 import { JType } from '@/utils';
-import { stringify } from 'querystring';
 
 type GetParams = Array<string> | string;
 type SetParams = Record<string, any>;
@@ -17,7 +16,7 @@ interface IHandleLocalStorage {
  */
 class HandleLocalStorage implements IHandleLocalStorage {
   private static instance: HandleLocalStorage;
-  public static readonly getInstance = (): HandleLocalStorage => {
+  static readonly getInstance = (): HandleLocalStorage => {
     if (!this.instance) {
       this.instance = new HandleLocalStorage();
     }
@@ -26,7 +25,7 @@ class HandleLocalStorage implements IHandleLocalStorage {
 
   get(params: Array<string>): Record<string, any>;
   get(params: string): any;
-  public get(params: GetParams) {
+  get(params: GetParams) {
     if (Array.isArray(params)) {
       const localStorages: Record<string, any> = {};
       params.forEach((key) => {
@@ -46,7 +45,7 @@ class HandleLocalStorage implements IHandleLocalStorage {
     }
   }
 
-  public set(params: SetParams) {
+  set(params: SetParams) {
     for (const key in params) {
       if (Object.prototype.hasOwnProperty.call(params, key)) {
         localStorage.setItem(key, JSON.stringify((params as Record<string, any>)[key]));
@@ -54,7 +53,7 @@ class HandleLocalStorage implements IHandleLocalStorage {
     }
   }
 
-  public remove(params: RemoveParams) {
+  remove(params: RemoveParams) {
     if (Array.isArray(params)) {
       params.forEach((key) => {
         localStorage.removeItem(key);

@@ -4,11 +4,12 @@ import { pocessStackInfo, getUrlHref } from '../utils';
 import { imageTransport } from '../utils/transport';
 
 export default class CatchError {
+  serverUrl: string;
   /**
    * @param APP_MONITOR_ID 每个应用的id
    * @param serverUrl 上报数据服务器url
    */
-  constructor(public APP_MONITOR_ID: string, public serverUrl: string | URL) {
+  constructor(public APP_MONITOR_ID: string, serverUrl: string | URL) {
     this.serverUrl = serverUrl instanceof URL ? serverUrl.href : serverUrl;
   }
 
@@ -54,7 +55,7 @@ export default class CatchError {
           });
 
           console.log(jsError);
-          // jsError.errorId && imageTransport(this.serverUrl, jsError);
+          jsError.errorId && imageTransport(this.serverUrl, jsError);
         }
       },
       true,

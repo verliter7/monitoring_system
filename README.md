@@ -14,7 +14,6 @@ client：
 
 server：
 开发框架：koa
-脚手架：vite
 语法扩展：TypeScript
 打包工具：webpack
 代码规范：Prettier
