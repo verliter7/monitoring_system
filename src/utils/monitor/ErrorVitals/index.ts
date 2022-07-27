@@ -1,7 +1,6 @@
 import { JsError, PromiseError, ResourceError, HttpRequestError } from './errorClass';
 import otherErrorType from '../utils/constant/otherErrorType';
 import { pocessStackInfo, getUrlHref } from '../utils';
-import { imageTransport } from '../utils/transport';
 import TransportInstance, { transportKind, transportType } from '../Transport/Transport';
 
 export default class ErrorVitals {
@@ -58,7 +57,7 @@ export default class ErrorVitals {
 
           console.log(jsError);
           this.transportInstance.kernelTransportHandler(transportKind.stability, transportType.error, jsError)
-          jsError.errorId && imageTransport(this.serverUrl, jsError);
+          // jsError.errorId && imageTransport(this.serverUrl, jsError);
         }
       },
       true,
