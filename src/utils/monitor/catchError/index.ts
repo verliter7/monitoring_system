@@ -1,7 +1,6 @@
 import { JsError, PromiseError, ResourceError, HttpRequestError } from './errorClass';
 import otherErrorType from '../utils/constant/otherErrorType';
 import { pocessStackInfo, getUrlHref } from '../utils';
-import { imageTransport } from '../utils/transport';
 
 export default class CatchError {
   serverUrl: string;
@@ -55,7 +54,7 @@ export default class CatchError {
           });
 
           console.log(jsError);
-          jsError.errorId && imageTransport(this.serverUrl, jsError);
+          // jsError.errorId && imageTransport(this.serverUrl, jsError);
         }
       },
       true,

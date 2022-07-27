@@ -6,6 +6,7 @@ import { Layout, Menu } from 'antd';
 import meunConfig from '@/router/meunConfig';
 import HomePageRouters from '@/router/HomePageRouters';
 import IconFont from '@/components/Iconfont';
+import { commonStyles } from '@/utils';
 import MonitorCore from '@/utils/monitor';
 import type { FC, ReactElement } from 'react';
 
@@ -58,6 +59,7 @@ const BaseLayout: FC = (): ReactElement => {
         </Header>
         <Content
           css={{
+            ...commonStyles.scroll(),
             margin: '16px',
             padding: '16px',
             minHeight: '280px',

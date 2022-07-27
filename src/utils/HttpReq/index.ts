@@ -78,7 +78,7 @@ class HttpReq implements IHttpReq {
   });
 
   private static instance: HttpReq;
-  public static readonly getInstance = (): HttpReq => {
+  static readonly getInstance = (): HttpReq => {
     if (!this.instance) {
       this.instance = new HttpReq();
     }
@@ -98,7 +98,7 @@ class HttpReq implements IHttpReq {
     return response;
   }
 
-  public send<P>(option: IHttpRequestConfig | string): Promise<P> {
+  send<P>(option: IHttpRequestConfig | string): Promise<P> {
     const { url, headers, method, body, requestType, responseType, signal } = option as IHttpRequestConfig;
 
     if (JType.isString(option)) {
