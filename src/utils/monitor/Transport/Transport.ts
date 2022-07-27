@@ -1,5 +1,5 @@
 import { DimensionStructure } from "../DimensionInstance/type";
-import { EngineInstance, initOptions } from "../WebSdk";
+import { EngineInstance, initOptions } from "..";
 
 export enum transportCategory {
   // PV = 'pv',// PV访问数据
@@ -36,7 +36,7 @@ export interface TransportStructure extends DimensionStructure {
 }
 
 export interface TransportParams {
-  transportUrl: string,
+  transportUrl: Map<transportKind, string>,
   [key: string | number]: any
 }
 
@@ -44,9 +44,9 @@ export default class TransportInstance {
   private engineInstance: EngineInstance;
   private options: TransportParams;
 
-  constructor(engineInstance: EngineInstance, options?: TransportParams) {
+  constructor(engineInstance: EngineInstance, options: TransportParams) {
     this.engineInstance = engineInstance;
-    this.options = options || { transportUrl: '' };
+    this.options = options
   }
 
   /**
@@ -65,10 +65,12 @@ export default class TransportInstance {
       type,
       ...data // 上报数据
     };
+    // 上报url
+    let transportUrl = this.options.transportUrl.get(kind)
     // 让浏览器空闲时调用上报函数
     typeof window.requestIdleCallback === 'function'
-      ? requestIdleCallback(() => { transportHandler(transportStructure) })
-      : setTimeout(() => { transportHandler(transportStructure) }, 0)
+      ? requestIdleCallback(() => { transportHandler(transportStructure, transportUrl) })
+      : setTimeout(() => { transportHandler(transportStructure, transportUrl) }, 0)
   }
 
   // 初始化上报方法
@@ -78,8 +80,8 @@ export default class TransportInstance {
 
   // beacon 形式上报
   beaconTransport = (): Function => {
-    const handler = (data: TransportStructure) => {
-      const status = window.navigator.sendBeacon(this.options.transportUrl, JSON.stringify(data));
+    const handler = (data: TransportStructure, transportUrl: string) => {
+      const status = window.navigator.sendBeacon(transportUrl, JSON.stringify(data));
       // 如果数据量过大，则本次大数据量用 XMLHttpRequest 上报
       if (!status) this.xmlTransport().apply(this, data);
     };
@@ -88,9 +90,9 @@ export default class TransportInstance {
 
   // XMLHttpRequest 形式上报
   xmlTransport = (): Function => {
-    const handler = (data: TransportStructure) => {
+    const handler = (data: TransportStructure, transportUrl: string) => {
       const xhr = new (window as any).oXMLHttpRequest();
-      xhr.open('POST', this.options.transportUrl, true);
+      xhr.open('POST', transportUrl, true);
       xhr.send(JSON.stringify(data));
     };
     return handler;
@@ -98,10 +100,10 @@ export default class TransportInstance {
 
   //image 形式上报
   imageTransport = (): Function => {
-    const handler = (query: TransportStructure) => {
+    const handler = (query: TransportStructure, transportUrl: string) => {
       let queryStr = Object.entries(query).map(([key, value]) => `${key}=${value}`).join('&')
       let img = new Image();
-      img.src = `${this.options.transportUrl}?${queryStr}`
+      img.src = `${transportUrl}?${queryStr}`
     }
     return handler
   }

@@ -1,5 +1,5 @@
 import { DimensionStructure } from "./type";
-import { EngineInstance, initOptions } from "../WebSdk";
+import { EngineInstance, initOptions } from "..";
 
 // 维度实例，用以初始化 uid、sid等信息
 export default class DimensionInstance {

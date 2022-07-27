@@ -1,15 +1,17 @@
 import { JsError, PromiseError, ResourceError, HttpRequestError } from './errorClass';
 import otherErrorType from '../utils/constant/otherErrorType';
 import { pocessStackInfo, getUrlHref } from '../utils';
+import TransportInstance, { transportKind, transportType } from '../Transport/Transport';
 
-export default class CatchError {
+export default class ErrorVitals {
   serverUrl: string;
   /**
-   * @param APP_MONITOR_ID 每个应用的id
+   * @param aid 每个应用的id
    * @param serverUrl 上报数据服务器url
    */
-  constructor(public APP_MONITOR_ID: string, serverUrl: string | URL) {
+  constructor(public transportInstance: TransportInstance, public aid: string, serverUrl: string | URL) {
     this.serverUrl = serverUrl instanceof URL ? serverUrl.href : serverUrl;
+    this.init();
   }
 
   init() {
@@ -36,7 +38,7 @@ export default class CatchError {
             errorType,
             errorMsg,
             resourceUrl: resourceUrl as string,
-            APP_MONITOR_ID: this.APP_MONITOR_ID,
+            aid: this.aid,
           });
 
           console.log(resourceError);
@@ -49,11 +51,12 @@ export default class CatchError {
             errorType,
             errorStack: pocessStackInfo(errorStack),
             errorMsg,
-            APP_MONITOR_ID: this.APP_MONITOR_ID,
+            aid: this.aid,
             errPos: `${lineno}:${colno}`,
           });
 
           console.log(jsError);
+          this.transportInstance.kernelTransportHandler(transportKind.stability, transportType.error, jsError)
           // jsError.errorId && imageTransport(this.serverUrl, jsError);
         }
       },
@@ -71,7 +74,7 @@ export default class CatchError {
         errorType: otherErrorType.PROMISEREJECTED,
         errorStack: pocessStackInfo(errorStack),
         errorMsg,
-        APP_MONITOR_ID: this.APP_MONITOR_ID,
+        aid: this.aid,
       });
 
       console.log(promiseError);
@@ -84,7 +87,7 @@ export default class CatchError {
    */
   rewriteXHR() {
     const serverUrl = getUrlHref(this.serverUrl);
-    const APP_MONITOR_ID = this.APP_MONITOR_ID;
+    const aid = this.aid;
     const oldOpen = XMLHttpRequest.prototype.open;
 
     // @ts-ignore
@@ -125,7 +128,7 @@ export default class CatchError {
             status,
             statusText,
             duration: `${Date.now() - start}`,
-            APP_MONITOR_ID,
+            aid,
           };
 
           // 根据状态码判断是否ajax请求是否出错
@@ -135,13 +138,12 @@ export default class CatchError {
             // eventType为'error'证明是网络断开或者请求跨域出错
             const httpRequestError = new HttpRequestError({
               ...defaultParams,
-              errorType: `XMLHttpRequest${
-                eventType === 'error'
-                  ? `CrossDomainError`
-                  : eventType === 'loadend'
+              errorType: `XMLHttpRequest${eventType === 'error'
+                ? `CrossDomainError`
+                : eventType === 'loadend'
                   ? 'Error'
                   : eventType[0].toUpperCase() + eventType.slice(1)
-              }`,
+                }`,
             });
 
             console.log(httpRequestError);
@@ -210,7 +212,7 @@ export default class CatchError {
             status,
             statusText,
             duration: `${Date.now() - start}`,
-            APP_MONITOR_ID: this.APP_MONITOR_ID,
+            aid: this.aid,
           };
 
           if (input instanceof Request) {

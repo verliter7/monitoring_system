@@ -1,7 +1,7 @@
 // 错误基类interface
 export type BaseError = {
   timeStamp: number;
-  appMonitorId: string;
+  aid: string;
   errorId?: string;
   originUrl: string;
   userMonitorId: string;
@@ -18,7 +18,7 @@ export type JsErrorParams = {
   errorType: string;
   errorStack: string;
   errorMsg: string;
-  APP_MONITOR_ID: string;
+  aid: string;
   errPos: string;
 };
 
@@ -26,14 +26,14 @@ export type PromiseErrorParams = {
   errorType: string;
   errorStack: string;
   errorMsg: string;
-  APP_MONITOR_ID: string;
+  aid: string;
 };
 
 export type ResourceErrorErrorParams = {
   errorType: string;
   errorMsg: string;
   resourceUrl: string;
-  APP_MONITOR_ID: string;
+  aid: string;
 };
 
 export type HttpRequestErrorParams = {
@@ -43,17 +43,17 @@ export type HttpRequestErrorParams = {
   status: number;
   statusText: string;
   duration: string;
-  APP_MONITOR_ID: string;
+  aid: string;
 };
 
 // JS错误type
-export type JsTransportError = Omit<JsErrorParams & BaseError, 'APP_MONITOR_ID' | 'errPos'>;
+export type JsTransportError = Omit<JsErrorParams & BaseError, 'aid' | 'errPos'>;
 
 // Promise错误type
-export type PromiseTransportError = Omit<PromiseErrorParams & BaseError, 'APP_MONITOR_ID'>;
+export type PromiseTransportError = Omit<PromiseErrorParams & BaseError, 'aid'>;
 
 // 静态资源错误type
-export type ResourceTransportError = Omit<ResourceErrorErrorParams & BaseError, 'APP_MONITOR_ID'>;
+export type ResourceTransportError = Omit<ResourceErrorErrorParams & BaseError, 'aid'>;
 
 // Http请求错误type
-export type HttpRequestTransportError = Omit<HttpRequestErrorParams & BaseError, 'APP_MONITOR_ID'>;
+export type HttpRequestTransportError = Omit<HttpRequestErrorParams & BaseError, 'aid'>;
