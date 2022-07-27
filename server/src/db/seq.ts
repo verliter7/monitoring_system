@@ -1,9 +1,7 @@
 import { Sequelize } from 'sequelize';
-import env from '@/config/defalut.config';
 
-const { MYSQL_HOST, MYSQL_USER, MYSQL_PWD, MYSQL_DB } = env;
-const seq = new Sequelize(MYSQL_DB!, MYSQL_USER!, MYSQL_PWD, {
-  host: MYSQL_HOST,
+const seq = new Sequelize('monitoring_system', 'root', 'Qz200297.', {
+  host: 'localhost',
   port: 3306,
   dialect: 'mysql',
   pool: {

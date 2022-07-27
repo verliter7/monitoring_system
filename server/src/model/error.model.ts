@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import seq from '@/db/seq';
 
-const ErrorModel = seq.define('js_execute_error', {
+const ErrorModel = seq.define('js_resource_error', {
   errorId: {
     type: DataTypes.STRING,
     primaryKey: true,
@@ -18,7 +18,7 @@ const ErrorModel = seq.define('js_execute_error', {
     allowNull: false,
     comment: '每个监控应用的id',
   },
-  url: {
+  originUrl: {
     type: DataTypes.STRING,
     allowNull: false,
     comment: '每个监控应用的url',
@@ -52,6 +52,31 @@ const ErrorModel = seq.define('js_execute_error', {
     type: DataTypes.TEXT('long'),
     allowNull: true,
     comment: '错误信息',
+  },
+  requestUrl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'http请求地址',
+  },
+  method: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'http请求方式',
+  },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'http状态码',
+  },
+  statusText: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'http状态信息',
+  },
+  duration: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'http请求时间',
   },
 });
 

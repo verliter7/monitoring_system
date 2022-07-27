@@ -1,25 +1,10 @@
 import UAParser from 'ua-parser-js';
-import { randomString, hashCode, objecToQuery } from '../utils';
+import { randomString, hashCode } from '../utils';
+import type { HttpRequestErrorParams, JsErrorParams, PromiseErrorParams, ResourceErrorErrorParams } from './type';
 
-export interface ISubmitError {
-  timeStamp: number;
-  appMonitorId: string;
-  errorId?: string;
-  url: string;
-  userMonitorId: string;
-  osName?: string;
-  osVersion?: string;
-  egName?: string;
-  egVersion?: string;
-  bsName?: string;
-  bsVersion?: string;
-  ua: string;
-  errorType: string;
-  errorMsg: string;
-  errorStack?: string;
-}
-
-// 设置日志对象类的通用属性
+/**
+ * @description: 设置日志对象类的通用属性
+ */
 export class SetJournalProperty {
   static submitErrorIds = new Set<string>();
   // 保存用户id到localStorage里面
@@ -43,7 +28,7 @@ export class SetJournalProperty {
 
   timeStamp: number;
   appMonitorId: string;
-  url: string;
+  originUrl: string;
   userMonitorId: string;
   osName?: string;
   osVersion?: string;
@@ -59,12 +44,16 @@ export class SetJournalProperty {
     const { name: egName, version: egVersion } = getEngine();
     const { name: bsName, version: bsVersion } = getBrowser();
 
-    this.timeStamp = new Date().getTime(); // 获取本次上报时间戳
-    this.appMonitorId = APP_MONITOR_ID; // 用于区分应用的唯一标识（一个项目对应一个）
-    this.url = window.location.href.split('?')[0].replace('#', ''); // 页面的url
-    this.userMonitorId = `${this.url}@${JSON.parse(
+    // 获取本次上报时间戳
+    this.timeStamp = new Date().getTime();
+    // 用于区分应用的唯一标识（一个项目对应一个）
+    this.appMonitorId = APP_MONITOR_ID;
+    // 页面的url
+    this.originUrl = window.location.href.split('?')[0].replace('#', '');
+    // 用于区分用户，所对应唯一的标识，清理本地数据后失效
+    this.userMonitorId = `${this.originUrl}@${JSON.parse(
       localStorage.getItem('userMonitorId') ?? SetJournalProperty.setUserId(),
-    )}`; // 用于区分用户，所对应唯一的标识，清理本地数据后失效
+    )}`;
     this.osName = osName;
     this.osVersion = osVersion;
     this.egName = egName;
@@ -73,58 +62,94 @@ export class SetJournalProperty {
     this.bsVersion = bsVersion;
     this.ua = getUA();
   }
-
-  submitError(serverUrl: string) {
-    const beacon = new Image();
-
-    beacon.src = serverUrl + encodeURI(objecToQuery(this));
-  }
 }
 
+/**
+ * @description: JS错误类
+ */
 export class JsError extends SetJournalProperty {
+  errorType: string;
+  errorStack: string;
+  errorMsg: string;
   errorId?: string;
 
-  constructor(
-    public errorType: string,
-    public errorStack: string,
-    public errorMsg: string,
-    APP_MONITOR_ID: string,
-    errPos: string,
-  ) {
+  constructor({ errorType, errorStack, errorMsg, APP_MONITOR_ID, errPos }: JsErrorParams) {
     super(APP_MONITOR_ID);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
+    this.errorType = errorType;
+    this.errorStack = errorStack;
+    this.errorMsg = errorMsg;
     this.errorId = getErrorId(submitErrorIds, `${errorMsg}:${errPos}`);
   }
-
-  submitError(serverUrl: string) {
-    const beacon = new Image();
-
-    beacon.src = serverUrl + encodeURI(objecToQuery(this));
-  }
 }
 
+/**
+ * @description: Promise错误类
+ */
 export class PromiseError extends SetJournalProperty {
+  errorType: string;
+  errorStack: string;
+  errorMsg: string;
   errorId?: string;
 
-  constructor(public errorType: string, public errorStack: string, public errorMsg: string, APP_MONITOR_ID: string) {
+  constructor({ errorType, errorStack, errorMsg, APP_MONITOR_ID }: PromiseErrorParams) {
     super(APP_MONITOR_ID);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
+    this.errorType = errorType;
+    this.errorStack = errorStack;
+    this.errorMsg = errorMsg;
     this.errorId = getErrorId(submitErrorIds, errorMsg);
   }
 }
 
+/**
+ * @description: 静态资源错误类
+ */
 export class ResourceError extends SetJournalProperty {
+  errorType: string;
+  errorMsg: string;
+  resourceUrl: string;
   errorId?: string;
 
-  constructor(public errorType: string, public errorMsg: string, resourceUrl: string, APP_MONITOR_ID: string) {
+  constructor({ errorType, errorMsg, resourceUrl, APP_MONITOR_ID }: ResourceErrorErrorParams) {
     super(APP_MONITOR_ID);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
+    this.errorType = errorType;
+    this.errorMsg = errorMsg;
+    this.resourceUrl = resourceUrl;
     this.errorId = getErrorId(submitErrorIds, resourceUrl);
+  }
+}
+
+/**
+ * @description: Http请求错误类
+ */
+export class HttpRequestError extends SetJournalProperty {
+  errorType: string;
+  requestUrl: string;
+  method: string;
+  status: number;
+  statusText: string;
+  duration: string;
+  errorId?: string;
+
+  constructor({ errorType, requestUrl, method, status, statusText, duration, APP_MONITOR_ID }: HttpRequestErrorParams) {
+    super(APP_MONITOR_ID);
+
+    const { getErrorId, submitErrorIds } = SetJournalProperty;
+
+    this.errorType = errorType;
+    this.requestUrl = requestUrl;
+    this.method = method;
+    this.status = status;
+    this.statusText = statusText;
+    this.duration = duration;
+    this.errorId = getErrorId(submitErrorIds, `${errorType}${requestUrl}${method}`);
   }
 }

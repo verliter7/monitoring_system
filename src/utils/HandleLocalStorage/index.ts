@@ -1,11 +1,11 @@
 import { JType } from '@/utils';
 
 type GetParams = Array<string> | string;
-type SetParams = MapRecord<any>;
+type SetParams = Record<string, any>;
 type RemoveParams = GetParams;
 
 interface IHandleLocalStorage {
-  get(params: Array<string>): MapRecord<any>;
+  get(params: Array<string>): Record<string, any>;
   get(params: string): any;
   readonly set: (params: SetParams) => void;
   readonly remove: (params: RemoveParams) => void;
@@ -16,18 +16,18 @@ interface IHandleLocalStorage {
  */
 class HandleLocalStorage implements IHandleLocalStorage {
   private static instance: HandleLocalStorage;
-  public static readonly getInstance = (): HandleLocalStorage => {
+  static readonly getInstance = (): HandleLocalStorage => {
     if (!this.instance) {
       this.instance = new HandleLocalStorage();
     }
     return this.instance;
   };
 
-  get(params: Array<string>): MapRecord<any>;
+  get(params: Array<string>): Record<string, any>;
   get(params: string): any;
-  public get(params: GetParams) {
+  get(params: GetParams) {
     if (Array.isArray(params)) {
-      const localStorages: MapRecord<any> = {};
+      const localStorages: Record<string, any> = {};
       params.forEach((key) => {
         try {
           localStorages[key] = JSON.parse((localStorage.getItem(key) as string) || '{}');
@@ -45,15 +45,15 @@ class HandleLocalStorage implements IHandleLocalStorage {
     }
   }
 
-  public set(params: SetParams) {
+  set(params: SetParams) {
     for (const key in params) {
       if (Object.prototype.hasOwnProperty.call(params, key)) {
-        localStorage.setItem(key, JSON.stringify((params as MapRecord<any>)[key]));
+        localStorage.setItem(key, JSON.stringify((params as Record<string, any>)[key]));
       }
     }
   }
 
-  public remove(params: RemoveParams) {
+  remove(params: RemoveParams) {
     if (Array.isArray(params)) {
       params.forEach((key) => {
         localStorage.removeItem(key);
