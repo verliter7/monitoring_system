@@ -1,22 +1,65 @@
-import { DimensionStructure } from "./type";
-import { EngineInstance, initOptions } from "..";
+import UAParser from 'ua-parser-js';
+import { randomString } from '../utils';
+import type { initOptions } from '..';
+
+export type DimensionAttribute = {
+  timeStamp: number;
+  aid: string;
+  originUrl: string;
+  userMonitorId: string;
+  osName?: string;
+  osVersion?: string;
+  egName?: string;
+  egVersion?: string;
+  bsName?: string;
+  bsVersion?: string;
+  ua: string;
+};
 
 // 维度实例，用以初始化 uid、sid等信息
 export default class DimensionInstance {
-  private engineInstance: EngineInstance;
-  private options: initOptions
+  static setUserId() {
+    const randomStr = randomString();
 
-  constructor(engineInstance: EngineInstance, options: initOptions) {
-    this.options = options
-    this.engineInstance = engineInstance
+    localStorage.setItem('userMonitorId', JSON.stringify(randomStr));
+
+    return randomStr;
   }
 
-  getDimension = (): DimensionStructure => {
-    const { aid } = this.options
-    return {
-      aid,
-      url: window.location.href,
-      userAgent: 'Chrome',
-    }
+  timeStamp: number;
+  aid: string;
+  originUrl: string;
+  userMonitorId: string;
+  osName?: string;
+  osVersion?: string;
+  egName?: string;
+  egVersion?: string;
+  bsName?: string;
+  bsVersion?: string;
+  ua: string;
+
+  constructor(options: initOptions) {
+    const { getBrowser, getEngine, getOS, getUA } = new UAParser();
+    const { name: osName, version: osVersion } = getOS();
+    const { name: egName, version: egVersion } = getEngine();
+    const { name: bsName, version: bsVersion } = getBrowser();
+
+    // 获取本次上报时间戳
+    this.timeStamp = new Date().getTime();
+    // 用于区分应用的唯一标识（一个项目对应一个）
+    this.aid = options.aid;
+    // 页面的url
+    this.originUrl = window.location.href.split('?')[0].replace('#', '');
+    // 用于区分用户，所对应唯一的标识，清理本地数据后失效
+    this.userMonitorId = `${this.originUrl}@${JSON.parse(
+      localStorage.getItem('userMonitorId') ?? DimensionInstance.setUserId(),
+    )}`;
+    this.osName = osName;
+    this.osVersion = osVersion;
+    this.egName = egName;
+    this.egVersion = egVersion;
+    this.bsName = bsName;
+    this.bsVersion = bsVersion;
+    this.ua = getUA();
   }
 }

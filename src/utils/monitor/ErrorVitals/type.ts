@@ -1,24 +1,9 @@
-// 错误基类interface
-export type BaseError = {
-  timeStamp: number;
-  aid: string;
-  errorId?: string;
-  originUrl: string;
-  userMonitorId: string;
-  osName?: string;
-  osVersion?: string;
-  egName?: string;
-  egVersion?: string;
-  bsName?: string;
-  bsVersion?: string;
-  ua: string;
-};
+import { DimensionAttribute } from '../DimensionInstance/DimensionInstance';
 
 export type JsErrorParams = {
   errorType: string;
   errorStack: string;
   errorMsg: string;
-  aid: string;
   errPos: string;
 };
 
@@ -26,14 +11,12 @@ export type PromiseErrorParams = {
   errorType: string;
   errorStack: string;
   errorMsg: string;
-  aid: string;
 };
 
 export type ResourceErrorErrorParams = {
   errorType: string;
   errorMsg: string;
   resourceUrl: string;
-  aid: string;
 };
 
 export type HttpRequestErrorParams = {
@@ -43,17 +26,16 @@ export type HttpRequestErrorParams = {
   status: number;
   statusText: string;
   duration: string;
-  aid: string;
 };
 
 // JS错误type
-export type JsTransportError = Omit<JsErrorParams & BaseError, 'aid' | 'errPos'>;
+export type JsTransportError = Omit<JsErrorParams & DimensionAttribute, 'errPos'>;
 
 // Promise错误type
-export type PromiseTransportError = Omit<PromiseErrorParams & BaseError, 'aid'>;
+export type PromiseTransportError = PromiseErrorParams & DimensionAttribute;
 
 // 静态资源错误type
-export type ResourceTransportError = Omit<ResourceErrorErrorParams & BaseError, 'aid'>;
+export type ResourceTransportError = ResourceErrorErrorParams & DimensionAttribute;
 
 // Http请求错误type
-export type HttpRequestTransportError = Omit<HttpRequestErrorParams & BaseError, 'aid'>;
+export type HttpRequestTransportError = HttpRequestErrorParams & DimensionAttribute;

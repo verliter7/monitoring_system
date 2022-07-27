@@ -1,22 +1,22 @@
-import BuilderInstance from "./BuilderInstance/BuilderInstance";
-import DimensionInstance from "./DimensionInstance/DimensionInstance";
-import TransportInstance, { transportKind } from "./Transport/Transport";
-import UserVitals from "./UserVitals/UserVitals";
-import WebVitals from "./WebVitals/WebVitals";
+import BuilderInstance from './BuilderInstance/BuilderInstance';
+import DimensionInstance from './DimensionInstance/DimensionInstance';
+import TransportInstance, { transportKind } from './Transport/Transport';
+// import UserVitals from './UserVitals/UserVitals';
+import WebVitals from './WebVitals/WebVitals';
 import ErrorVitals from './ErrorVitals';
 import { errorUrl } from './utils/urls';
 
 export interface EngineInstance {
-  performanceInstance: WebVitals,
-  userInstance: UserVitals,
-  dimensionInstance: DimensionInstance,
-  builderInstance: BuilderInstance,
-  transportInstance: TransportInstance,
+  performanceInstance: WebVitals;
+  // userInstance: UserVitals;
+  dimensionInstance: DimensionInstance;
+  builderInstance: BuilderInstance;
+  transportInstance: TransportInstance;
 }
 
 export interface initOptions {
-  aid: string, // 应用ID，唯一必填参数
-  [key: string | number]: any
+  aid: string; // 应用ID，唯一必填参数
+  [key: string | number]: any;
 }
 
 // 服务于 Web 的SDK，继承了 Core 上的与平台无关方法;
@@ -25,7 +25,7 @@ class WebSdk {
   public performanceInstance: WebVitals;
 
   // 行为监控实例，实例里每个插件实现一个行为监控功能；
-  public userInstance: UserVitals;
+  // public userInstance: UserVitals;
 
   // 错误监控实例，实例里每个插件实现一个错误监控功能；
   public errorCatchInstance: ErrorVitals;
@@ -51,15 +51,15 @@ class WebSdk {
         [transportKind.stability, errorUrl],
         [transportKind.performance, ''],
         [transportKind.business, ''],
-      ])
-    })
+      ]),
+    });
 
-    this.performanceInstance = new WebVitals(this)
-    this.userInstance = new UserVitals(this)
-    this.dimensionInstance = new DimensionInstance(this, options)
-    this.builderInstance = new BuilderInstance(this)
-    this.errorCatchInstance = new ErrorVitals(this.transportInstance, options.aid, errorUrl);
-    // throw new TypeError('123');
+    this.performanceInstance = new WebVitals(this);
+    // this.userInstance = new UserVitals(this);
+    this.dimensionInstance = new DimensionInstance(options);
+    this.builderInstance = new BuilderInstance(this);
+    this.errorCatchInstance = new ErrorVitals(this.transportInstance, options);
+    throw new TypeError('123');
     // fetch('http://localhost:8080/api/v1/err', {
     //   method: 'GET',
     // });

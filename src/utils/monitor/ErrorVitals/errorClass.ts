@@ -1,11 +1,7 @@
-import UAParser from 'ua-parser-js';
 import { randomString, hashCode } from '../utils';
 import type { HttpRequestErrorParams, JsErrorParams, PromiseErrorParams, ResourceErrorErrorParams } from './type';
 
-/**
- * @description: 设置日志对象类的通用属性
- */
-export class SetJournalProperty {
+export class BaseErrorUtils {
   static submitErrorIds = new Set<string>();
   // 保存用户id到localStorage里面
   static setUserId() {
@@ -25,58 +21,21 @@ export class SetJournalProperty {
       return errorId;
     }
   }
-
-  timeStamp: number;
-  aid: string;
-  originUrl: string;
-  userMonitorId: string;
-  osName?: string;
-  osVersion?: string;
-  egName?: string;
-  egVersion?: string;
-  bsName?: string;
-  bsVersion?: string;
-  ua: string;
-
-  constructor(aid: string) {
-    const { getBrowser, getEngine, getOS, getUA } = new UAParser();
-    const { name: osName, version: osVersion } = getOS();
-    const { name: egName, version: egVersion } = getEngine();
-    const { name: bsName, version: bsVersion } = getBrowser();
-
-    // 获取本次上报时间戳
-    this.timeStamp = new Date().getTime();
-    // 用于区分应用的唯一标识（一个项目对应一个）
-    this.aid = aid;
-    // 页面的url
-    this.originUrl = window.location.href.split('?')[0].replace('#', '');
-    // 用于区分用户，所对应唯一的标识，清理本地数据后失效
-    this.userMonitorId = `${this.originUrl}@${JSON.parse(
-      localStorage.getItem('userMonitorId') ?? SetJournalProperty.setUserId(),
-    )}`;
-    this.osName = osName;
-    this.osVersion = osVersion;
-    this.egName = egName;
-    this.egVersion = egVersion;
-    this.bsName = bsName;
-    this.bsVersion = bsVersion;
-    this.ua = getUA();
-  }
 }
 
 /**
  * @description: JS错误类
  */
-export class JsError extends SetJournalProperty {
+export class JsError extends BaseErrorUtils {
   errorType: string;
   errorStack: string;
   errorMsg: string;
   errorId?: string;
 
-  constructor({ errorType, errorStack, errorMsg, aid, errPos }: JsErrorParams) {
-    super(aid);
+  constructor({ errorType, errorStack, errorMsg, errPos }: JsErrorParams) {
+    super();
 
-    const { getErrorId, submitErrorIds } = SetJournalProperty;
+    const { getErrorId, submitErrorIds } = BaseErrorUtils;
 
     this.errorType = errorType;
     this.errorStack = errorStack;
@@ -88,16 +47,16 @@ export class JsError extends SetJournalProperty {
 /**
  * @description: Promise错误类
  */
-export class PromiseError extends SetJournalProperty {
+export class PromiseError extends BaseErrorUtils {
   errorType: string;
   errorStack: string;
   errorMsg: string;
   errorId?: string;
 
-  constructor({ errorType, errorStack, errorMsg, aid }: PromiseErrorParams) {
-    super(aid);
+  constructor({ errorType, errorStack, errorMsg }: PromiseErrorParams) {
+    super();
 
-    const { getErrorId, submitErrorIds } = SetJournalProperty;
+    const { getErrorId, submitErrorIds } = BaseErrorUtils;
 
     this.errorType = errorType;
     this.errorStack = errorStack;
@@ -109,16 +68,16 @@ export class PromiseError extends SetJournalProperty {
 /**
  * @description: 静态资源错误类
  */
-export class ResourceError extends SetJournalProperty {
+export class ResourceError extends BaseErrorUtils {
   errorType: string;
   errorMsg: string;
   resourceUrl: string;
   errorId?: string;
 
-  constructor({ errorType, errorMsg, resourceUrl, aid }: ResourceErrorErrorParams) {
-    super(aid);
+  constructor({ errorType, errorMsg, resourceUrl }: ResourceErrorErrorParams) {
+    super();
 
-    const { getErrorId, submitErrorIds } = SetJournalProperty;
+    const { getErrorId, submitErrorIds } = BaseErrorUtils;
 
     this.errorType = errorType;
     this.errorMsg = errorMsg;
@@ -130,7 +89,7 @@ export class ResourceError extends SetJournalProperty {
 /**
  * @description: Http请求错误类
  */
-export class HttpRequestError extends SetJournalProperty {
+export class HttpRequestError extends BaseErrorUtils {
   errorType: string;
   requestUrl: string;
   method: string;
@@ -139,10 +98,10 @@ export class HttpRequestError extends SetJournalProperty {
   duration: string;
   errorId?: string;
 
-  constructor({ errorType, requestUrl, method, status, statusText, duration, aid }: HttpRequestErrorParams) {
-    super(aid);
+  constructor({ errorType, requestUrl, method, status, statusText, duration }: HttpRequestErrorParams) {
+    super();
 
-    const { getErrorId, submitErrorIds } = SetJournalProperty;
+    const { getErrorId, submitErrorIds } = BaseErrorUtils;
 
     this.errorType = errorType;
     this.requestUrl = requestUrl;

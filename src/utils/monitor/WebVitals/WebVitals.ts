@@ -1,4 +1,4 @@
-import MetricsStore, { IMetrics, metricsName } from "../store";
+import MetricsStore, { IMetrics, metricsName } from '../store';
 import {
   getFP,
   getFCP,
@@ -9,19 +9,15 @@ import {
   getNavigationTiming,
   getResourceFlow,
   getLongTask,
-} from './GetEntry'
-import {
-  LayoutShift,
-  ResourceFlowTiming,
-} from "./type";
-import { EngineInstance } from "..";
-import { transportCategory, transportKind, transportType } from "../Transport/Transport";
-
+} from './GetEntry';
+import { LayoutShift, ResourceFlowTiming } from './type';
+import { EngineInstance } from '..';
+import { transportCategory, transportKind, transportType, transportHandlerType } from '../Transport/Transport';
 
 export const afterLoad = (callback: any) => {
   //Document.readyState 属性描述了document 的加载状态 complete加载完成
   if (document.readyState === 'complete') {
-    setTimeout(callback)
+    setTimeout(callback);
   } else {
     /**
      * pageshow触发时机
@@ -34,9 +30,9 @@ export const afterLoad = (callback: any) => {
      * capture: Boolean，表示 listener 会在该类型的事件捕获阶段传播到该 EventTarget 时触发。
      * once: Boolean，表示 listener 在添加之后最多只调用一次。如果是 true， listener 会在其被调用之后自动移除。
      */
-    window.addEventListener('pageshow', callback, { once: true, capture: true })
+    window.addEventListener('pageshow', callback, { once: true, capture: true });
   }
-}
+};
 
 // 初始化入口，外部调用只需要 new WebVitals();
 export default class WebVitals {
@@ -51,7 +47,7 @@ export default class WebVitals {
     this.initLCP();
     this.initCLS();
     this.initResourceFlow();
-    this.initLongTask()
+    this.initLongTask();
 
     // 这里的 FP/FCP/FID resource需要在页面成功加载了再进行获取
     afterLoad(() => {
@@ -67,15 +63,15 @@ export default class WebVitals {
   perfSendHandler = (): void => {
     // 如果你要监听 FID 数据。你就需要等待 FID 参数捕获完成后进行上报;
     // 如果不需要监听 FID，那么这里你就可以发起上报请求了;
-    console.log(this.metrics.getValues());
-
+    // console.log(this.metrics.getValues());
     // 数据上报
-    this.engineInstance.transportInstance.kernelTransportHandler(
-      transportKind.performance,
-      transportType.paint,
-      this.engineInstance.builderInstance.builderStrategy.get(transportKind.performance)?.(transportType.paint)
-    );
-  }
+    // this.engineInstance.transportInstance.kernelTransportHandler(
+    //   transportKind.performance,
+    //   transportType.paint,
+    //   this.engineInstance.builderInstance.builderStrategy.get(transportKind.performance)?.(transportType.paint),
+    //   transportHandlerType.initTransport
+    // );
+  };
 
   //W3C标准化在 w3c/paint-timing 定义了 首次非网页背景像素渲染（fp）(白屏时间) 和  首次内容渲染（fcp)(灰屏时间)，我们可以直接去取;
 
@@ -85,10 +81,10 @@ export default class WebVitals {
       const metrics = {
         startTime: entry?.startTime.toFixed(2),
         entry,
-      } as IMetrics
-      this.metrics.set(metricsName.FP, metrics)
-    }
-    getFP(entryHandler)
+      } as IMetrics;
+      this.metrics.set(metricsName.FP, metrics);
+    };
+    getFP(entryHandler);
   };
 
   // 初始化 FCP 的获取以及返回
@@ -97,10 +93,10 @@ export default class WebVitals {
       const metrics = {
         startTime: entry?.startTime.toFixed(2),
         entry,
-      } as IMetrics
-      this.metrics.set(metricsName.FCP, metrics)
-    }
-    getFCP(entryHandler)
+      } as IMetrics;
+      this.metrics.set(metricsName.FCP, metrics);
+    };
+    getFCP(entryHandler);
   };
 
   // 初始化 LCP 的获取以及返回
@@ -109,9 +105,9 @@ export default class WebVitals {
       const metrics = {
         startTime: entry?.startTime.toFixed(2),
         entry,
-      } as IMetrics
-      this.metrics.set(metricsName.LCP, metrics)
-    }
+      } as IMetrics;
+      this.metrics.set(metricsName.LCP, metrics);
+    };
     getLCP(entryHandler);
   };
 
@@ -121,11 +117,11 @@ export default class WebVitals {
       const metrics = {
         startTime: entry?.startTime.toFixed(2),
         entry,
-      } as IMetrics
-      this.metrics.set(metricsName.FMP, metrics)
-    }
+      } as IMetrics;
+      this.metrics.set(metricsName.FMP, metrics);
+    };
     getFMP(entryHandler);
-  }
+  };
 
   // 初始化 FID 的获取以及返回
   initFID = (): void => {
@@ -214,12 +210,10 @@ export default class WebVitals {
         const metrics = {
           startTime: entry?.startTime.toFixed(2),
           entry,
-        } as IMetrics
-        this.metrics.set(metricsName.LT, metrics)
+        } as IMetrics;
+        this.metrics.set(metricsName.LT, metrics);
       }
-    }
-    getLongTask(entryHandler)
-  }
+    };
+    getLongTask(entryHandler);
+  };
 }
-
-
