@@ -13,7 +13,7 @@ const ErrorModel = seq.define('js_resource_error', {
     allowNull: false,
     comment: '数据上报的时间戳',
   },
-  appMonitorId: {
+  aid: {
     type: DataTypes.STRING,
     allowNull: false,
     comment: '每个监控应用的id',
@@ -38,10 +38,20 @@ const ErrorModel = seq.define('js_resource_error', {
     allowNull: true,
     comment: '浏览器信息',
   },
+  kind: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: '监控类型',
+  },
+  type: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: '错误大类型',
+  },
   errorType: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: '错误类型',
+    comment: '错误小类型',
   },
   errorStack: {
     type: DataTypes.TEXT('long'),
@@ -80,6 +90,6 @@ const ErrorModel = seq.define('js_resource_error', {
   },
 });
 
-// ErrorModel.sync({ force: true });
+ErrorModel.sync({ force: true });
 
 export default ErrorModel;
