@@ -6,7 +6,7 @@ import { afterLoad } from "../WebVitals/WebVitals";
 import { httpMetrics, proxyXmlHttp } from "./XMLHttpRequest";
 import { proxyFetch } from "./Fetch";
 import { getOriginInfo, OriginInformation } from "./OriginInformation";
-import { EngineInstance } from "../WebSdk";
+import { EngineInstance } from "..";
 
 export default class UserVitals {
   private engineInstance: EngineInstance;

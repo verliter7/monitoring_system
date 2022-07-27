@@ -14,7 +14,7 @@ import {
   LayoutShift,
   ResourceFlowTiming,
 } from "./type";
-import { EngineInstance } from "../WebSdk";
+import { EngineInstance } from "..";
 import { transportCategory, transportKind, transportType } from "../Transport/Transport";
 
 

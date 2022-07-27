@@ -27,7 +27,7 @@ export class SetJournalProperty {
   }
 
   timeStamp: number;
-  appMonitorId: string;
+  aid: string;
   originUrl: string;
   userMonitorId: string;
   osName?: string;
@@ -38,7 +38,7 @@ export class SetJournalProperty {
   bsVersion?: string;
   ua: string;
 
-  constructor(APP_MONITOR_ID: string) {
+  constructor(aid: string) {
     const { getBrowser, getEngine, getOS, getUA } = new UAParser();
     const { name: osName, version: osVersion } = getOS();
     const { name: egName, version: egVersion } = getEngine();
@@ -47,7 +47,7 @@ export class SetJournalProperty {
     // 获取本次上报时间戳
     this.timeStamp = new Date().getTime();
     // 用于区分应用的唯一标识（一个项目对应一个）
-    this.appMonitorId = APP_MONITOR_ID;
+    this.aid = aid;
     // 页面的url
     this.originUrl = window.location.href.split('?')[0].replace('#', '');
     // 用于区分用户，所对应唯一的标识，清理本地数据后失效
@@ -73,8 +73,8 @@ export class JsError extends SetJournalProperty {
   errorMsg: string;
   errorId?: string;
 
-  constructor({ errorType, errorStack, errorMsg, APP_MONITOR_ID, errPos }: JsErrorParams) {
-    super(APP_MONITOR_ID);
+  constructor({ errorType, errorStack, errorMsg, aid, errPos }: JsErrorParams) {
+    super(aid);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
@@ -94,8 +94,8 @@ export class PromiseError extends SetJournalProperty {
   errorMsg: string;
   errorId?: string;
 
-  constructor({ errorType, errorStack, errorMsg, APP_MONITOR_ID }: PromiseErrorParams) {
-    super(APP_MONITOR_ID);
+  constructor({ errorType, errorStack, errorMsg, aid }: PromiseErrorParams) {
+    super(aid);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
@@ -115,8 +115,8 @@ export class ResourceError extends SetJournalProperty {
   resourceUrl: string;
   errorId?: string;
 
-  constructor({ errorType, errorMsg, resourceUrl, APP_MONITOR_ID }: ResourceErrorErrorParams) {
-    super(APP_MONITOR_ID);
+  constructor({ errorType, errorMsg, resourceUrl, aid }: ResourceErrorErrorParams) {
+    super(aid);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 
@@ -139,8 +139,8 @@ export class HttpRequestError extends SetJournalProperty {
   duration: string;
   errorId?: string;
 
-  constructor({ errorType, requestUrl, method, status, statusText, duration, APP_MONITOR_ID }: HttpRequestErrorParams) {
-    super(APP_MONITOR_ID);
+  constructor({ errorType, requestUrl, method, status, statusText, duration, aid }: HttpRequestErrorParams) {
+    super(aid);
 
     const { getErrorId, submitErrorIds } = SetJournalProperty;
 

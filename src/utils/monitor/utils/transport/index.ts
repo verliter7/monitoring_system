@@ -4,7 +4,7 @@ import type {
   PromiseTransportError,
   ResourceTransportError,
   HttpRequestTransportError,
-} from '../../catchError/type';
+} from '../../ErrorVitals/type';
 
 type Transport = (
   serverUrl: string,

@@ -1,6 +1,6 @@
 import { IMetrics, metricsName } from "../store";
 import { transportKind, transportType } from "../Transport/Transport";
-import { EngineInstance } from "../WebSdk";
+import { EngineInstance } from "..";
 
 export default class BuilderInstance {
   private engineInstance: EngineInstance;
