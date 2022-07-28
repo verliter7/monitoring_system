@@ -12,7 +12,7 @@ export interface MPerformanceNavigationTiming {
   TTI?: number;
   DomReady?: number;
   Load?: number;
-  FirseByte?: number;
+  FirstByte?: number;
   DNS?: number;
   TCP?: number;
   SSL?: number;

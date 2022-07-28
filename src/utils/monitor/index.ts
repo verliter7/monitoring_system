@@ -59,7 +59,7 @@ class WebSdk {
     this.dimensionInstance = new DimensionInstance(options);
     this.builderInstance = new BuilderInstance(this);
     this.errorCatchInstance = new ErrorVitals(this.transportInstance, options);
-    throw new TypeError('123');
+    // throw new TypeError('123');
     // fetch('http://localhost:8080/api/v1/err', {
     //   method: 'GET',
     // });

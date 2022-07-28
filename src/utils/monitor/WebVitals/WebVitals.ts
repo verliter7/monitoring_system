@@ -12,7 +12,7 @@ import {
 } from './GetEntry';
 import { LayoutShift, ResourceFlowTiming } from './type';
 import { EngineInstance } from '..';
-import { transportCategory, transportKind, transportType, transportHandlerType } from '../Transport/Transport';
+import { transportKind, transportType, transportHandlerType } from '../Transport/Transport';
 
 export const afterLoad = (callback: any) => {
   //Document.readyState 属性描述了document 的加载状态 complete加载完成
@@ -68,8 +68,7 @@ export default class WebVitals {
     // this.engineInstance.transportInstance.kernelTransportHandler(
     //   transportKind.performance,
     //   transportType.paint,
-    //   this.engineInstance.builderInstance.builderStrategy.get(transportKind.performance)?.(transportType.paint),
-    //   transportHandlerType.initTransport
+    //   this.engineInstance.builderInstance.builderStrategy.get(transportKind.performance)?.(transportType.paint)
     // );
   };
 

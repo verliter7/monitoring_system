@@ -138,13 +138,12 @@ export default class ErrorVitals {
             // eventType为'error'证明是网络断开或者请求跨域出错
             const httpRequestError = new HttpRequestError({
               ...defaultParams,
-              errorType: `XMLHttpRequest${
-                eventType === 'error'
+              errorType: `XMLHttpRequest${eventType === 'error'
                   ? `CrossDomainError`
                   : eventType === 'loadend'
-                  ? 'Error'
-                  : eventType[0].toUpperCase() + eventType.slice(1)
-              }`,
+                    ? 'Error'
+                    : eventType[0].toUpperCase() + eventType.slice(1)
+                }`,
             });
 
             console.log(httpRequestError);

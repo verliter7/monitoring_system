@@ -1,12 +1,5 @@
 import { DimensionStructure } from '../DimensionInstance/type';
-import { EngineInstance, initOptions } from '..';
-
-export enum transportCategory {}
-// PV = 'pv',// PV访问数据
-// PERF = 'perf',// 性能数据
-// API = 'api',// api 请求数据
-// ERROR = 'error',// 报错数据
-// CUS = 'custom',// 自定义行为
+import { EngineInstance } from '..';
 
 export enum transportKind {
   stability = 'stability', // 稳定性
@@ -49,14 +42,14 @@ export interface TransportParams {
 }
 
 export default class TransportInstance {
-  constructor(public engineInstance: EngineInstance, public options: TransportParams) {}
+  constructor(public engineInstance: EngineInstance, public options: TransportParams) { }
 
   /**
    * 对外暴露的上报函数
    * @param kind 上报数据的大类
    * @param type 上报数据的小类
    * @param data 要上报的数据
-   * @returns
+   * @param transportHandler 选择上传方式
    */
   kernelTransportHandler = (
     kind: transportKind,
@@ -77,11 +70,11 @@ export default class TransportInstance {
     // 让浏览器空闲时调用上报函数
     'requestIdleCallback' in window
       ? requestIdleCallback(() => {
-          handler(transportStructure, transportUrl);
-        })
+        handler(transportStructure, transportUrl);
+      })
       : setTimeout(() => {
-          handler(transportStructure, transportUrl);
-        }, 0);
+        handler(transportStructure, transportUrl);
+      }, 0);
   };
 
   // 初始化上报方法
