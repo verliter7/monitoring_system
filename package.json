@@ -10,6 +10,7 @@
     "server": "json-server api.json --watch --port 8080"
   },
   "dependencies": {
+    "@ant-design/charts": "^1.4.2",
     "antd": "^4.21.7",
     "antv": "^0.2.2",
     "react": "^18.2.0",

@@ -1,6 +1,4 @@
-import DimensionStructure from '../DimensionInstance/type';
 import { EngineInstance } from '..';
-
 
 export enum transportKind {
   stability = 'stability', // 稳定性

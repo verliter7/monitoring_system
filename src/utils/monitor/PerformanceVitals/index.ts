@@ -203,6 +203,7 @@ export default class PerformanceVitals {
     const stopListening = () => {
       const metrics = resourceFlow as IMetrics;
       this.metrics.set(metricsName.RF, metrics);
+      observer?.disconnect()
     };
     // 当页面 pageshow 触发时，中止
     window.addEventListener('pageshow', stopListening, { once: true, capture: true });
