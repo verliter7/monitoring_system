@@ -1,4 +1,4 @@
-import MetricsStore, { IMetrics, metricsName } from '../store';
+import { MetricsStore, IMetrics, metricsName } from '../store';
 import {
   getFP,
   getFCP,
