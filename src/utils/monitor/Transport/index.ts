@@ -1,5 +1,5 @@
 import { DimensionStructure } from '../DimensionInstance/type';
-import { EngineInstance, initOptions } from '..';
+import { EngineInstance } from '..';
 
 export enum transportCategory {}
 // PV = 'pv',// PV访问数据
@@ -16,6 +16,7 @@ export enum transportKind {
 
 export enum transportType {
   jsError = 'jsError',
+  promiseError = 'promiseError',
   httpError = 'httpError',
   resourceError = 'resourceError',
   blank = 'blank',
@@ -73,15 +74,13 @@ export default class TransportInstance {
       ...data, // 上报数据
     };
     // 上报url
-    let transportUrl = this.options.transportUrl.get(kind);
+    const transportUrl = this.options.transportUrl.get(kind);
+    const delay = Reflect.has(window, 'requestIdleCallback') ? requestIdleCallback : setTimeout;
+
     // 让浏览器空闲时调用上报函数
-    'requestIdleCallback' in window
-      ? requestIdleCallback(() => {
-          handler(transportStructure, transportUrl);
-        })
-      : setTimeout(() => {
-          handler(transportStructure, transportUrl);
-        }, 0);
+    delay(() => {
+      handler(transportStructure, transportUrl);
+    });
   };
 
   // 初始化上报方法
@@ -112,10 +111,10 @@ export default class TransportInstance {
   //image 形式上报
   imageTransportHandler = (): Function => {
     const handler = (data: TransportStructure, transportUrl: string) => {
-      let queryStr = Object.entries(data)
+      const queryStr = Object.entries(data)
         .map(([key, value]) => `${key}=${value}`)
         .join('&');
-      let img = new Image();
+      const img = new Image();
       img.src = `${transportUrl}?${queryStr}`;
     };
     return handler;

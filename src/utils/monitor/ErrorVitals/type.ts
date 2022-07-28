@@ -1,4 +1,4 @@
-import { DimensionAttribute } from '../DimensionInstance/DimensionInstance';
+import DimensionStructure from '../DimensionInstance/type';
 
 export type JsErrorParams = {
   errorType: string;
@@ -9,8 +9,8 @@ export type JsErrorParams = {
 
 export type PromiseErrorParams = {
   errorType: string;
-  errorStack: string;
   errorMsg: string;
+  errorStack?: string;
 };
 
 export type ResourceErrorErrorParams = {
@@ -29,13 +29,13 @@ export type HttpRequestErrorParams = {
 };
 
 // JS错误type
-export type JsTransportError = Omit<JsErrorParams & DimensionAttribute, 'errPos'>;
+export type JsTransportError = Omit<JsErrorParams & DimensionStructure, 'errPos'>;
 
 // Promise错误type
-export type PromiseTransportError = PromiseErrorParams & DimensionAttribute;
+export type PromiseTransportError = PromiseErrorParams & DimensionStructure;
 
 // 静态资源错误type
-export type ResourceTransportError = ResourceErrorErrorParams & DimensionAttribute;
+export type ResourceTransportError = ResourceErrorErrorParams & DimensionStructure;
 
 // Http请求错误type
-export type HttpRequestTransportError = HttpRequestErrorParams & DimensionAttribute;
+export type HttpRequestTransportError = HttpRequestErrorParams & DimensionStructure;

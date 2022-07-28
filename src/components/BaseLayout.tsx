@@ -1,22 +1,19 @@
 /* @jsxImportSource @emotion/react */
 import { useState, createElement } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 import meunConfig from '@/router/meunConfig';
 import HomePageRouters from '@/router/HomePageRouters';
 import IconFont from '@/components/Iconfont';
 import { commonStyles } from '@/utils';
-import MonitorCore from '@/utils/monitor';
 import type { FC, ReactElement } from 'react';
-
-// const monitor = MonitorCore.getInstance('monitor_learn');
-// monitor.init();
 
 const { Header, Sider, Content } = Layout;
 
 const BaseLayout: FC = (): ReactElement => {
   const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
 
   return (
     <Layout
@@ -28,7 +25,7 @@ const BaseLayout: FC = (): ReactElement => {
         <Menu
           theme="light"
           mode="inline"
-          defaultSelectedKeys={[location.pathname]}
+          selectedKeys={[location.pathname]}
           items={meunConfig.map(({ pathname, icon, label }) => ({
             key: pathname,
             icon: <IconFont type={icon} />,

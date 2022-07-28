@@ -1,7 +1,137 @@
+/* @jsxImportSource @emotion/react */
+import { Button } from 'antd';
 import type { FC, ReactElement } from 'react';
 
 const Test: FC = (): ReactElement => {
-  return <div>Test</div>;
+  return (
+    <div css={{ display: 'flex', flexDirection: 'column', gap: '20px', margin: '0 100px' }}>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          throw new TypeError('jsError');
+        }}
+      >
+        抛出js错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/api/v1/error/test?status=500');
+          xhr.send(null);
+        }}
+      >
+        抛出ajax错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          setTimeout(() => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/v1/error/test?status=500');
+            xhr.send(null);
+          }, 5000);
+        }}
+      >
+        抛出ajax network错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', 'https://www.baidu.com/sugrec');
+          xhr.send(null);
+        }}
+      >
+        抛出ajax 跨域错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          const xhr = new XMLHttpRequest();
+
+          xhr.timeout = 1;
+          xhr.open('GET', '/api/v1/error/test?status=200');
+          xhr.send(null);
+        }}
+      >
+        抛出ajax超时错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          const xhr = new XMLHttpRequest();
+
+          xhr.open('GET', '/api/v1/error/test?status=200');
+          xhr.send(null);
+          xhr.abort();
+        }}
+      >
+        抛出ajax取消错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          fetch('/api/v1/error/test?status=500');
+        }}
+      >
+        抛出fetch错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          setTimeout(() => {
+            fetch('/api/v1/error/test?status=500');
+          }, 5000);
+        }}
+      >
+        抛出fetch网络错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          fetch('https://www.baidu.com/sugrec');
+        }}
+      >
+        抛出fetch跨域错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          const controller = new AbortController();
+          const { signal } = controller;
+
+          fetch('/api/v1/error/test?status=200', { signal });
+
+          controller.abort();
+        }}
+      >
+        抛出fetch取消错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          const link = document.createElement('link');
+          link.href = 'https://yun.tuia.cn/image/kkk.css';
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }}
+      >
+        抛出资源加载错误
+      </Button>
+    </div>
+  );
 };
 
 export default Test;

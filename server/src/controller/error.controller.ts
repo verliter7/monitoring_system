@@ -1,12 +1,12 @@
-import { createErrorInfo, findErrorInfo as getErrorInfo } from '@/service/error.service';
+import { createError_s, queryErrorCount_s } from '@/service/error.service';
 import type { Context } from 'koa';
 import type { Optional } from 'sequelize/types';
 
-export async function createError(ctx: Context) {
+export async function createError_c(ctx: Context) {
   const errorInfo = ctx.query as Optional<any, string>;
 
   try {
-    await createErrorInfo(errorInfo);
+    await createError_s(errorInfo);
 
     ctx.defaultResponse();
   } catch (err) {
@@ -16,15 +16,17 @@ export async function createError(ctx: Context) {
   }
 }
 
-export async function getError(ctx: Context) {
+export async function queryErrorCount_c(ctx: Context) {
   try {
-    const { errorId } = ctx.query;
-    const res = await getErrorInfo(errorId as string);
+    const { errorType } = ctx.query;
+    const count = await queryErrorCount_s(errorType as string);
 
     ctx.defaultResponse({
       code: 200,
-      data: res,
-      message: '查找成功',
+      data: {
+        count,
+      },
+      message: '请求成功',
       success: true,
     });
   } catch (err) {

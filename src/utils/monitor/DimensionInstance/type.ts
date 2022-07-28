@@ -1,6 +1,6 @@
-export interface DimensionStructure {
-  timeStamp: number;
+export default interface DimensionStructure {
   aid: string;
+  timeStamp: number;
   errorId?: string;
   originUrl: string;
   userMonitorId: string;
