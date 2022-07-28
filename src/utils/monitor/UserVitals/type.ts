@@ -1,4 +1,4 @@
-import { metricsName } from '../store';
+import { metricsName } from './store';
 
 export interface PageInformation {
   host: string;

@@ -1,11 +1,11 @@
 import Router from 'koa-router';
-import { createError, getError } from '@/controller/error.controller';
+import { createError_c, queryErrorCount_c } from '@/controller/error.controller';
 import type { DefaultState, Context } from 'koa';
 
 const router = new Router<DefaultState, Context>({ prefix: '/error' });
 
-router.get('/add', createError);
+router.get('/add', createError_c);
 
-router.get('/get', getError);
+router.get('/errorCount', queryErrorCount_c);
 
 export default router;

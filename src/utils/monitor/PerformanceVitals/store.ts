@@ -23,7 +23,7 @@ export enum metricsName {
 }
 
 //Map 暂存数据
-export class MetricsStore {
+export default class MetricsStore {
   state: Map<metricsName | string, IMetrics>;
 
   constructor() {

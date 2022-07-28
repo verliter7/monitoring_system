@@ -9,7 +9,7 @@ const ErrorModel = seq.define('js_resource_error', {
     comment: '每条错误数据的Id',
   },
   timeStamp: {
-    type: DataTypes.STRING,
+    type: DataTypes.BIGINT,
     allowNull: false,
     comment: '数据上报的时间戳',
   },
@@ -90,6 +90,6 @@ const ErrorModel = seq.define('js_resource_error', {
   },
 });
 
-ErrorModel.sync({ force: true });
+// ErrorModel.sync({ force: true });
 
 export default ErrorModel;

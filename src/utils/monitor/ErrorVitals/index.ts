@@ -1,15 +1,17 @@
 import { JsError, PromiseError, ResourceError, HttpRequestError } from './errorClass';
 import otherErrorType from '../utils/constant/otherErrorType';
 import { pocessStackInfo, getUrlHref } from '../utils';
-import { initOptions } from '..';
-import TransportInstance, { transportKind, transportType, transportHandlerType } from '../Transport/Transport';
+import { EngineInstance, initOptions } from '..';
+import TransportInstance, { transportKind, transportType, transportHandlerType } from '../Transport';
 
 export default class ErrorVitals {
   serverUrl: string;
+  transportInstance: TransportInstance;
 
-  constructor(public transportInstance: TransportInstance, public options: initOptions) {
+  constructor(public engineInstance: EngineInstance, public options: initOptions) {
+    this.transportInstance = this.engineInstance.transportInstance;
+
     const serverUrl = this.transportInstance.options.transportUrl.get(transportKind.stability)!;
-
     this.serverUrl = serverUrl instanceof URL ? serverUrl.href : serverUrl;
     this.init();
   }
@@ -34,33 +36,43 @@ export default class ErrorVitals {
           const errorType = otherErrorType.RESOURCELOADED;
           const resourceUrl = attributes.getNamedItem('src')?.nodeValue ?? attributes.getNamedItem('href')?.nodeValue;
           const errorMsg = 'resource loading error';
-          const resourceError = new ResourceError({
-            errorType,
-            errorMsg,
-            resourceUrl: resourceUrl as string,
-          });
+          const resourceError = new ResourceError(
+            {
+              errorType,
+              errorMsg,
+              resourceUrl: resourceUrl as string,
+            },
+            this.options,
+          );
 
-          console.log(resourceError);
-          // resourceError.errorId && imageTransport(this.serverUrl, resourceError);
+          resourceError.errorId &&
+            this.transportInstance.kernelTransportHandler(
+              transportKind.stability,
+              transportType.resourceError,
+              resourceError,
+              transportHandlerType.imageTransport,
+            );
         } else {
           const { error, message: errorMsg, lineno, colno } = errorEvent;
           const errorType = error.toString().split(':')[0];
           const errorStack = error.stack;
-          const jsError = new JsError({
-            errorType,
-            errorStack: pocessStackInfo(errorStack),
-            errorMsg,
-            errPos: `${lineno}:${colno}`,
-          });
-
-          console.log(jsError);
-          this.transportInstance.kernelTransportHandler(
-            transportKind.stability,
-            transportType.jsError,
-            jsError,
-            transportHandlerType.imageTransport,
+          const jsError = new JsError(
+            {
+              errorType,
+              errorStack: pocessStackInfo(errorStack),
+              errorMsg,
+              errPos: `${lineno}:${colno}`,
+            },
+            this.options,
           );
-          // jsError.errorId && imageTransport(this.serverUrl, jsError);
+
+          jsError.errorId &&
+            this.transportInstance.kernelTransportHandler(
+              transportKind.stability,
+              transportType.jsError,
+              jsError,
+              transportHandlerType.imageTransport,
+            );
         }
       },
       true,
@@ -72,15 +84,40 @@ export default class ErrorVitals {
    */
   promiseRejectedListener() {
     window.addEventListener('unhandledrejection', (errorEvent) => {
-      const { stack: errorStack, message: errorMsg } = errorEvent.reason;
-      const promiseError = new PromiseError({
+      const defaultErrorParams = {
         errorType: otherErrorType.PROMISEREJECTED,
-        errorStack: pocessStackInfo(errorStack),
-        errorMsg,
-      });
+      };
 
-      console.log(promiseError);
-      // promiseError.errorId && imageTransport(serverUrl, promiseError);
+      if (typeof errorEvent.reason === 'object') {
+        const { stack: errorStack, message: errorMsg } = errorEvent.reason;
+
+        const promiseError = new PromiseError(
+          Object.assign(defaultErrorParams, {
+            errorStack: pocessStackInfo(errorStack),
+            errorMsg,
+          }),
+          this.options,
+        );
+
+        errorStack === void 0 && Reflect.deleteProperty(errorStack, 'errorStack');
+
+        console.log(promiseError);
+      } else {
+        const promiseError = new PromiseError(
+          Object.assign(defaultErrorParams, {
+            errorMsg: errorEvent.reason,
+          }),
+          this.options,
+        );
+
+        promiseError.errorId &&
+          this.transportInstance.kernelTransportHandler(
+            transportKind.stability,
+            transportType.promiseError,
+            promiseError,
+            transportHandlerType.imageTransport,
+          );
+      }
     });
   }
 
@@ -90,6 +127,8 @@ export default class ErrorVitals {
   rewriteXHR() {
     const serverUrl = getUrlHref(this.serverUrl);
     const oldOpen = XMLHttpRequest.prototype.open;
+    const transportInstance = this.transportInstance;
+    const options = this.options;
 
     // @ts-ignore
     XMLHttpRequest.prototype.open = function (method, url, async, username, password) {
@@ -136,31 +175,47 @@ export default class ErrorVitals {
 
           if (window.navigator.onLine) {
             // eventType为'error'证明是网络断开或者请求跨域出错
-            const httpRequestError = new HttpRequestError({
-              ...defaultParams,
-              errorType: `XMLHttpRequest${
-                eventType === 'error'
-                  ? `CrossDomainError`
-                  : eventType === 'loadend'
-                  ? 'Error'
-                  : eventType[0].toUpperCase() + eventType.slice(1)
-              }`,
-            });
+            const httpRequestError = new HttpRequestError(
+              {
+                ...defaultParams,
+                errorType: `XMLHttpRequest${
+                  eventType === 'error'
+                    ? `CrossDomainError`
+                    : eventType === 'loadend'
+                    ? 'Error'
+                    : eventType[0].toUpperCase() + eventType.slice(1)
+                }`,
+              },
+              options,
+            );
 
-            console.log(httpRequestError);
-            // httpRequestError.errorId && imageTransport(serverUrl, httpRequestError);
+            httpRequestError.errorId &&
+              transportInstance.kernelTransportHandler(
+                transportKind.stability,
+                transportType.httpError,
+                httpRequestError,
+                transportHandlerType.imageTransport,
+              );
           } else {
             // 如果是断网导致的请求失败，则缓存请求，等到网络连接后重新上报数据
             window.addEventListener(
               'online',
               () => {
-                const httpRequestError = new HttpRequestError({
-                  ...defaultParams,
-                  errorType: 'XMLHttpRequestNetworkError',
-                });
+                const httpRequestError = new HttpRequestError(
+                  {
+                    ...defaultParams,
+                    errorType: 'XMLHttpRequestNetworkError',
+                  },
+                  options,
+                );
 
-                console.log(httpRequestError);
-                // httpRequestError.errorId && imageTransport(serverUrl, httpRequestError);
+                httpRequestError.errorId &&
+                  transportInstance.kernelTransportHandler(
+                    transportKind.stability,
+                    transportType.httpError,
+                    httpRequestError,
+                    transportHandlerType.imageTransport,
+                  );
               },
               {
                 once: true,
@@ -218,17 +273,29 @@ export default class ErrorVitals {
           if (input instanceof Request) {
             const { url: requestUrl, method = 'GET' } = input;
 
-            httpRequestError = new HttpRequestError({ ...defaultParams, requestUrl, method: method.toUpperCase() });
+            httpRequestError = new HttpRequestError(
+              { ...defaultParams, requestUrl, method: method.toUpperCase() },
+              this.options,
+            );
           } else {
             input = input instanceof URL ? input.href : input;
-            httpRequestError = new HttpRequestError({
-              ...defaultParams,
-              requestUrl: input,
-              method: init?.method ? init.method.toUpperCase() : 'GET',
-            });
+            httpRequestError = new HttpRequestError(
+              {
+                ...defaultParams,
+                requestUrl: input,
+                method: init?.method ? init.method.toUpperCase() : 'GET',
+              },
+              this.options,
+            );
           }
-          console.log(httpRequestError);
-          // httpRequestError.errorId && imageTransport(serverUrl, httpRequestError)
+
+          httpRequestError.errorId &&
+            this.transportInstance.kernelTransportHandler(
+              transportKind.stability,
+              transportType.httpError,
+              httpRequestError,
+              transportHandlerType.imageTransport,
+            );
         }
       });
 

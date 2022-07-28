@@ -1,4 +1,4 @@
-import { MetricsStore, IMetrics, metricsName } from '../store';
+import MetricsStore, { IMetrics, metricsName } from './store';
 import {
   getFP,
   getFCP,
@@ -11,8 +11,11 @@ import {
   getLongTask,
 } from './GetEntry';
 import { LayoutShift, ResourceFlowTiming } from './type';
+import BuilderInstance from './BuilderInstance';
+import DimensionInstance from '../DimensionInstance';
 import { EngineInstance } from '..';
-import { transportCategory, transportKind, transportType, transportHandlerType } from '../Transport/Transport';
+import { transportKind, transportType, transportHandlerType } from '../Transport';
+import type { initOptions } from '..';
 
 export const afterLoad = (callback: any) => {
   //Document.readyState 属性描述了document 的加载状态 complete加载完成
@@ -34,15 +37,18 @@ export const afterLoad = (callback: any) => {
   }
 };
 
-// 初始化入口，外部调用只需要 new WebVitals();
-export default class WebVitals {
+// 初始化入口，外部调用只需要 new PerformanceVitals();
+export default class PerformanceVitals {
   private engineInstance: EngineInstance;
 
   //本地暂存数据在Map里面
   public metrics: MetricsStore;
+  builderInstance: BuilderInstance;
 
-  constructor(engineInstance: EngineInstance) {
+  constructor(engineInstance: EngineInstance, public options: initOptions) {
     this.engineInstance = engineInstance;
+    this.builderInstance = new BuilderInstance(this);
+
     this.metrics = new MetricsStore();
     this.initLCP();
     this.initCLS();
@@ -68,8 +74,8 @@ export default class WebVitals {
     // this.engineInstance.transportInstance.kernelTransportHandler(
     //   transportKind.performance,
     //   transportType.paint,
-    //   this.engineInstance.builderInstance.builderStrategy.get(transportKind.performance)?.(transportType.paint),
-    //   transportHandlerType.initTransport
+    //   { ...new DimensionInstance(this.options), ...this.builderInstance.performanceDataBuilder(transportType.paint) },
+    //   transportHandlerType.initTransport,
     // );
   };
 

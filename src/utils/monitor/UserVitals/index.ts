@@ -1,5 +1,4 @@
-import { MetricsStore as UserMetricsStore, IMetrics, metricsName } from '../store';
-import BehaviorStore from './store'
+import { MetricsStore as UserMetricsStore, IMetrics, metricsName, BehaviorStore } from './store';
 import { PageInformation, customAnalyticsData, httpMetrics, behaviorStack, OriginInformation } from './type';
 import { EngineInstance } from '..';
 import { wrHistory, proxyHistory, proxyHash, proxyXmlHttp, proxyFetch, getOriginInfo } from './event'
