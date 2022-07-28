@@ -1,4 +1,4 @@
-import { DimensionStructure } from '../DimensionInstance/type';
+import DimensionStructure from '../DimensionInstance/type';
 import { EngineInstance } from '..';
 
 export enum transportCategory {}
@@ -36,7 +36,7 @@ export enum transportHandlerType {
   imageTransport = 'imageTransportHandler',
 }
 
-export interface TransportStructure extends DimensionStructure {
+export interface TransportStructure {
   // 上报类别
   kind: transportKind; // 大类
   type: transportType; // 小类
@@ -68,7 +68,6 @@ export default class TransportInstance {
     const handler = this[transportHandler]();
     // 数据聚合
     const transportStructure: TransportStructure = {
-      ...this.engineInstance.dimensionInstance, // 维度数据
       kind,
       type,
       ...data, // 上报数据
