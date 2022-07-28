@@ -3,10 +3,11 @@ import type { Context } from 'koa';
 import type { Optional } from 'sequelize/types';
 
 export async function createPerformance_c(ctx: Context) {
-  const errorInfo = ctx.query as Optional<any, string>;
+  const performanceInfo = ctx.query as Optional<any, string>;
+  performanceInfo.ip = ctx.ip;
 
   try {
-    await createPerformance_s(errorInfo);
+    await createPerformance_s(performanceInfo);
 
     ctx.defaultResponse();
   } catch (err) {

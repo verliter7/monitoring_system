@@ -28,6 +28,11 @@ const ErrorModel = seq.define('error', {
     allowNull: false,
     comment: '每个监控应用的url',
   },
+  ip: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: '每个上报网站的ip地址',
+  },
   osName: {
     type: DataTypes.STRING,
     allowNull: true,

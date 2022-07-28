@@ -4,6 +4,7 @@ import type { Optional } from 'sequelize/types';
 
 export async function createError_c(ctx: Context) {
   const errorInfo = ctx.query as Optional<any, string>;
+  errorInfo.ip = ctx.ip;
 
   try {
     await createError_s(errorInfo);
