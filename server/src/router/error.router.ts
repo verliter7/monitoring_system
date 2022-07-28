@@ -4,8 +4,8 @@ import type { DefaultState, Context } from 'koa';
 
 const router = new Router<DefaultState, Context>({ prefix: '/error' });
 
-router.get('/add', createError_c);
+router.get('/create', createError_c);
 
-router.get('/errorCount', queryErrorCount_c);
+router.get('/count', queryErrorCount_c);
 
 export default router;

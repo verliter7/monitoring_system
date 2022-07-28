@@ -36,9 +36,7 @@ export default class DimensionInstance {
     // 页面的url
     this.originUrl = window.location.href.split('?')[0].replace('/#', '');
     // 用于区分用户，所对应唯一的标识，清理本地数据后失效
-    this.userMonitorId = `${this.originUrl}@${JSON.parse(
-      localStorage.getItem('userMonitorId') ?? DimensionInstance.setUserId(),
-    )}`;
+    this.userMonitorId = `${JSON.parse(localStorage.getItem('userMonitorId') ?? DimensionInstance.setUserId())}`;
     this.osName = osName;
     this.osVersion = osVersion;
     this.egName = egName;

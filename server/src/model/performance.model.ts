@@ -1,13 +1,7 @@
 import { DataTypes } from 'sequelize';
 import seq from '@/db/seq';
 
-const ErrorModel = seq.define('error', {
-  errorId: {
-    type: DataTypes.STRING,
-    primaryKey: true,
-    allowNull: false,
-    comment: '每条错误数据的Id',
-  },
+const PerformanceModel = seq.define('performance', {
   timeStamp: {
     type: DataTypes.BIGINT,
     allowNull: false,
@@ -51,50 +45,70 @@ const ErrorModel = seq.define('error', {
   type: {
     type: DataTypes.STRING,
     allowNull: false,
-    comment: '错误大类型',
+    comment: '类型',
   },
-  errorType: {
+  FP: {
     type: DataTypes.STRING,
     allowNull: false,
-    comment: '错误小类型',
+    comment: '首次渲染耗时',
   },
-  errorStack: {
-    type: DataTypes.TEXT('long'),
-    allowNull: true,
-    comment: '错误堆栈信息',
-  },
-  errorMsg: {
-    type: DataTypes.TEXT('long'),
-    allowNull: true,
-    comment: '错误信息',
-  },
-  requestUrl: {
+  TTI: {
     type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'http请求地址',
+    allowNull: false,
+    comment: '首次可交互时间',
   },
-  method: {
+  DomReady: {
     type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'http请求方式',
+    allowNull: false,
+    comment: 'DOM阶段渲染耗时',
   },
-  status: {
+  Load: {
     type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'http状态码',
+    allowNull: false,
+    comment: '首次可交互时间',
   },
-  statusText: {
+  FirstByte: {
     type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'http状态信息',
+    allowNull: false,
+    comment: '首包时间耗时',
   },
-  duration: {
+  DNS: {
     type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'http请求时间',
+    allowNull: false,
+    comment: ' DNS解析耗时',
+  },
+  TCP: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: ' TCP建立连接耗时',
+  },
+  SSL: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: ' 数据安全连接耗时',
+  },
+  TTFB: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: ' 网络请求耗时',
+  },
+  Trans: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: ' 响应数据传输耗时',
+  },
+  DomParse: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: ' DOM解析耗时',
+  },
+  Res: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: ' 资源加载耗时',
   },
 });
 
-ErrorModel.sync({ force: true });
+// PerformanceModel.sync({ force: true });
 
-export default ErrorModel;
+export default PerformanceModel;

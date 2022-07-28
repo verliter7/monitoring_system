@@ -19,13 +19,11 @@ export async function createError_c(ctx: Context) {
 export async function queryErrorCount_c(ctx: Context) {
   try {
     const { errorType } = ctx.query;
-    const count = await queryErrorCount_s(errorType as string);
+    const errorCounts = await queryErrorCount_s(errorType as string);
 
     ctx.defaultResponse({
       code: 200,
-      data: {
-        count,
-      },
+      data: errorCounts,
       message: '请求成功',
       success: true,
     });

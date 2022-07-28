@@ -1,5 +1,3 @@
-import BuilderInstance from './PerformanceVitals/BuilderInstance';
-import DimensionInstance from './DimensionInstance';
 import TransportInstance, { transportKind } from './Transport';
 // import UserVitals from './UserVitals/UserVitals';
 import PerformanceVitals from './PerformanceVitals';
