@@ -33,8 +33,8 @@ class WebSdk {
     this.transportInstance = new TransportInstance(this, {
       transportUrl: new Map([
         [transportKind.stability, errorUrl],
-        [transportKind.performance, ''],
-        [transportKind.business, ''],
+        [transportKind.performance, ' '],
+        [transportKind.business, ' '],
       ]),
     });
 
