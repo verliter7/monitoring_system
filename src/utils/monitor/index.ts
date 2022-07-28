@@ -1,7 +1,7 @@
 import BuilderInstance from './PerformanceVitals/BuilderInstance';
 import DimensionInstance from './DimensionInstance';
 import TransportInstance, { transportKind } from './Transport';
-// import UserVitals from './UserVitals/UserVitals';
+import UserVitals from './UserVitals';
 import PerformanceVitals from './PerformanceVitals';
 import ErrorVitals from './ErrorVitals';
 import { errorUrl } from './utils/urls';
@@ -22,7 +22,7 @@ class WebSdk {
   public performanceInstance: PerformanceVitals;
 
   // 行为监控实例，实例里每个插件实现一个行为监控功能；
-  // public userInstance: UserVitals;
+  public userInstance: UserVitals;
 
   // 错误监控实例，实例里每个插件实现一个错误监控功能；
   public errorCatchInstance: ErrorVitals;
@@ -41,7 +41,7 @@ class WebSdk {
     });
 
     this.performanceInstance = new PerformanceVitals(this, options);
-    // this.userInstance = new UserVitals(this);
+    this.userInstance = new UserVitals(this);
     this.errorCatchInstance = new ErrorVitals(this, options);
   }
 }
