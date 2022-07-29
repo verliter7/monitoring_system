@@ -102,10 +102,12 @@ export default class TransportInstance {
   //image 形式上报
   imageTransportHandler = (): Function => {
     const handler = (data: TransportStructure, transportUrl: string) => {
-      const queryStr = Object.entries(data)
-        .map(([key, value]) => `${key}=${value}`)
-        .join('&');
+      const queryStr = Object.entries(data).reduce(
+        (pre, [key, value]) => (value === void 0 || value === null ? pre : `${pre}&${key}=${value}`),
+        '',
+      );
       const img = new Image();
+
       img.src = `${transportUrl}?${queryStr}`;
     };
     return handler;

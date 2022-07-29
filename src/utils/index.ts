@@ -2,6 +2,7 @@ export { default as HttpReq } from './HttpReq';
 export { default as JType } from './JType';
 export { default as HandleLocalStorage } from './HandleLocalStorage';
 export { default as commonStyles } from './commonStyles';
+export { default as api } from './urls';
 
 // 工具方法
 

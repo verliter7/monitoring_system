@@ -1,9 +1,8 @@
-import BuilderInstance from './PerformanceVitals/BuilderInstance';
-import DimensionInstance from './DimensionInstance';
 import TransportInstance, { transportKind } from './Transport';
-import UserVitals from './UserVitals';
 import PerformanceVitals from './PerformanceVitals';
 import ErrorVitals from './ErrorVitals';
+import UserVitals from './UserVitals';
+
 import { errorUrl } from './utils/urls';
 
 export interface EngineInstance {
@@ -35,8 +34,8 @@ class WebSdk {
     this.transportInstance = new TransportInstance(this, {
       transportUrl: new Map([
         [transportKind.stability, errorUrl],
-        [transportKind.performance, ''],
-        [transportKind.business, ''],
+        [transportKind.performance, ' '],
+        [transportKind.business, ' '],
       ]),
     });
 

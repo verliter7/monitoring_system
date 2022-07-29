@@ -51,8 +51,8 @@ export class PromiseError extends DimensionInstance {
 
     this.errorType = errorType;
     this.errorMsg = errorMsg;
+    this.errorStack = errorStack;
     this.errorId = getErrorId(submitErrorIds, mark);
-    !errorStack && Reflect.deleteProperty(this, 'errorStack');
   }
 }
 

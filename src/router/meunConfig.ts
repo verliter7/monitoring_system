@@ -27,7 +27,7 @@ const meunConfig = [
   },
   {
     pathname: '/test',
-    icon: 'icon-ceshi',
+    icon: 'icon-APIceshi',
     label: '测试页面',
     componentPath: getComponentPath('Test'),
   },

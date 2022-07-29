@@ -88,36 +88,34 @@ export default class ErrorVitals {
         errorType: otherErrorType.PROMISEREJECTED,
       };
 
+      let promiseError: PromiseError;
+
       if (typeof errorEvent.reason === 'object') {
         const { stack: errorStack, message: errorMsg } = errorEvent.reason;
 
-        const promiseError = new PromiseError(
+        promiseError = new PromiseError(
           Object.assign(defaultErrorParams, {
             errorStack: pocessStackInfo(errorStack),
             errorMsg,
           }),
           this.options,
         );
-
-        errorStack === void 0 && Reflect.deleteProperty(errorStack, 'errorStack');
-
-        console.log(promiseError);
       } else {
-        const promiseError = new PromiseError(
+        promiseError = new PromiseError(
           Object.assign(defaultErrorParams, {
             errorMsg: errorEvent.reason,
           }),
           this.options,
         );
-
-        promiseError.errorId &&
-          this.transportInstance.kernelTransportHandler(
-            transportKind.stability,
-            transportType.promiseError,
-            promiseError,
-            transportHandlerType.imageTransport,
-          );
       }
+
+      promiseError.errorId &&
+        this.transportInstance.kernelTransportHandler(
+          transportKind.stability,
+          transportType.promiseError,
+          promiseError,
+          transportHandlerType.imageTransport,
+        );
     });
   }
 
@@ -179,10 +177,10 @@ export default class ErrorVitals {
               {
                 ...defaultParams,
                 errorType: `XMLHttpRequest${eventType === 'error'
-                    ? `CrossDomainError`
-                    : eventType === 'loadend'
-                      ? 'Error'
-                      : eventType[0].toUpperCase() + eventType.slice(1)
+                  ? `CrossDomainError`
+                  : eventType === 'loadend'
+                    ? 'Error'
+                    : eventType[0].toUpperCase() + eventType.slice(1)
                   }`,
               },
               options,
