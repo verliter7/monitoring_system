@@ -6,6 +6,7 @@ new WebSdk({
   aid: '10086'
 })
 
+
 const App: FC = (): ReactElement => {
   return <BaseLayout />;
 };

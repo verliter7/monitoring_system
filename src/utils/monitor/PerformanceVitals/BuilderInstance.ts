@@ -3,7 +3,7 @@ import { transportType } from '../Transport';
 import PerformanceVitals from '.';
 
 export default class BuilderInstance {
-  constructor(public performanceInstance: PerformanceVitals) {}
+  constructor(public performanceInstance: PerformanceVitals) { }
 
   /**
    * 页面性能数据 格式化
@@ -38,7 +38,9 @@ export default class BuilderInstance {
       };
     }
 
-    function RFBuilder() {}
+    function RFBuilder() {
+      return metrics.get(metricsName.RF)
+    }
 
     const buiderStore: Map<transportType, Function> = new Map([
       [transportType.paint, paintBuilder],

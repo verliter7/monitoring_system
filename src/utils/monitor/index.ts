@@ -1,13 +1,19 @@
 import TransportInstance, { transportKind } from './Transport';
 import PerformanceVitals from './PerformanceVitals';
-import ErrorVitals from './ErrorVitals';
+// import ErrorVitals from './ErrorVitals';
 import UserVitals from './UserVitals';
 
-import { errorUrl } from './utils/urls';
+import {
+  errorUrl,
+  businessUrl,
+} from './utils/urls';
+import ErrorVitals from './ErrorVitals2';
 
 export interface EngineInstance {
   performanceInstance: PerformanceVitals;
   transportInstance: TransportInstance;
+  userInstance: UserVitals;
+  errorCatchInstance: ErrorVitals;
 }
 
 export interface initOptions {
@@ -35,13 +41,14 @@ class WebSdk {
       transportUrl: new Map([
         [transportKind.stability, errorUrl],
         [transportKind.performance, ' '],
-        [transportKind.business, ' '],
+        [transportKind.business, businessUrl],
       ]),
     });
 
     this.performanceInstance = new PerformanceVitals(this, options);
     this.userInstance = new UserVitals(this);
-    this.errorCatchInstance = new ErrorVitals(this, options);
+    // this.errorCatchInstance = new ErrorVitals(this, options);
+    this.errorCatchInstance = new ErrorVitals(this)
   }
 }
 

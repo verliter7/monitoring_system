@@ -13,7 +13,7 @@ export default class ErrorVitals {
 
     const serverUrl = this.transportInstance.options.transportUrl.get(transportKind.stability)!;
     this.serverUrl = serverUrl instanceof URL ? serverUrl.href : serverUrl;
-    this.init();
+    // this.init();
   }
 
   init() {

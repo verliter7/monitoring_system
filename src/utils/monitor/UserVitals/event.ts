@@ -43,7 +43,7 @@ export const proxyXmlHttp = (sendHandler: Function | null | undefined, loadHandl
       // oXMLHttpRequest 为原生的 XMLHttpRequest，可以用以 SDK 进行数据上报，区分业务
       (window as any).oXMLHttpRequest = oXMLHttpRequest;
     }
-    (window as any).XMLHttpRequest = () => {
+    (window as any).XMLHttpRequest = function () {
       // 覆写 window.XMLHttpRequest
       const xhr = new oXMLHttpRequest();
       const { open, send } = xhr;
@@ -75,7 +75,7 @@ export const proxyXmlHttp = (sendHandler: Function | null | undefined, loadHandl
         // xhr.status 状态码
       });
       return xhr;
-    };
+    }
   }
 };
 

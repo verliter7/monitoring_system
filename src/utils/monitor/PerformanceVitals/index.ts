@@ -77,6 +77,13 @@ export default class PerformanceVitals {
     //   { ...new DimensionInstance(this.options), ...this.builderInstance.performanceDataBuilder(transportType.paint) },
     //   transportHandlerType.initTransport,
     // );
+    // console.log(new DimensionInstance(this.options));
+    // [transportType.timing, transportType.paint, transportType.RF, transportType.CLS].forEach((item) => {
+    //   // new DimensionInstance(this.options)
+    //   let a = this.builderInstance.performanceDataBuilder(item)
+    //   console.log(a);
+    // })
+
   };
 
   //W3C标准化在 w3c/paint-timing 定义了 首次非网页背景像素渲染（fp）(白屏时间) 和  首次内容渲染（fcp)(灰屏时间)，我们可以直接去取;

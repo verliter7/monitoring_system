@@ -80,19 +80,19 @@ export const getNavigationTiming = (): MPerformanceNavigationTiming | undefined 
 
     return {
       // 关键时间点
-      FP: responseEnd - fetchStart, // 首次渲染耗时 白屏时间 加载文档到第一帧非空图像的时间
-      TTI: domInteractive - fetchStart, // 首次可交互时间
-      DomReady: domContentLoadedEventEnd - fetchStart, // DOM阶段渲染耗时
-      Load: loadEventStart - fetchStart, // 页面完全加载时间
-      FirstByte: responseStart - domainLookupStart, // 首包时间耗时 DNS解析到响应返回给浏览器第一个字节的时间
+      FP: responseEnd + '-' + fetchStart, // 首次渲染耗时 白屏时间 加载文档到第一帧非空图像的时间
+      TTI: domInteractive + '-' + fetchStart, // 首次可交互时间
+      DomReady: domContentLoadedEventEnd + '-' + fetchStart, // DOM阶段渲染耗时
+      Load: loadEventStart + '-' + fetchStart, // 页面完全加载时间
+      FirstByte: responseStart + '-' + domainLookupStart, // 首包时间耗时 DNS解析到响应返回给浏览器第一个字节的时间
       // 关键时间段
-      DNS: domainLookupEnd - domainLookupStart,  // DNS解析耗时
-      TCP: connectEnd - connectStart, // TCP建立连接耗时
-      SSL: secureConnectionStart ? connectEnd - secureConnectionStart : 0,  //数据安全连接耗时
-      TTFB: responseStart - requestStart, //网络请求耗时
-      Trans: responseEnd - responseStart, // 响应数据传输耗时
-      DomParse: domInteractive - responseEnd, // DOM解析耗时
-      Res: loadEventStart - domContentLoadedEventEnd, // 资源加载耗时
+      DNS: domainLookupEnd + '-' + domainLookupStart,  // DNS解析耗时
+      TCP: connectEnd + '-' + connectStart, // TCP建立连接耗时
+      SSL: secureConnectionStart ? connectEnd + '-' + secureConnectionStart : '0-0',  //数据安全连接耗时
+      TTFB: responseStart + '-' + requestStart, //网络请求耗时
+      Trans: responseEnd + '-' + responseStart, // 响应数据传输耗时
+      DomParse: domInteractive + '-' + responseEnd, // DOM解析耗时
+      Res: loadEventStart + '-' + domContentLoadedEventEnd, // 资源加载耗时
     };
   };
 

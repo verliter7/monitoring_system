@@ -94,6 +94,7 @@ export default class TransportInstance {
     const handler = (data: TransportStructure, transportUrl: string) => {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', transportUrl, true);
+      xhr.setRequestHeader('Content-type', 'application/json');
       xhr.send(JSON.stringify(data));
     };
     return handler;

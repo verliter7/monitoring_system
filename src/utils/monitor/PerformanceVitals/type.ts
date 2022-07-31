@@ -8,18 +8,18 @@ export interface LayoutShift extends PerformanceEntry {
 }
 
 export interface MPerformanceNavigationTiming {
-  FP?: number;
-  TTI?: number;
-  DomReady?: number;
-  Load?: number;
-  FirstByte?: number;
-  DNS?: number;
-  TCP?: number;
-  SSL?: number;
-  TTFB?: number;
-  Trans?: number;
-  DomParse?: number;
-  Res?: number;
+  FP?: string;
+  TTI?: string;
+  DomReady?: string;
+  Load?: string;
+  FirstByte?: string;
+  DNS?: string;
+  TCP?: string;
+  SSL?: string;
+  TTFB?: string;
+  Trans?: string;
+  DomParse?: string;
+  Res?: string;
 }
 
 export interface ResourceFlowTiming {
