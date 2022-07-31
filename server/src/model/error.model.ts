@@ -100,6 +100,6 @@ const ErrorModel = seq.define('error', {
   },
 });
 
-ErrorModel.sync({ force: true });
+// ErrorModel.sync({ force: true });
 
 export default ErrorModel;

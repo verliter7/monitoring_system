@@ -13,7 +13,7 @@ export default class ErrorVitals {
 
     const serverUrl = this.transportInstance.options.transportUrl.get(transportKind.stability)!;
     this.serverUrl = serverUrl instanceof URL ? serverUrl.href : serverUrl;
-    this.init();
+    // this.init();
   }
 
   init() {
@@ -176,13 +176,12 @@ export default class ErrorVitals {
             const httpRequestError = new HttpRequestError(
               {
                 ...defaultParams,
-                errorType: `XMLHttpRequest${
-                  eventType === 'error'
-                    ? `CrossDomainError`
-                    : eventType === 'loadend'
+                errorType: `XMLHttpRequest${eventType === 'error'
+                  ? `CrossDomainError`
+                  : eventType === 'loadend'
                     ? 'Error'
                     : eventType[0].toUpperCase() + eventType.slice(1)
-                }`,
+                  }`,
               },
               options,
             );

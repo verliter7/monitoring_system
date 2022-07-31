@@ -80,25 +80,27 @@ export const getNavigationTiming = (): MPerformanceNavigationTiming | undefined 
 
     return {
       // 关键时间点
-      FP: responseEnd - fetchStart, // 首次渲染耗时 白屏时间 加载文档到第一帧非空图像的时间
-      TTI: domInteractive - fetchStart, // 首次可交互时间
-      DomReady: domContentLoadedEventEnd - fetchStart, // DOM阶段渲染耗时
-      Load: loadEventStart - fetchStart, // 页面完全加载时间
-      FirseByte: responseStart - domainLookupStart, // 首包时间耗时 DNS解析到响应返回给浏览器第一个字节的时间
+      FP: responseEnd + '-' + fetchStart, // 首次渲染耗时 白屏时间 加载文档到第一帧非空图像的时间
+      TTI: domInteractive + '-' + fetchStart, // 首次可交互时间
+      DomReady: domContentLoadedEventEnd + '-' + fetchStart, // DOM阶段渲染耗时
+      Load: loadEventStart + '-' + fetchStart, // 页面完全加载时间
+      FirstByte: responseStart + '-' + domainLookupStart, // 首包时间耗时 DNS解析到响应返回给浏览器第一个字节的时间
       // 关键时间段
-      DNS: domainLookupEnd - domainLookupStart,  // DNS解析耗时
-      TCP: connectEnd - connectStart, // TCP建立连接耗时
-      SSL: secureConnectionStart ? connectEnd - secureConnectionStart : 0,  //数据安全连接耗时
-      TTFB: responseStart - requestStart, //网络请求耗时
-      Trans: responseEnd - responseStart, // 响应数据传输耗时
-      DomParse: domInteractive - responseEnd, // DOM解析耗时
-      Res: loadEventStart - domContentLoadedEventEnd, // 资源加载耗时
+      DNS: domainLookupEnd + '-' + domainLookupStart,  // DNS解析耗时
+      TCP: connectEnd + '-' + connectStart, // TCP建立连接耗时
+      SSL: secureConnectionStart ? connectEnd + '-' + secureConnectionStart : '0-0',  //数据安全连接耗时
+      TTFB: responseStart + '-' + requestStart, //网络请求耗时
+      Trans: responseEnd + '-' + responseStart, // 响应数据传输耗时
+      DomParse: domInteractive + '-' + responseEnd, // DOM解析耗时
+      Res: loadEventStart + '-' + domContentLoadedEventEnd, // 资源加载耗时
     };
   };
 
   // W3C Level2  PerformanceNavigationTiming
   // 使用了High-Resolution Time，时间精度可以达毫秒的小数点好几位。
-  const navigation = performance.getEntriesByType('navigation')[0];
+  const navigation = performance.getEntriesByType('navigation').length > 0
+    ? performance.getEntriesByType('navigation')[0]
+    : performance.timing; // W3C Level1  (目前兼容性高，仍然可使用，未来可能被废弃)。
   return resolveNavigationTiming(navigation as PerformanceNavigationTiming);
 };
 

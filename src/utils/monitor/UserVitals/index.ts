@@ -1,7 +1,26 @@
-import { MetricsStore as UserMetricsStore, IMetrics, metricsName, BehaviorStore } from './store';
-import { PageInformation, customAnalyticsData, httpMetrics, behaviorStack, OriginInformation } from './type';
 import { EngineInstance } from '..';
-import { wrHistory, proxyHistory, proxyHash, proxyXmlHttp, proxyFetch, getOriginInfo } from './event'
+import {
+  MetricsStore as UserMetricsStore,
+  IMetrics,
+  metricsName,
+  BehaviorStore
+} from './store';
+import {
+  PageInformation,
+  customAnalyticsData,
+  httpMetrics,
+  behaviorStack,
+  OriginInformation
+} from './type';
+import {
+  wrHistory,
+  proxyHistory,
+  proxyHash,
+  proxyXmlHttp,
+  proxyFetch,
+  getOriginInfo,
+} from './event'
+import { transportHandlerType, transportKind, transportType } from '../Transport';
 
 export const afterLoad = (callback: any) => {
   if (document.readyState === 'complete') {
@@ -57,6 +76,16 @@ export default class UserVitals {
   // 封装用户行为的上报入口
   userSendHandler = (data: IMetrics) => {
     // 进行通知内核实例进行上报;
+    // console.log(data);
+    // console.log(this.metrics);
+    // console.log(this.breadcrumbs);
+    console.log(1);
+    this.engineInstance.transportInstance.kernelTransportHandler(
+      transportKind.business,
+      transportType.PV,
+      data,
+      transportHandlerType.xmlTransport
+    )
   };
 
   // 补齐 pathname 和 timestamp 参数
@@ -106,9 +135,8 @@ export default class UserVitals {
       language: language.substr(0, 2),
       userAgent,
       winScreen: `${width}x${height}`,
-      docScreen: `${document.documentElement.clientWidth || document.body.clientWidth}x${
-        document.documentElement.clientHeight || document.body.clientHeight
-      }`,
+      docScreen: `${document.documentElement.clientWidth || document.body.clientWidth}x${document.documentElement.clientHeight || document.body.clientHeight
+        }`,
     };
   };
 
@@ -148,7 +176,7 @@ export default class UserVitals {
     proxyHistory(handler);
   };
 
-  /// 初始化 PV 的获取以及返回
+  // 初始化 PV 的获取以及返回 数据上报：页面加载完上报一次，跳转一次路由上报一次
   initPV = (): void => {
     const handler = () => {
       const metrics = {
@@ -238,7 +266,7 @@ export default class UserVitals {
       } as behaviorStack;
       this.breadcrumbs.push(behavior);
     };
-    proxyXmlHttp(null, loadHandler);
-    proxyFetch(null, loadHandler);
+    // proxyXmlHttp(null, loadHandler);
+    // proxyFetch(null, loadHandler);
   };
 }
