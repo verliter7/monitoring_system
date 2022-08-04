@@ -1,8 +1,8 @@
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { ConfigProvider } from 'antd';
 import { Global, css } from '@emotion/react';
 import App from './App';
-import 'antd/dist/antd.css';
 
 const globalStyles = css`
   html,

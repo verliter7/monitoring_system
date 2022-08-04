@@ -137,6 +137,7 @@ const ErrorCountLine: FC<IProps> = ({ backErrorData }): ReactElement => {
   });
 
   const config: any = {
+    theme: 'dark',
     data: backErrorData,
     padding: 'auto' as 'auto',
     xField: 'time',
@@ -151,8 +152,9 @@ const ErrorCountLine: FC<IProps> = ({ backErrorData }): ReactElement => {
       };
     },
     label: {},
-    lineStyle: {
-      fill: 'red',
+    legend: {
+      layout: 'horizontal',
+      position: 'top',
     },
     point: {
       size: 5,
