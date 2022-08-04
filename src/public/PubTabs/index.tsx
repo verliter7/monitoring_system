@@ -30,7 +30,7 @@ const PubTabs: FC<IProps> = ({ tabs, onChange }): ReactElement => {
           }}
         >
           <span>前一周期</span>
-          <span css={{ marginLeft: '4px' }}>{bottomCenter}</span>
+          <span css={{ marginLeft: '4px' }}>{bottomCenter + unit}</span>
           <span
             css={{
               marginLeft: 'auto',
@@ -39,8 +39,8 @@ const PubTabs: FC<IProps> = ({ tabs, onChange }): ReactElement => {
               fontWeight: 'bold',
             }}
           >
-            {Math.abs(((bottomCenter - middle) / bottomCenter) * 100).toFixed(2) + '%'}
-            {bottomCenter > middle ? <ArrowDownOutlined /> : <ArrowUpOutlined />}
+            {bottomCenter === 0 ? null : (Math.abs((bottomCenter - middle) / bottomCenter) * 100).toFixed(2) + '%'}
+            {bottomCenter === 0 ? null : bottomCenter > middle ? <ArrowDownOutlined /> : <ArrowUpOutlined />}
           </span>
         </div>
       </div>

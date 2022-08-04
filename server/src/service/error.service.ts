@@ -42,7 +42,7 @@ export async function queryErrorCount_s(type: string) {
   const backErrorConutsByTime: Record<string, number> = {};
   const timeFormat = 'YYYY-MM-DD HH:00';
 
-  for (let i = 0; i < oneDayHours; i++) {
+  for (let i = oneDayHours; i >= 0; i--) {
     const frontTime = dayjs(now - oneDayTime - i * oneHourMilliseconds).format(timeFormat);
     const backTime = dayjs(now - i * oneHourMilliseconds).format(timeFormat);
 
@@ -52,7 +52,7 @@ export async function queryErrorCount_s(type: string) {
 
   frontErrorCreatTimes.forEach((time: number) => {
     const frontTime = dayjs(time).format(timeFormat);
-    backErrorConutsByTime[frontTime] !== void 0 && frontErrorConutsByTime[frontTime]++;
+    frontErrorConutsByTime[frontTime] !== void 0 && frontErrorConutsByTime[frontTime]++;
   });
   backErrorCreatTimes.forEach((time: number) => {
     const backTime = dayjs(time).format(timeFormat);

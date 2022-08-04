@@ -6,31 +6,43 @@ import ErrorCountLine from './ErrorCountLine';
 import { getResourceErrorCounts } from './service';
 import type { FC, ReactElement } from 'react';
 import type { ITab } from '@/public/PubTabs/type';
-import type { IErorCountData } from './type';
+import type { IErrorCountData, IErrorSum } from './type';
 
 const ResourcesError: FC = (): ReactElement => {
-  const [errorCountData, setErrorCountData] = useState<IErorCountData[]>([]);
+  const [backErrorCountData, setBackErrorCountData] = useState<IErrorCountData[]>([]);
+  const [errorSum, setErrorSum] = useState<IErrorSum>({
+    front: 0,
+    back: 0,
+  });
+
+  const getSum = (values: number[]) => values.reduce((prev, cur) => prev + cur);
 
   useMount(async () => {
-    const {
-      data: { backErrorConutsByTime },
-    } = await getResourceErrorCounts();
+    try {
+      const {
+        data: { frontErrorConutsByTime, backErrorConutsByTime },
+      } = await getResourceErrorCounts();
 
-    const errorData = Object.entries<number>(backErrorConutsByTime).map(([time, errorCount]) => ({
-      time,
-      errorCount,
-    }));
+      const backErrorCountData = Object.entries<number>(backErrorConutsByTime).map(([time, errorCount]) => ({
+        time,
+        errorCount,
+      }));
 
-    setErrorCountData(errorData);
+      setBackErrorCountData(backErrorCountData);
+      setErrorSum({
+        front: getSum(Object.values(frontErrorConutsByTime)),
+        back: getSum(Object.values(backErrorConutsByTime)),
+      });
+    } catch (e) {}
   });
 
   const tabs: ITab[] = [
     {
       title: '错误数',
-      middle: 123,
-      bottomCenter: 233,
+      middle: errorSum.back,
+      bottomCenter: errorSum.front,
       unit: '',
-      content: <ErrorCountLine errorCountData={errorCountData} />,
+      content: <ErrorCountLine backErrorData={backErrorCountData} />,
     },
     {
       title: '错误率',

@@ -1,15 +1,7 @@
 type ContentType = 'application/json' | 'application/x-www-form-urlencoded';
 type RequestType = 'json' | 'form';
 type ResponseType = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text';
-type Method =
-  | 'GET'
-  | 'get'
-  | 'POST'
-  | 'post'
-  | 'PUT'
-  | 'put'
-  | 'DELETE'
-  | 'delete';
+type Method = 'GET' | 'get' | 'POST' | 'post' | 'PUT' | 'put' | 'DELETE' | 'delete';
 
 export enum Emethod {
   GET = 'params',
@@ -55,22 +47,11 @@ export interface IHttpReq {
   }: IHttpRequestConfig): Promise<HttpReqDataType>;
 }
 
-// export interface IHttpResponseConfig {
-//   config: IHttpGetConfig | IHttpPostConfig;
-//   data: any,
-//   headers: any,
-//   request?: any,
-//   status: number,
-//   statusText: string,
-// }
+export type HttpReqType<T = unknown, P = any> = (httpReqData?: T) => Promise<HttpReqDataType<P>>;
 
-export type HttpReqType<T = unknown> = (
-  httpReqData?: T,
-) => Promise<HttpReqDataType>;
-
-export interface HttpReqDataType {
+export interface HttpReqDataType<D = any> {
   code: number;
   message: string;
   success: boolean;
-  data: any;
+  data: D;
 }

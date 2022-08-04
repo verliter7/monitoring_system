@@ -72,13 +72,14 @@ export default class ErrorVitals {
 
       const { attributes } = errorEvent.target as HTMLElement;
       const errorType = ErrorType.RS;
-      const resourceUrl = attributes.getNamedItem('src')?.nodeValue ?? attributes.getNamedItem('href')?.nodeValue;
+      const requestUrl = attributes.getNamedItem('src')?.nodeValue ?? attributes.getNamedItem('href')?.nodeValue;
+
       const errorMsg = 'resource loading error';
       const resourceError = new ResourceError(
         {
           errorType,
           errorMsg,
-          resourceUrl: resourceUrl as string,
+          requestUrl: requestUrl as string,
         },
         this.options,
       );

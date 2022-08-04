@@ -2,6 +2,8 @@
 import { Button } from 'antd';
 import type { FC, ReactElement } from 'react';
 
+const getRandomStr = () => Math.random().toString(36).slice(2);
+
 const Test: FC = (): ReactElement => {
   return (
     <div css={{ display: 'flex', flexDirection: 'column', gap: '20px', margin: '0 100px' }}>
@@ -131,10 +133,9 @@ const Test: FC = (): ReactElement => {
         block
         type="primary"
         onClick={() => {
-          const link = document.createElement('link');
-          link.href = 'https://yun.tuia.cn/image/kkk.css';
-          link.rel = 'stylesheet';
-          document.head.appendChild(link);
+          const script = document.createElement('script');
+          script.src = `http://localhost:8080/resources/${getRandomStr()}.js`;
+          document.head.appendChild(script);
         }}
       >
         抛出资源加载错误

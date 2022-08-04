@@ -29,7 +29,7 @@ export type PromiseErrorParams = {
 export type ResourceErrorErrorParams = {
   errorType: string;
   errorMsg: string;
-  resourceUrl: string;
+  requestUrl: string;
 };
 
 export type HttpRequestErrorParams = {

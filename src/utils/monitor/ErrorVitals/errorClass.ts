@@ -62,17 +62,17 @@ export class PromiseError extends DimensionInstance {
 export class ResourceError extends DimensionInstance {
   errorType: string;
   errorMsg: string;
-  resourceUrl: string;
+  requestUrl: string;
   errorId?: string;
 
-  constructor({ errorType, errorMsg, resourceUrl }: ResourceErrorErrorParams, options: initOptions) {
+  constructor({ errorType, errorMsg, requestUrl }: ResourceErrorErrorParams, options: initOptions) {
     super(options);
 
-    const mark = `${this.aid}${this.userMonitorId}${this.originUrl}${resourceUrl}`;
+    const mark = `${this.aid}${this.userMonitorId}${this.originUrl}${requestUrl}`;
 
     this.errorType = errorType;
     this.errorMsg = errorMsg;
-    this.resourceUrl = resourceUrl;
+    this.requestUrl = requestUrl;
     this.errorId = getErrorId(submitErrorIds, mark);
   }
 }
