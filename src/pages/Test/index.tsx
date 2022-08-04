@@ -18,6 +18,15 @@ const Test: FC = (): ReactElement => {
         block
         type="primary"
         onClick={() => {
+          Promise.reject(1);
+        }}
+      >
+        抛出prmosie错误
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
           const xhr = new XMLHttpRequest();
           xhr.open('GET', '/api/v1/error/test?status=500');
           xhr.send(null);

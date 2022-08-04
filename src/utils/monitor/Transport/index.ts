@@ -42,7 +42,7 @@ export interface TransportParams {
 }
 
 export default class TransportInstance {
-  constructor(public engineInstance: EngineInstance, public options: TransportParams) { }
+  constructor(public engineInstance: EngineInstance, public options: TransportParams) {}
 
   /**
    * 对外暴露的上报函数
@@ -103,13 +103,14 @@ export default class TransportInstance {
   //image 形式上报
   imageTransportHandler = (): Function => {
     const handler = (data: TransportStructure, transportUrl: string) => {
-      const queryStr = Object.entries(data).reduce(
-        (pre, [key, value]) => (value === void 0 || value === null ? pre : `${pre}&${key}=${value}`),
-        '',
-      );
+      const result: string[] = [];
+
+      for (const [k, v] of Object.entries(data)) {
+        result.push(`${k}=${v}`);
+      }
       const img = new Image();
 
-      img.src = `${transportUrl}?${queryStr}`;
+      img.src = `${transportUrl}?${result.join('&')}`;
     };
     return handler;
   };

@@ -1,8 +1,8 @@
 import { JsError, PromiseError, ResourceError, HttpRequestError } from './errorClass';
-import otherErrorType from '../utils/constant/otherErrorType';
-import { pocessStackInfo, getUrlHref } from '../utils';
+import { pocessStackInfo, getUrlHref, getErrorKey, errorTypeMap } from './utils';
 import { EngineInstance, initOptions } from '..';
 import TransportInstance, { transportKind, transportType, transportHandlerType } from '../Transport';
+import { ErrorType } from './type';
 
 export default class ErrorVitals {
   serverUrl: string;
@@ -13,81 +13,90 @@ export default class ErrorVitals {
 
     const serverUrl = this.transportInstance.options.transportUrl.get(transportKind.stability)!;
     this.serverUrl = serverUrl instanceof URL ? serverUrl.href : serverUrl;
-    // this.init();
+    this.init();
   }
 
   init() {
-    this.jsErrorListener();
-    this.promiseRejectedListener();
-    this.rewriteXHR();
-    this.rewriteFetch();
+    this.initJsError();
+    this.initResourceError();
+    this.initPromiseError();
+    this.initProxyXml();
+    this.initProxyFetch();
   }
 
   /**
-   * @description: 捕获js和资源加载错误
+   * @description: 上报错误数据方法
+   * @param errorType 错误类型
+   * @param errorData 错误数据
    */
-  jsErrorListener() {
-    window.addEventListener(
-      'error',
-      (errorEvent) => {
-        const { localName, attributes } = errorEvent.target as HTMLElement;
-        // e.target.localName有值就是资源错误，否者就是js代码执行出错
-        if (localName) {
-          const errorType = otherErrorType.RESOURCELOADED;
-          const resourceUrl = attributes.getNamedItem('src')?.nodeValue ?? attributes.getNamedItem('href')?.nodeValue;
-          const errorMsg = 'resource loading error';
-          const resourceError = new ResourceError(
-            {
-              errorType,
-              errorMsg,
-              resourceUrl: resourceUrl as string,
-            },
-            this.options,
-          );
-
-          resourceError.errorId &&
-            this.transportInstance.kernelTransportHandler(
-              transportKind.stability,
-              transportType.resourceError,
-              resourceError,
-              transportHandlerType.imageTransport,
-            );
-        } else {
-          const { error, message: errorMsg, lineno, colno } = errorEvent;
-          const errorType = error.toString().split(':')[0];
-          const errorStack = error.stack;
-          const jsError = new JsError(
-            {
-              errorType,
-              errorStack: pocessStackInfo(errorStack),
-              errorMsg,
-              errPos: `${lineno}:${colno}`,
-            },
-            this.options,
-          );
-
-          jsError.errorId &&
-            this.transportInstance.kernelTransportHandler(
-              transportKind.stability,
-              transportType.jsError,
-              jsError,
-              transportHandlerType.imageTransport,
-            );
-        }
-      },
-      true,
+  sendError(errorType: transportType, errorData: JsError | PromiseError | ResourceError | HttpRequestError) {
+    this.transportInstance.kernelTransportHandler(
+      transportKind.stability,
+      errorType,
+      errorData,
+      transportHandlerType.imageTransport,
     );
   }
 
   /**
-   * @description: 捕获没有被catch的rejected状态的Promise
+   * @description: 监听js错误
    */
-  promiseRejectedListener() {
-    window.addEventListener('unhandledrejection', (errorEvent) => {
-      const defaultErrorParams = {
-        errorType: otherErrorType.PROMISEREJECTED,
-      };
+  initJsError() {
+    const handler = (errorEvent: ErrorEvent) => {
+      if (getErrorKey(errorEvent) !== ErrorType.JS) return;
+      const { error, message: errorMsg, lineno, colno } = errorEvent;
+      const errorType = error.toString().split(':')[0];
+      const errorStack = error.stack;
+      const jsError = new JsError(
+        {
+          errorType,
+          errorStack: pocessStackInfo(errorStack),
+          errorMsg,
+          errPos: `${lineno}:${colno}`,
+        },
+        this.options,
+      );
 
+      jsError.errorId && this.sendError(transportType.jsError, jsError);
+    };
+
+    window.addEventListener('error', handler, true);
+  }
+
+  /**
+   * @description: 监听静态资源加载错误
+   */
+  initResourceError() {
+    const handler = (errorEvent: ErrorEvent) => {
+      if (getErrorKey(errorEvent) !== ErrorType.RS) return;
+
+      const { attributes } = errorEvent.target as HTMLElement;
+      const errorType = ErrorType.RS;
+      const resourceUrl = attributes.getNamedItem('src')?.nodeValue ?? attributes.getNamedItem('href')?.nodeValue;
+      const errorMsg = 'resource loading error';
+      const resourceError = new ResourceError(
+        {
+          errorType,
+          errorMsg,
+          resourceUrl: resourceUrl as string,
+        },
+        this.options,
+      );
+
+      resourceError.errorId && this.sendError(transportType.resourceError, resourceError);
+    };
+
+    window.addEventListener('error', handler, true);
+  }
+
+  /**
+   * @description: 监听没有catch的promise错误
+   */
+  initPromiseError() {
+    const handler = (errorEvent: PromiseRejectionEvent) => {
+      const defaultErrorParams = {
+        errorType: ErrorType.UJ,
+      };
       let promiseError: PromiseError;
 
       if (typeof errorEvent.reason === 'object') {
@@ -109,24 +118,20 @@ export default class ErrorVitals {
         );
       }
 
-      promiseError.errorId &&
-        this.transportInstance.kernelTransportHandler(
-          transportKind.stability,
-          transportType.promiseError,
-          promiseError,
-          transportHandlerType.imageTransport,
-        );
-    });
+      promiseError.errorId && this.sendError(transportType.promiseError, promiseError);
+    };
+
+    window.addEventListener('unhandledrejection', handler, true);
   }
 
   /**
-   * @description: 重写XMLHttpRequest
+   * @description: 劫持ajax请求
    */
-  rewriteXHR() {
+  initProxyXml() {
     const serverUrl = getUrlHref(this.serverUrl);
     const oldOpen = XMLHttpRequest.prototype.open;
-    const transportInstance = this.transportInstance;
     const options = this.options;
+    const _this = this;
 
     // @ts-ignore
     XMLHttpRequest.prototype.open = function (method, url, async, username, password) {
@@ -176,23 +181,12 @@ export default class ErrorVitals {
             const httpRequestError = new HttpRequestError(
               {
                 ...defaultParams,
-                errorType: `XMLHttpRequest${eventType === 'error'
-                  ? `CrossDomainError`
-                  : eventType === 'loadend'
-                    ? 'Error'
-                    : eventType[0].toUpperCase() + eventType.slice(1)
-                  }`,
+                errorType: errorTypeMap[eventType],
               },
               options,
             );
 
-            httpRequestError.errorId &&
-              transportInstance.kernelTransportHandler(
-                transportKind.stability,
-                transportType.httpError,
-                httpRequestError,
-                transportHandlerType.imageTransport,
-              );
+            httpRequestError.errorId && _this.sendError(transportType.httpError, httpRequestError);
           } else {
             // 如果是断网导致的请求失败，则缓存请求，等到网络连接后重新上报数据
             window.addEventListener(
@@ -201,18 +195,12 @@ export default class ErrorVitals {
                 const httpRequestError = new HttpRequestError(
                   {
                     ...defaultParams,
-                    errorType: 'XMLHttpRequestNetworkError',
+                    errorType: ErrorType.XN,
                   },
                   options,
                 );
 
-                httpRequestError.errorId &&
-                  transportInstance.kernelTransportHandler(
-                    transportKind.stability,
-                    transportType.httpError,
-                    httpRequestError,
-                    transportHandlerType.imageTransport,
-                  );
+                httpRequestError.errorId && _this.sendError(transportType.httpError, httpRequestError);
               },
               {
                 once: true,
@@ -244,9 +232,9 @@ export default class ErrorVitals {
   }
 
   /**
-   * @description: 重写fetch
+   * @description: 劫持fetch请求
    */
-  rewriteFetch() {
+  initProxyFetch() {
     const oldFetch = window.fetch;
 
     const newFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -259,7 +247,7 @@ export default class ErrorVitals {
         if (!ok) {
           let httpRequestError: HttpRequestError;
           const defaultParams = {
-            errorType: otherErrorType.HTTPREQUEST,
+            errorType: ErrorType.HP,
             requestUrl: '',
             method: '',
             status,
@@ -285,14 +273,6 @@ export default class ErrorVitals {
               this.options,
             );
           }
-
-          httpRequestError.errorId &&
-            this.transportInstance.kernelTransportHandler(
-              transportKind.stability,
-              transportType.httpError,
-              httpRequestError,
-              transportHandlerType.imageTransport,
-            );
         }
       });
 

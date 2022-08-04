@@ -1,25 +1,7 @@
 import { EngineInstance } from '..';
-import {
-  MetricsStore as UserMetricsStore,
-  IMetrics,
-  metricsName,
-  BehaviorStore
-} from './store';
-import {
-  PageInformation,
-  customAnalyticsData,
-  httpMetrics,
-  behaviorStack,
-  OriginInformation
-} from './type';
-import {
-  wrHistory,
-  proxyHistory,
-  proxyHash,
-  proxyXmlHttp,
-  proxyFetch,
-  getOriginInfo,
-} from './event'
+import { MetricsStore as UserMetricsStore, IMetrics, metricsName, BehaviorStore } from './store';
+import { PageInformation, customAnalyticsData, httpMetrics, behaviorStack, OriginInformation } from './type';
+import { wrHistory, proxyHistory, proxyHash, proxyXmlHttp, proxyFetch, getOriginInfo } from './event';
 import { transportHandlerType, transportKind, transportType } from '../Transport';
 
 export const afterLoad = (callback: any) => {
@@ -70,22 +52,18 @@ export default class UserVitals {
     // 初始化 click 事件捕获
     this.initClickHandler(this.clickMountList);
     // 初始化 Http 请求事件捕获
-    this.initHttpHandler();
+    // this.initHttpHandler();
   }
 
   // 封装用户行为的上报入口
   userSendHandler = (data: IMetrics) => {
     // 进行通知内核实例进行上报;
-    // console.log(data);
-    // console.log(this.metrics);
-    // console.log(this.breadcrumbs);
-    console.log(1);
-    this.engineInstance.transportInstance.kernelTransportHandler(
-      transportKind.business,
-      transportType.PV,
-      data,
-      transportHandlerType.xmlTransport
-    )
+    // this.engineInstance.transportInstance.kernelTransportHandler(
+    //   transportKind.business,
+    //   transportType.PV,
+    //   data,
+    //   transportHandlerType.xmlTransport,
+    // );
   };
 
   // 补齐 pathname 和 timestamp 参数
@@ -135,8 +113,9 @@ export default class UserVitals {
       language: language.substr(0, 2),
       userAgent,
       winScreen: `${width}x${height}`,
-      docScreen: `${document.documentElement.clientWidth || document.body.clientWidth}x${document.documentElement.clientHeight || document.body.clientHeight
-        }`,
+      docScreen: `${document.documentElement.clientWidth || document.body.clientWidth}x${
+        document.documentElement.clientHeight || document.body.clientHeight
+      }`,
     };
   };
 
@@ -249,24 +228,24 @@ export default class UserVitals {
   };
 
   // 初始化 http 请求的数据获取和上报
-  initHttpHandler = (): void => {
-    const loadHandler = (metrics: httpMetrics) => {
-      if (metrics.status < 400) {
-        // 对于正常请求的 HTTP 请求来说,不需要记录 请求体 和 响应体
-        delete metrics.response;
-        delete metrics.body;
-      }
-      // 记录到 UserMetricsStore
-      this.metrics.add(metricsName.HT, metrics);
-      // 记录到用户行为记录栈
-      const behavior = {
-        category: metricsName.HT,
-        data: metrics,
-        ...this.getExtends(),
-      } as behaviorStack;
-      this.breadcrumbs.push(behavior);
-    };
-    // proxyXmlHttp(null, loadHandler);
-    // proxyFetch(null, loadHandler);
-  };
+  // initHttpHandler = (): void => {
+  //   const loadHandler = (metrics: httpMetrics) => {
+  //     if (metrics.status < 400) {
+  //       // 对于正常请求的 HTTP 请求来说,不需要记录 请求体 和 响应体
+  //       delete metrics.response;
+  //       delete metrics.body;
+  //     }
+  //     // 记录到 UserMetricsStore
+  //     this.metrics.add(metricsName.HT, metrics);
+  //     // 记录到用户行为记录栈
+  //     const behavior = {
+  //       category: metricsName.HT,
+  //       data: metrics,
+  //       ...this.getExtends(),
+  //     } as behaviorStack;
+  //     this.breadcrumbs.push(behavior);
+  //   };
+  //   proxyXmlHttp(null, loadHandler);
+  //   proxyFetch(null, loadHandler);
+  // };
 }

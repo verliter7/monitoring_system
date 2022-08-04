@@ -1,13 +1,10 @@
 import TransportInstance, { transportKind } from './Transport';
 import PerformanceVitals from './PerformanceVitals';
-// import ErrorVitals from './ErrorVitals';
+import ErrorVitals from './ErrorVitals';
 import UserVitals from './UserVitals';
 
-import {
-  errorUrl,
-  businessUrl,
-} from './utils/urls';
-import ErrorVitals from './ErrorVitals2';
+import { errorUrl, businessUrl } from './utils/urls';
+// import ErrorVitals from './ErrorVitals2';
 
 export interface EngineInstance {
   performanceInstance: PerformanceVitals;
@@ -45,10 +42,10 @@ class WebSdk {
       ]),
     });
 
-    this.performanceInstance = new PerformanceVitals(this, options);
     this.userInstance = new UserVitals(this);
-    // this.errorCatchInstance = new ErrorVitals(this, options);
-    this.errorCatchInstance = new ErrorVitals(this)
+    this.performanceInstance = new PerformanceVitals(this, options);
+    this.errorCatchInstance = new ErrorVitals(this, options);
+    // this.errorCatchInstance = new ErrorVitals(this);
   }
 }
 

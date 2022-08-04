@@ -188,7 +188,7 @@
 
 "@types/koa-bodyparser@^4.3.7":
   version "4.3.7"
-  resolved "https://registry.npmmirror.com/@types/koa-bodyparser/-/koa-bodyparser-4.3.7.tgz"
+  resolved "https://registry.npmmirror.com/@types/koa-bodyparser/-/koa-bodyparser-4.3.7.tgz#3ac41f2dec9d97db7a6f798bbb2e2368be762714"
   integrity sha512-21NhEp7LjZm4zbNV5alHHmrNY4J+S7B8lYTO6CzRL8ShTMnl20Gd14dRgVhAxraLaW5iZMofox+BycbuiDvj2Q==
   dependencies:
     "@types/koa" "*"
@@ -202,7 +202,7 @@
 
 "@types/koa-router@^7.4.4":
   version "7.4.4"
-  resolved "https://registry.npmmirror.com/@types/koa-router/-/koa-router-7.4.4.tgz"
+  resolved "https://registry.npmmirror.com/@types/koa-router/-/koa-router-7.4.4.tgz#db72bde3616365d74f00178d5f243c4fce7da572"
   integrity sha512-3dHlZ6CkhgcWeF6wafEUvyyqjWYfKmev3vy1PtOmr0mBc3wpXPU5E8fBBd4YQo5bRpHPfmwC5yDaX7s4jhIN6A==
   dependencies:
     "@types/koa" "*"
@@ -1165,7 +1165,7 @@ kind-of@^6.0.2:
 
 koa-bodyparser@^4.3.0:
   version "4.3.0"
-  resolved "https://registry.npmmirror.com/koa-bodyparser/-/koa-bodyparser-4.3.0.tgz"
+  resolved "https://registry.npmmirror.com/koa-bodyparser/-/koa-bodyparser-4.3.0.tgz#274c778555ff48fa221ee7f36a9fbdbace22759a"
   integrity sha512-uyV8G29KAGwZc4q/0WUAjH+Tsmuv9ImfBUF2oZVyZtaeo0husInagyn/JH85xMSxM0hEk/mbCII5ubLDuqW/Rw==
   dependencies:
     co-body "^6.0.0"
@@ -1186,7 +1186,7 @@ koa-convert@^2.0.0:
 
 koa-router@^12.0.0:
   version "12.0.0"
-  resolved "https://registry.npmmirror.com/koa-router/-/koa-router-12.0.0.tgz"
+  resolved "https://registry.npmmirror.com/koa-router/-/koa-router-12.0.0.tgz#94276df8c7aef424b86728b0ff4a69de50050dbc"
   integrity sha512-zGrdiXygGYW8WvrzeGsHZvKnHs4DzyGoqJ9a8iHlRkiwuEAOAPyI27//OlhoWdgFAEIM3qbUgr0KCuRaP/TCag==
   dependencies:
     http-errors "^2.0.0"

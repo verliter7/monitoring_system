@@ -75,7 +75,7 @@ export const proxyXmlHttp = (sendHandler: Function | null | undefined, loadHandl
         // xhr.status 状态码
       });
       return xhr;
-    }
+    };
   }
 };
 

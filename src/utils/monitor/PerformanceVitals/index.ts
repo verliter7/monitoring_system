@@ -56,13 +56,13 @@ export default class PerformanceVitals {
     this.initLongTask();
 
     // 这里的 FP/FCP/FID resource需要在页面成功加载了再进行获取
-    afterLoad(() => {
-      this.initNavigationTiming();
-      this.initFP();
-      this.initFCP();
-      this.initFID();
-      this.perfSendHandler();
-    });
+    // afterLoad(() => {
+    //   this.initNavigationTiming();
+    //   this.initFP();
+    //   this.initFCP();
+    //   this.initFID();
+    //   this.perfSendHandler();
+    // });
   }
 
   //性能数据的上报策略
@@ -83,7 +83,6 @@ export default class PerformanceVitals {
     //   let a = this.builderInstance.performanceDataBuilder(item)
     //   console.log(a);
     // })
-
   };
 
   //W3C标准化在 w3c/paint-timing 定义了 首次非网页背景像素渲染（fp）(白屏时间) 和  首次内容渲染（fcp)(灰屏时间)，我们可以直接去取;
@@ -210,7 +209,7 @@ export default class PerformanceVitals {
     const stopListening = () => {
       const metrics = resourceFlow as IMetrics;
       this.metrics.set(metricsName.RF, metrics);
-      observer?.disconnect()
+      observer?.disconnect();
     };
     // 当页面 pageshow 触发时，中止
     window.addEventListener('pageshow', stopListening, { once: true, capture: true });

@@ -1,5 +1,18 @@
 import DimensionStructure from '../DimensionInstance/type';
 
+export enum ErrorType {
+  JS = 'JSError',
+  RS = 'ResourceLoadedError',
+  UJ = 'PromiseRejectedUnCatchError',
+  HP = 'HttpRequestError',
+  CS = 'CrossDomainScriptError',
+  XC = 'XMLHttpRequestCrossDomainError',
+  XE = 'XMLHttpRequestError',
+  XN = 'XMLHttpRequestNetworkError',
+  XT = 'XMLHttpRequestTimeoutError',
+  XA = 'XMLHttpRequestAbortError',
+}
+
 export type JsErrorParams = {
   errorType: string;
   errorStack: string;
