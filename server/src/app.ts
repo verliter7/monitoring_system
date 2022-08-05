@@ -1,6 +1,7 @@
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import router from './router';
+const cors = require("@koa/cors")
 
 declare module 'koa' {
   interface DefaultState {
@@ -26,7 +27,7 @@ interface IErrorParam {
 }
 
 const app = new Koa();
-
+app.use(cors())
 app.use(async (ctx, next) => {
   ctx.defaultResponse = (params) => {
     const defaultParams = {
@@ -45,12 +46,17 @@ app.use(async (ctx, next) => {
     ctx.body = error ? Object.assign(defaultError, error) : error;
   };
 
+  if (ctx.method == 'OPTIONS') {
+    ctx.body = '';
+    ctx.status = 204;
+  }
+
   await next();
 });
 
 app.use(bodyParser());
 app.use(router.routes()).use(router.allowedMethods());
 
-app.listen(8080, () => {
-  console.log(`server is running on http://localhost:8080`);
+app.listen(8081, () => {
+  console.log(`server is running on http://localhost:8081`);
 });

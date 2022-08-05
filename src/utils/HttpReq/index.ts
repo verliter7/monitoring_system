@@ -72,7 +72,7 @@ class HttpReq implements IHttpReq {
 
   private static readonly requestInstance: RequestMethod = extend({
     // credentials 是Fetch接口的只读属性，用于表示用户代理是否应该在跨域请求的情况下从其他域发送cookies
-    // credentials: "include",
+    credentials: "include",
     prefix: '/api/v1',
     errorHandler: HttpReq.errorHandler,
   });

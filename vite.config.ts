@@ -19,7 +19,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080', // 接口基地址
+        target: 'http://localhost:8081', // 接口基地址
         changeOrigin: true,
       },
     },
