@@ -18,20 +18,6 @@ import type { IHttpRequestConfig, IHttpReq, IcodeMap } from './type';
  */
 class HttpReq implements IHttpReq {
   private static readonly codeMap: IcodeMap = {
-    200: '服务器已成功处理了请求',
-    201: '请求成功并且服务器创建了新的资源',
-    202: '已经接受请求，但未处理完成',
-    203: '非授权信息。请求成功',
-    204: '服务器成功处理了请求，但没有返回任何内容',
-    205: '服务器成功处理了请求，但没有返回任何内容',
-    206: '服务器成功处理了部分 GET 请求',
-    300: '针对请求，服务器可执行多种操作',
-    301: '请求的资源已被永久的移动到新URI',
-    302: '服务器目前从不同位置的网页响应请求，但请求者应继续使用原有位置来进行以后的请求',
-    303: '请求者应当对不同的位置使用单独的 GET 请求来检索响应时，服务器返回此代码',
-    304: '自从上次请求后，请求的网页未修改过',
-    305: '所请求的资源必须通过代理访问',
-    307: '临时重定向',
     400: '客户端请求的语法错误，服务器无法理解',
     401: '请求要求用户的身份认证',
     402: '保留，将来使用',
@@ -93,9 +79,10 @@ class HttpReq implements IHttpReq {
 
       message.error(errorText);
     } else if (!response) {
-      message.error('发生未知错误！');
+      message.error('抱歉，好像出错了！');
     }
-    return response;
+
+    throw new Error('Request error！');
   }
 
   send<P>(option: IHttpRequestConfig | string): Promise<P> {

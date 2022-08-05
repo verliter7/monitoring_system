@@ -1,12 +1,13 @@
 import { api, HttpReq } from '@/utils';
-import { HttpReqType } from '@/utils/HttpReq/type';
+import type { HttpReqType } from '@/utils/HttpReq/type';
+import type { IData } from './type';
 
-export const getResourceErrorCounts: HttpReqType = () => {
+export const getResourceErrorCounts: HttpReqType<IData> = () => {
   return HttpReq.send({
     url: api.getErrorCounts,
     method: 'get',
     body: {
-      errorType: 'httpError',
+      errorType: 'resourceError',
     },
   });
 };

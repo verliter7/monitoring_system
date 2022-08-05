@@ -1,10 +1,37 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { getThemeVariables } from 'antd/dist/theme.js';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      babel: {
+        plugins: [
+          [
+            'import',
+            {
+              libraryName: 'antd',
+              style: true,
+              libraryDirectory: 'es',
+            },
+          ],
+        ],
+      },
+    }),
+  ],
+  // 按需引入antd css样式
+  css: {
+    preprocessorOptions: {
+      less: {
+        modifyVars: getThemeVariables({
+          dark: true, // 开启暗黑模式
+        }),
+        javascriptEnabled: true,
+      },
+    },
+  },
   esbuild: {
     logOverride: { 'this-is-undefined-in-esm': 'silent' },
   },
@@ -12,6 +39,7 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src'),
     },
+    // extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
   },
   server: {
     port: 9090,

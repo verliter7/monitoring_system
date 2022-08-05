@@ -21,7 +21,7 @@ const BaseLayout: FC = (): ReactElement => {
         height: '100%',
       }}
     >
-      <Sider trigger={null} collapsible collapsed={collapsed} css={{ backgroundColor: '#fff' }}>
+      <Sider trigger={null} collapsible collapsed={collapsed}>
         <Menu
           theme="light"
           mode="inline"
@@ -39,7 +39,7 @@ const BaseLayout: FC = (): ReactElement => {
             padding: '0px',
             height: '48px',
             lineHeight: '48px',
-            backgroundColor: '#fff',
+
             '& > .trigger': {
               padding: '0 12px',
               fontSize: '18px',
@@ -60,7 +60,6 @@ const BaseLayout: FC = (): ReactElement => {
             margin: '16px',
             padding: '16px',
             minHeight: '280px',
-            background: '#fff',
           }}
         >
           <HomePageRouters />

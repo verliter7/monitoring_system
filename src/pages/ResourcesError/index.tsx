@@ -1,36 +1,46 @@
 /* @jsxImportSource @emotion/react */
 import { useState } from 'react';
 import PubTabs from '@/public/PubTabs';
-import useMount from '@/hooks/useMount';
+import { useRequest } from '@/hooks';
 import ErrorCountLine from './ErrorCountLine';
 import { getResourceErrorCounts } from './service';
 import type { FC, ReactElement } from 'react';
 import type { ITab } from '@/public/PubTabs/type';
-import type { IErorCountData } from './type';
+import type { IErrorCountData, IErrorSum } from './type';
 
 const ResourcesError: FC = (): ReactElement => {
-  const [errorCountData, setErrorCountData] = useState<IErorCountData[]>([]);
+  const [backErrorCountData, setBackErrorCountData] = useState<IErrorCountData[]>([]);
+  const [errorSum, setErrorSum] = useState<IErrorSum>({
+    front: 0,
+    back: 0,
+  });
+  const getSum = (values: number[]) => values.reduce((prev, cur) => prev + cur);
+  const { loading } = useRequest(getResourceErrorCounts, {
+    onSuccess(res) {
+      const {
+        data: { frontErrorConutsByTime, backErrorConutsByTime },
+      } = res;
 
-  useMount(async () => {
-    const {
-      data: { backErrorConutsByTime },
-    } = await getResourceErrorCounts();
+      const backErrorCountData = Object.entries<number>(backErrorConutsByTime).map(([time, errorCount]) => ({
+        time,
+        errorCount,
+      }));
 
-    const errorData = Object.entries<number>(backErrorConutsByTime).map(([time, errorCount]) => ({
-      time,
-      errorCount,
-    }));
-
-    setErrorCountData(errorData);
+      setBackErrorCountData(backErrorCountData);
+      setErrorSum({
+        front: getSum(Object.values(frontErrorConutsByTime)),
+        back: getSum(Object.values(backErrorConutsByTime)),
+      });
+    },
   });
 
   const tabs: ITab[] = [
     {
       title: '错误数',
-      middle: 123,
-      bottomCenter: 233,
+      middle: errorSum.back,
+      bottomCenter: errorSum.front,
       unit: '',
-      content: <ErrorCountLine errorCountData={errorCountData} />,
+      content: <ErrorCountLine backErrorData={backErrorCountData} loading={loading} />,
     },
     {
       title: '错误率',
