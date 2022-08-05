@@ -1,10 +1,9 @@
-import { Button } from 'antd'
 import type { FC, ReactElement } from 'react'
 
 const UserInteraction: FC = (): ReactElement => {
   return (
     <div>
-      <Button>点击</Button>
+      UserInteraction
     </div>
   )
 }

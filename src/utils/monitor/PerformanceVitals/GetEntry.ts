@@ -145,6 +145,7 @@ export const getResourceFlow = (resourceFlow: Array<ResourceFlowTiming>): Perfor
   return observe('resource', entryHandler, true);
 };
 
+// 获取长任务
 export const getLongTask = (entryHandler: PerformanceEntryHandler): PerformanceObserver | undefined => {
   return observe('longtask', entryHandler, true);
 };

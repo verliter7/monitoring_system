@@ -13,7 +13,7 @@ export enum transportType {
   resourceError = 'resourceError',
   blank = 'blank',
   timing = 'timing',
-  paint = 'paint', // FP FCP FMP LCP
+  paint = 'paint', // FP FCP FMP LCP FID
   FID = 'FID',
   LT = 'longTask',
   CLS = 'CLS',
@@ -42,7 +42,7 @@ export interface TransportParams {
 }
 
 export default class TransportInstance {
-  constructor(public engineInstance: EngineInstance, public options: TransportParams) {}
+  constructor(public engineInstance: EngineInstance, public options: TransportParams) { }
 
   /**
    * 对外暴露的上报函数
@@ -82,7 +82,13 @@ export default class TransportInstance {
   // beacon 形式上报
   beaconTransportHandler = (): Function => {
     const handler = (data: TransportStructure, transportUrl: string) => {
-      const status = window.navigator.sendBeacon(transportUrl, JSON.stringify(data));
+      const formData = new FormData()
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          formData.append(key, data[key]);
+        }
+      }
+      const status = window.navigator.sendBeacon(transportUrl, formData);
       // 如果数据量过大，则本次大数据量用 XMLHttpRequest 上报
       if (!status) this.xmlTransportHandler().apply(this, data);
     };
@@ -92,10 +98,16 @@ export default class TransportInstance {
   // XMLHttpRequest 形式上报
   xmlTransportHandler = (): Function => {
     const handler = (data: TransportStructure, transportUrl: string) => {
+      const formData = new FormData()
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          formData.append(key, data[key]);
+        }
+      }
       const xhr = new XMLHttpRequest();
       xhr.open('POST', transportUrl, true);
-      xhr.setRequestHeader('Content-type', 'application/json');
-      xhr.send(JSON.stringify(data));
+      // xhr.setRequestHeader('Content-type', 'application/json');
+      xhr.send(formData);
     };
     return handler;
   };
