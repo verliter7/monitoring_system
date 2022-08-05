@@ -1,8 +1,12 @@
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
 import { Global, css } from '@emotion/react';
 import App from './App';
+import WebSdk from './utils/monitor';
+
+new WebSdk({
+  aid: '10086',
+});
 
 const globalStyles = css`
   html,

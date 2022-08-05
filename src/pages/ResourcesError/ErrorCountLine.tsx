@@ -1,3 +1,4 @@
+import { Spin } from 'antd';
 import { Area } from '@ant-design/charts';
 import { G2 } from '@ant-design/plots';
 import { each, findIndex } from '@antv/util';
@@ -6,9 +7,10 @@ import type { IErrorCountData } from './type';
 
 interface IProps {
   backErrorData: IErrorCountData[];
+  loading: boolean;
 }
 
-const ErrorCountLine: FC<IProps> = ({ backErrorData }): ReactElement => {
+const ErrorCountLine: FC<IProps> = ({ backErrorData, loading }): ReactElement => {
   const { InteractionAction, registerInteraction, registerAction } = G2;
 
   G2.registerShape('point', 'custom-point', {
@@ -187,7 +189,11 @@ const ErrorCountLine: FC<IProps> = ({ backErrorData }): ReactElement => {
     ],
   };
 
-  return <Area {...config} />;
+  return (
+    <Spin tip="图表加载中..." spinning={loading} size="large">
+      <Area {...config} />
+    </Spin>
+  );
 };
 
 export default ErrorCountLine;

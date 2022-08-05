@@ -33,14 +33,6 @@
     "vite": "^3.0.0"
   },
   "babel": {
-    "presets": [
-      [
-        "react-app",
-        {
-          "runtime": "automatic"
-        }
-      ]
-    ],
     "plugins": [
       [
         "import",

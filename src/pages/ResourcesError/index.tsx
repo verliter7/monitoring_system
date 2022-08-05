@@ -1,7 +1,7 @@
 /* @jsxImportSource @emotion/react */
 import { useState } from 'react';
 import PubTabs from '@/public/PubTabs';
-import useMount from '@/hooks/useMount';
+import { useRequest } from '@/hooks';
 import ErrorCountLine from './ErrorCountLine';
 import { getResourceErrorCounts } from './service';
 import type { FC, ReactElement } from 'react';
@@ -14,14 +14,12 @@ const ResourcesError: FC = (): ReactElement => {
     front: 0,
     back: 0,
   });
-
   const getSum = (values: number[]) => values.reduce((prev, cur) => prev + cur);
-
-  useMount(async () => {
-    try {
+  const { loading } = useRequest(getResourceErrorCounts, {
+    onSuccess(res) {
       const {
         data: { frontErrorConutsByTime, backErrorConutsByTime },
-      } = await getResourceErrorCounts();
+      } = res;
 
       const backErrorCountData = Object.entries<number>(backErrorConutsByTime).map(([time, errorCount]) => ({
         time,
@@ -33,7 +31,7 @@ const ResourcesError: FC = (): ReactElement => {
         front: getSum(Object.values(frontErrorConutsByTime)),
         back: getSum(Object.values(backErrorConutsByTime)),
       });
-    } catch (e) {}
+    },
   });
 
   const tabs: ITab[] = [
@@ -42,7 +40,7 @@ const ResourcesError: FC = (): ReactElement => {
       middle: errorSum.back,
       bottomCenter: errorSum.front,
       unit: '',
-      content: <ErrorCountLine backErrorData={backErrorCountData} />,
+      content: <ErrorCountLine backErrorData={backErrorCountData} loading={loading} />,
     },
     {
       title: '错误率',
