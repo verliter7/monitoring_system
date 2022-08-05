@@ -1,4 +1,5 @@
 import { Line } from '@ant-design/plots';
+import { Spin } from 'antd';
 import type { FC, ReactElement } from 'react';
 import type { IPaintData } from './type';
 
@@ -6,9 +7,10 @@ interface IProps {
   paintData: IPaintData[];
   type: "FP" | "FCP" | "FMP" | "LCP" | "FID"
   title: string
+  loading: boolean
 }
 
-const PaintLine: FC<IProps> = ({ paintData, type, title }): ReactElement => {
+const PaintLine: FC<IProps> = ({ paintData, type, title, loading }): ReactElement => {
   const config = {
     meta: {
       timeStamp: {
@@ -27,7 +29,11 @@ const PaintLine: FC<IProps> = ({ paintData, type, title }): ReactElement => {
     },
   };
 
-  return <Line {...config} />;
+  return (
+    <Spin tip="图表加载中..." spinning={loading} size="large">
+      <Line {...config} />
+    </Spin>
+  )
 };
 
 export default PaintLine;
