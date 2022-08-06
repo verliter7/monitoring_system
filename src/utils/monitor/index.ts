@@ -3,7 +3,7 @@ import PerformanceVitals from './PerformanceVitals';
 import ErrorVitals from './ErrorVitals';
 import UserVitals from './UserVitals';
 
-import { errorUrl, businessUrl } from './utils/urls';
+import { errorUrl, businessUrl, performanceUrl } from './utils/urls';
 // import ErrorVitals from './ErrorVitals2';
 
 export interface EngineInstance {
@@ -37,7 +37,7 @@ class WebSdk {
     this.transportInstance = new TransportInstance(this, {
       transportUrl: new Map([
         [transportKind.stability, errorUrl],
-        [transportKind.performance, ' '],
+        [transportKind.performance, performanceUrl],
         [transportKind.business, businessUrl],
       ]),
     });

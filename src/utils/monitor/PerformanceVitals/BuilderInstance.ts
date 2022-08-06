@@ -18,6 +18,7 @@ export default class BuilderInstance {
         FCP: metrics.get(metricsName.FCP)?.startTime,
         FMP: metrics.get(metricsName.FMP)?.startTime,
         LCP: metrics.get(metricsName.LCP)?.startTime,
+        FID: metrics.get(metricsName.FID)?.delay
       };
     }
 
@@ -26,10 +27,7 @@ export default class BuilderInstance {
     }
 
     function longTaskBuilder() {
-      return {
-        startTime: metrics.get(metricsName.LT)?.startTime,
-        duration: metrics.get(metricsName.LT)?.entry.duration,
-      };
+      return JSON.parse(JSON.stringify(metrics.get(metricsName.LT)))
     }
 
     function CLSBuilder() {
@@ -42,12 +40,19 @@ export default class BuilderInstance {
       return metrics.get(metricsName.RF)
     }
 
+    function FIDBuilder() {
+      return {
+        FID: metrics.get(metricsName.FID)?.delay
+      }
+    }
+
     const buiderStore: Map<transportType, Function> = new Map([
       [transportType.paint, paintBuilder],
       [transportType.timing, timingBuilder],
       [transportType.LT, longTaskBuilder],
       [transportType.CLS, CLSBuilder],
       [transportType.RF, RFBuilder],
+      [transportType.FID, FIDBuilder],
     ]);
     return buiderStore.get(type)?.();
   }

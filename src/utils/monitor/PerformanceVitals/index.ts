@@ -37,6 +37,8 @@ export const afterLoad = (callback: any) => {
   }
 };
 
+
+
 // 初始化入口，外部调用只需要 new PerformanceVitals();
 export default class PerformanceVitals {
   private engineInstance: EngineInstance;
@@ -56,13 +58,21 @@ export default class PerformanceVitals {
     this.initLongTask();
 
     // 这里的 FP/FCP/FID resource需要在页面成功加载了再进行获取
-    // afterLoad(() => {
-    //   this.initNavigationTiming();
-    //   this.initFP();
-    //   this.initFCP();
-    //   this.initFID();
-    //   this.perfSendHandler();
-    // });
+    afterLoad(() => {
+      this.initNavigationTiming();
+      this.initFP();
+      this.initFCP();
+      this.initFID();
+      // this.perfSendHandler();
+    });
+
+    window.addEventListener('beforeunload ', (event) => {
+      console.log(event);
+
+      event.preventDefault();
+      this.sendPerformanceData(transportType.CLS)
+      return "true"
+    })
   }
 
   //性能数据的上报策略
@@ -71,19 +81,33 @@ export default class PerformanceVitals {
     // 如果不需要监听 FID，那么这里你就可以发起上报请求了;
     // console.log(this.metrics.getValues());
     // 数据上报
-    // this.engineInstance.transportInstance.kernelTransportHandler(
-    //   transportKind.performance,
-    //   transportType.paint,
-    //   { ...new DimensionInstance(this.options), ...this.builderInstance.performanceDataBuilder(transportType.paint) },
-    //   transportHandlerType.initTransport,
-    // );
-    // console.log(new DimensionInstance(this.options));
-    // [transportType.timing, transportType.paint, transportType.RF, transportType.CLS].forEach((item) => {
-    //   // new DimensionInstance(this.options)
-    //   let a = this.builderInstance.performanceDataBuilder(item)
-    //   console.log(a);
-    // })
+    [
+      transportType.timing,
+      transportType.paint,
+    ].forEach(item => {
+      this.sendPerformanceData(item)
+    })
   };
+
+  sendPerformanceData(type: transportType) {
+    // let a = {
+    //   kind: transportKind.performance,
+    //   type,
+    //   ...new DimensionInstance(this.options),
+    //   ...this.builderInstance.performanceDataBuilder(type)
+    // }
+    // console.log(a);
+
+    this.engineInstance.transportInstance.kernelTransportHandler(
+      transportKind.performance,
+      type,
+      {
+        ...new DimensionInstance(this.options),
+        ...this.builderInstance.performanceDataBuilder(type)
+      },
+      transportHandlerType.xmlTransport,
+    );
+  }
 
   //W3C标准化在 w3c/paint-timing 定义了 首次非网页背景像素渲染（fp）(白屏时间) 和  首次内容渲染（fcp)(灰屏时间)，我们可以直接去取;
 
@@ -143,6 +167,7 @@ export default class PerformanceVitals {
         entry,
       } as IMetrics;
       this.metrics.set(metricsName.FID, metrics);
+      this.perfSendHandler()
     };
     getFID(entryHandler);
   };
