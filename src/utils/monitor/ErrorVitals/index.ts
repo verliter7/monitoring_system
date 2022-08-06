@@ -1,11 +1,15 @@
-import { JsError, PromiseError, ResourceError, HttpRequestError } from './errorClass';
-import { pocessStackInfo, getUrlHref, getErrorKey, errorTypeMap } from './utils';
+import { JsError, PromiseError, ResourceError, HttpRequestError, HttpRequest } from './errorClass';
+import { pocessStackInfo, getErrorKey, errorTypeMap } from './utils';
 import { EngineInstance, initOptions } from '..';
 import TransportInstance, { transportKind, transportType, transportHandlerType } from '../Transport';
+import { httpUrl } from '../utils/urls';
 import { ErrorType } from './type';
 
+const HTTP_MAX_LIMIT = 1;
+const httpSet = new Set<HttpRequest>();
+
 export default class ErrorVitals {
-  serverUrl: string;
+  serverUrl: string; // 上报错误数据url
   transportInstance: TransportInstance;
 
   constructor(public engineInstance: EngineInstance, public options: initOptions) {
@@ -29,7 +33,10 @@ export default class ErrorVitals {
    * @param errorType 错误类型
    * @param errorData 错误数据
    */
-  sendError(errorType: transportType, errorData: JsError | PromiseError | ResourceError | HttpRequestError) {
+  sendError(
+    errorType: transportType,
+    errorData: JsError | PromiseError | ResourceError | HttpRequestError | HttpRequest,
+  ) {
     this.transportInstance.kernelTransportHandler(
       transportKind.stability,
       errorType,
@@ -42,9 +49,9 @@ export default class ErrorVitals {
    * @description: 监听js错误
    */
   initJsError() {
-    const handler = (errorEvent: ErrorEvent) => {
-      if (getErrorKey(errorEvent) !== ErrorType.JS) return;
-      const { error, message: errorMsg, lineno, colno } = errorEvent;
+    const handler = (e: ErrorEvent) => {
+      if (getErrorKey(e) !== ErrorType.JS) return;
+      const { error, message: errorMsg, lineno, colno } = e;
       const errorType = error.toString().split(':')[0];
       const errorStack = error.stack;
       const jsError = new JsError(
@@ -67,10 +74,10 @@ export default class ErrorVitals {
    * @description: 监听静态资源加载错误
    */
   initResourceError() {
-    const handler = (errorEvent: ErrorEvent) => {
-      if (getErrorKey(errorEvent) !== ErrorType.RS) return;
+    const handler = (e: ErrorEvent) => {
+      if (getErrorKey(e) !== ErrorType.RS) return;
 
-      const { attributes } = errorEvent.target as HTMLElement;
+      const { attributes } = e.target as HTMLElement;
       const errorType = ErrorType.RS;
       const requestUrl = attributes.getNamedItem('src')?.nodeValue ?? attributes.getNamedItem('href')?.nodeValue;
 
@@ -94,14 +101,14 @@ export default class ErrorVitals {
    * @description: 监听没有catch的promise错误
    */
   initPromiseError() {
-    const handler = (errorEvent: PromiseRejectionEvent) => {
+    const handler = (e: PromiseRejectionEvent) => {
       const defaultErrorParams = {
         errorType: ErrorType.UJ,
       };
       let promiseError: PromiseError;
 
-      if (typeof errorEvent.reason === 'object') {
-        const { stack: errorStack, message: errorMsg } = errorEvent.reason;
+      if (typeof e.reason === 'object') {
+        const { stack: errorStack, message: errorMsg } = e.reason;
 
         promiseError = new PromiseError(
           Object.assign(defaultErrorParams, {
@@ -113,7 +120,7 @@ export default class ErrorVitals {
       } else {
         promiseError = new PromiseError(
           Object.assign(defaultErrorParams, {
-            errorMsg: errorEvent.reason,
+            errorMsg: e.reason,
           }),
           this.options,
         );
@@ -129,106 +136,127 @@ export default class ErrorVitals {
    * @description: 劫持ajax请求
    */
   initProxyXml() {
-    const serverUrl = getUrlHref(this.serverUrl);
-    const oldOpen = XMLHttpRequest.prototype.open;
     const options = this.options;
     const _this = this;
 
+    XMLHttpRequest.prototype.oldOpen = XMLHttpRequest.prototype.open;
     // @ts-ignore
     XMLHttpRequest.prototype.open = function (method, url, async, username, password) {
-      const newUrl = getUrlHref(url);
       async = true;
 
       this.ajaxData = {
         method,
         url,
-        newUrl,
       };
 
-      return oldOpen.call(this, method, url, async, username, password);
+      return this.oldOpen(method, url, async, username, password);
     };
 
-    const oldSend = XMLHttpRequest.prototype.send;
-
+    XMLHttpRequest.prototype.oldSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function (body) {
       // 去除上报数据接口的错误捕获
-      if (serverUrl !== this.ajaxData.newUrl) {
-        const start = Date.now();
-        const handleError = function (this: XMLHttpRequest, errorEvent: ProgressEvent<XMLHttpRequestEventTarget>) {
-          const { type: eventType } = errorEvent;
-          let {
-            ajaxData: { url: requestUrl, method },
-            status,
-            statusText,
-          } = this;
+      const start = Date.now();
+      const handleError = function (this: XMLHttpRequest, e: ProgressEvent<XMLHttpRequestEventTarget>) {
+        const { type: eventType } = e;
+        let {
+          ajaxData: { url: requestUrl, method },
+          status,
+          statusText,
+          responseText,
+        } = this;
 
-          requestUrl = requestUrl instanceof URL ? requestUrl.href : requestUrl;
-          method = method.toUpperCase();
+        requestUrl = requestUrl instanceof URL ? requestUrl.href : requestUrl;
+        method = method.toUpperCase();
 
-          const defaultParams = {
-            errorType: 'unknown',
-            requestUrl,
-            method,
-            status,
-            statusText,
-            duration: `${Date.now() - start}`,
-          };
-
-          // 根据状态码判断是否ajax请求是否出错
-          if (eventType === 'loadend' && status < 400) return;
-
-          if (window.navigator.onLine) {
-            // eventType为'error'证明是网络断开或者请求跨域出错
-            const httpRequestError = new HttpRequestError(
-              {
-                ...defaultParams,
-                errorType: errorTypeMap[eventType],
-              },
-              options,
-            );
-
-            httpRequestError.errorId && _this.sendError(transportType.httpError, httpRequestError);
-          } else {
-            // 如果是断网导致的请求失败，则缓存请求，等到网络连接后重新上报数据
-            window.addEventListener(
-              'online',
-              () => {
-                const httpRequestError = new HttpRequestError(
-                  {
-                    ...defaultParams,
-                    errorType: ErrorType.XN,
-                  },
-                  options,
-                );
-
-                httpRequestError.errorId && _this.sendError(transportType.httpError, httpRequestError);
-              },
-              {
-                once: true,
-              },
-            );
-          }
+        const defaultParams = {
+          errorType: 'unknown',
+          requestUrl,
+          method,
+          status,
+          statusText,
+          duration: `${Date.now() - start}`,
         };
 
-        // 监听网络错误和ajax跨域错误
-        this.addEventListener('error', handleError, {
-          once: true,
-        });
-        // 监听ajax超时错误
-        this.addEventListener('timeout', handleError, {
-          once: true,
-        });
-        // ajax取消错误
-        this.addEventListener('abort', handleError, {
-          once: true,
-        });
-        // 无论成功或者失败都会被监听到
-        this.addEventListener('loadend', handleError, {
-          once: true,
-        });
-      }
+        // 根据状态码判断是否ajax请求是否出错
+        if (eventType === 'loadend' && status < 400) {
+          Reflect.deleteProperty(defaultParams, 'errorType');
+          Reflect.deleteProperty(defaultParams, 'statusText');
 
-      oldSend.call(this, body);
+          const httpRequest = new HttpRequest({ ...defaultParams, responseText }, options);
+
+          if (httpRequest.httpId) {
+            httpSet.add(httpRequest);
+
+            if (httpSet.size === HTTP_MAX_LIMIT) {
+              const handler = _this.transportInstance.beaconTransportHandler();
+
+              httpSet.forEach((h) => handler(h, httpUrl));
+              httpSet.clear();
+            }
+          }
+          return;
+        }
+
+        if (window.navigator.onLine) {
+          // eventType为'error'证明是网络断开或者请求跨域出错
+          const httpRequestError = new HttpRequestError(
+            {
+              ...defaultParams,
+              errorType: errorTypeMap[eventType],
+            },
+            options,
+          );
+
+          httpRequestError.errorId && _this.sendError(transportType.httpError, httpRequestError);
+        } else {
+          // 如果是断网导致的请求失败，则缓存请求，等到网络连接后重新上报数据
+          window.addEventListener(
+            'online',
+            () => {
+              const httpRequestError = new HttpRequestError(
+                {
+                  ...defaultParams,
+                  errorType: ErrorType.XN,
+                },
+                options,
+              );
+
+              httpRequestError.errorId && _this.sendError(transportType.httpError, httpRequestError);
+            },
+            {
+              once: true,
+            },
+          );
+        }
+      };
+
+      // 监听网络错误和ajax跨域错误
+      this.addEventListener('error', handleError, {
+        once: true,
+      });
+      // 监听ajax超时错误
+      this.addEventListener('timeout', handleError, {
+        once: true,
+      });
+      // ajax取消错误
+      this.addEventListener('abort', handleError, {
+        once: true,
+      });
+      // 无论成功或者失败都会被监听到
+      this.addEventListener(
+        'loadend',
+        function (e) {
+          handleError.call(this, e);
+          this.removeEventListener('error', handleError);
+          this.removeEventListener('timeout', handleError);
+          this.removeEventListener('abort', handleError);
+        },
+        {
+          once: true,
+        },
+      );
+
+      this.oldSend(body);
     };
   }
 
@@ -244,8 +272,47 @@ export default class ErrorVitals {
 
       result.then((response) => {
         const { ok, status, statusText } = response;
+        const cloneResponse = response.clone(); // 需要额外克隆一个流，不然外面的fetch使用response.json()等方法就会不起作用
 
-        if (!ok) {
+        if (ok) {
+          let httpRequest: HttpRequest;
+          const defaultParams = {
+            requestUrl: '',
+            method: '',
+            status,
+            responseText: '',
+            duration: `${Date.now() - start}`,
+          };
+
+          if (input instanceof Request) {
+            const { url: requestUrl, method = 'GET' } = input;
+
+            httpRequest = new HttpRequest({ ...defaultParams, requestUrl, method: method.toUpperCase() }, this.options);
+          } else {
+            input = input instanceof URL ? input.href : input;
+            httpRequest = new HttpRequest(
+              {
+                ...defaultParams,
+                requestUrl: input,
+                method: init?.method ? init.method.toUpperCase() : 'GET',
+              },
+              this.options,
+            );
+          }
+          cloneResponse.text().then((text) => {
+            httpRequest.responseText = text;
+            if (httpRequest.httpId) {
+              httpSet.add(httpRequest);
+
+              if (httpSet.size === HTTP_MAX_LIMIT) {
+                const handler = this.transportInstance.beaconTransportHandler();
+
+                httpSet.forEach((h) => handler(h, httpUrl));
+                httpSet.clear();
+              }
+            }
+          });
+        } else {
           let httpRequestError: HttpRequestError;
           const defaultParams = {
             errorType: ErrorType.HP,
@@ -274,6 +341,8 @@ export default class ErrorVitals {
               this.options,
             );
           }
+
+          this.sendError(transportType.httpError, httpRequestError);
         }
       });
 

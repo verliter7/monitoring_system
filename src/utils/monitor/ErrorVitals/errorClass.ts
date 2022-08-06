@@ -1,11 +1,17 @@
 import DimensionInstance from '../DimensionInstance';
 import { hashCode } from '../utils';
 import type { initOptions } from '..';
-import type { HttpRequestErrorParams, JsErrorParams, PromiseErrorParams, ResourceErrorErrorParams } from './type';
+import type {
+  HttpRequestErrorParams,
+  HttpRequestParams,
+  JsErrorParams,
+  PromiseErrorParams,
+  ResourceErrorErrorParams,
+} from './type';
 
 const submitErrorIds = new Set<string>();
 
-function getErrorId(errorIds: Set<string>, input: string) {
+function getId(errorIds: Set<string>, input: string) {
   const errorId = hashCode(input);
 
   if (errorIds.has(errorId)) {
@@ -31,7 +37,7 @@ export class JsError extends DimensionInstance {
     this.errorType = errorType;
     this.errorStack = errorStack;
     this.errorMsg = errorMsg;
-    this.errorId = getErrorId(submitErrorIds, `${this.aid}${this.userMonitorId}${this.originUrl}${errorMsg}${errPos}`);
+    this.errorId = getId(submitErrorIds, `${this.aid}${this.userMonitorId}${this.originUrl}${errorMsg}${errPos}`);
   }
 }
 
@@ -52,7 +58,7 @@ export class PromiseError extends DimensionInstance {
     this.errorType = errorType;
     this.errorMsg = errorMsg;
     this.errorStack = errorStack;
-    this.errorId = getErrorId(submitErrorIds, mark);
+    this.errorId = getId(submitErrorIds, mark);
   }
 }
 
@@ -73,7 +79,7 @@ export class ResourceError extends DimensionInstance {
     this.errorType = errorType;
     this.errorMsg = errorMsg;
     this.requestUrl = requestUrl;
-    this.errorId = getErrorId(submitErrorIds, mark);
+    this.errorId = getId(submitErrorIds, mark);
   }
 }
 
@@ -103,6 +109,28 @@ export class HttpRequestError extends DimensionInstance {
     this.status = status;
     this.statusText = statusText;
     this.duration = duration;
-    this.errorId = getErrorId(submitErrorIds, mark);
+    this.errorId = getId(submitErrorIds, mark);
+  }
+}
+
+export class HttpRequest extends DimensionInstance {
+  requestUrl: string;
+  method: string;
+  status: number;
+  responseText: string;
+  duration: string;
+  httpId?: string;
+
+  constructor({ requestUrl, method, status, responseText, duration }: HttpRequestParams, options: initOptions) {
+    super(options);
+
+    const mark = `${this.aid}${this.userMonitorId}${this.originUrl}${requestUrl}${method}`;
+
+    this.requestUrl = requestUrl;
+    this.method = method;
+    this.status = status;
+    this.responseText = responseText;
+    this.duration = duration;
+    this.httpId = getId(submitErrorIds, mark);
   }
 }

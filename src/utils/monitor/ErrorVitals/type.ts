@@ -41,6 +41,14 @@ export type HttpRequestErrorParams = {
   duration: string;
 };
 
+export type HttpRequestParams = {
+  requestUrl: string;
+  method: string;
+  status: number;
+  responseText: string;
+  duration: string;
+};
+
 // JS错误type
 export type JsTransportError = Omit<JsErrorParams & DimensionStructure, 'errPos'>;
 
@@ -52,3 +60,6 @@ export type ResourceTransportError = ResourceErrorErrorParams & DimensionStructu
 
 // Http请求错误type
 export type HttpRequestTransportError = HttpRequestErrorParams & DimensionStructure;
+
+// Http请求type
+export type HttpRequestTransport = HttpRequestParams & DimensionStructure;
