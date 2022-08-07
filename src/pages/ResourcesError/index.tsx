@@ -5,9 +5,8 @@ import { useMount, useRequest } from '@/hooks';
 import ErrorCountLine from './ErrorCountLine';
 import { getResourceErrorCount, getResourceErrorData } from './service';
 import { useAppSelector, useAppDispatch } from '@/redux/hooks';
-import { storage } from '@/redux/chartSlice';
-import { chartTypeEnum } from '@/redux/chartSlice/type';
-import { tableTypeEnum } from '@/redux/tableSlice/type';
+import { chartStorage, tableStorage } from '@/redux/resourceErrorSlice';
+import { reducerEnum } from '@/redux/store';
 import type { FC, ReactElement } from 'react';
 import type { ITab } from '@/public/PubTabs/type';
 import type { IResourceErrorRecord } from './type';
@@ -40,7 +39,7 @@ const columns: Record<string, any>[] = [
 ];
 
 const ResourcesError: FC = (): ReactElement => {
-  const { backErrorCountData, errorSum } = useAppSelector((state) => state.chart.resources);
+  const { backErrorCountData, errorSum } = useAppSelector((state) => state.resourceError.chart);
   const dispatch = useAppDispatch();
   const getSum = (values: number[]) => values.reduce((prev, cur) => prev + cur, 0);
   const { loading: resourceErrorCountLoading, run: getResourceErrorCountsRun } = useRequest(getResourceErrorCount, {
@@ -56,13 +55,12 @@ const ResourcesError: FC = (): ReactElement => {
       }));
 
       dispatch(
-        storage({
+        chartStorage({
           backErrorCountData,
           errorSum: {
             front: getSum(Object.values(frontErrorConutByTime)),
             back: getSum(Object.values(backErrorConutByTime)),
           },
-          type: chartTypeEnum.RS,
         }),
       );
     },
@@ -81,7 +79,12 @@ const ResourcesError: FC = (): ReactElement => {
       content: (
         <div css={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
           <ErrorCountLine backErrorCountData={backErrorCountData} loading={resourceErrorCountLoading} />
-          <PubTable columns={columns} getTableData={getResourceErrorData} type={tableTypeEnum.RS} />
+          <PubTable
+            columns={columns}
+            getTableData={getResourceErrorData}
+            storage={tableStorage}
+            reduxMark={reducerEnum.RS}
+          />
         </div>
       ),
     },

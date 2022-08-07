@@ -1,14 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
-import chartReducer from './chartSlice';
-import tableReducer from './tableSlice';
+import resourceErrorReducer from './resourceErrorSlice';
 
 const store = configureStore({
   reducer: {
-    chart: chartReducer,
-    table: tableReducer,
+    resourceError: resourceErrorReducer,
   },
 });
 
 export default store;
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export enum reducerEnum {
+  RS = 'resourceError',
+}

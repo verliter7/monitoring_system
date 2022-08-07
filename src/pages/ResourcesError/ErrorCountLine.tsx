@@ -145,6 +145,9 @@ const ErrorCountLine: FC<IProps> = ({ backErrorCountData, loading }): ReactEleme
     xField: 'time',
     yField: 'errorCount',
     yAxis: {
+      title: {
+        text: '错误数量',
+      },
       tickInterval: 1,
       top: true,
     },

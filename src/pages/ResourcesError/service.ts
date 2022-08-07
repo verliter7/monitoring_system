@@ -5,7 +5,7 @@ import type { IGetTableDataConfig } from '@/public/PubTable/type';
 
 export const getResourceErrorCount: HttpReqType<IErrorConutByTimeData> = () => {
   return HttpReq.send({
-    url: api.getErrorCounts,
+    url: api.getErrorCount,
     method: 'get',
     body: {
       errorType: 'resourceError',

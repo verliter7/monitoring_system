@@ -5,7 +5,7 @@ import TransportInstance, { transportKind, transportType, transportHandlerType }
 import { httpUrl } from '../utils/urls';
 import { ErrorType } from './type';
 
-const HTTP_MAX_LIMIT = 1;
+const HTTP_MAX_LIMIT = 10;
 const httpSet = new Set<HttpRequest>();
 
 export default class ErrorVitals {
@@ -18,6 +18,15 @@ export default class ErrorVitals {
     const serverUrl = this.transportInstance.options.transportUrl.get(transportKind.stability)!;
     this.serverUrl = serverUrl instanceof URL ? serverUrl.href : serverUrl;
     this.init();
+
+    window.addEventListener('beforeunload', () => {
+      const handler = this.transportInstance.beaconTransportHandler();
+
+      if (httpSet.size) {
+        httpSet.forEach((h) => handler(h, httpUrl));
+        httpSet.clear();
+      }
+    });
   }
 
   init() {
@@ -165,12 +174,12 @@ export default class ErrorVitals {
           responseText,
         } = this;
 
-        requestUrl = requestUrl instanceof URL ? requestUrl.href : requestUrl;
+        const requestUrlStr = requestUrl instanceof URL ? requestUrl.href : requestUrl;
         method = method.toUpperCase();
 
         const defaultParams = {
           errorType: 'unknown',
-          requestUrl,
+          requestUrl: requestUrlStr.split('?')[0],
           method,
           status,
           statusText,
@@ -287,13 +296,16 @@ export default class ErrorVitals {
           if (input instanceof Request) {
             const { url: requestUrl, method = 'GET' } = input;
 
-            httpRequest = new HttpRequest({ ...defaultParams, requestUrl, method: method.toUpperCase() }, this.options);
+            httpRequest = new HttpRequest(
+              { ...defaultParams, requestUrl: requestUrl.split('?')[0], method: method.toUpperCase() },
+              this.options,
+            );
           } else {
-            input = input instanceof URL ? input.href : input;
+            const requestUrl = input instanceof URL ? input.href : input;
             httpRequest = new HttpRequest(
               {
                 ...defaultParams,
-                requestUrl: input,
+                requestUrl: requestUrl.split('?')[0],
                 method: init?.method ? init.method.toUpperCase() : 'GET',
               },
               this.options,
@@ -327,7 +339,7 @@ export default class ErrorVitals {
             const { url: requestUrl, method = 'GET' } = input;
 
             httpRequestError = new HttpRequestError(
-              { ...defaultParams, requestUrl, method: method.toUpperCase() },
+              { ...defaultParams, requestUrl: requestUrl.split('?')[0], method: method.toUpperCase() },
               this.options,
             );
           } else {
@@ -335,7 +347,7 @@ export default class ErrorVitals {
             httpRequestError = new HttpRequestError(
               {
                 ...defaultParams,
-                requestUrl: input,
+                requestUrl: input.split('?')[0],
                 method: init?.method ? init.method.toUpperCase() : 'GET',
               },
               this.options,

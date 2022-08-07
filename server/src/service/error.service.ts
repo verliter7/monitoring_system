@@ -20,7 +20,7 @@ export async function findErrorInfo(errorId: string) {
   return res;
 }
 
-export async function queryErrorCount_s(type: string) {
+export async function getErrorCount_s(type: string) {
   const oneDayHours = 24;
   const oneHourMilliseconds = 60 * 60 * 1000;
   const oneDayTime = oneDayHours * oneHourMilliseconds;

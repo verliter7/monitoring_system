@@ -1,5 +1,7 @@
-import { tableTypeEnum } from '@/redux/tableSlice/type';
+import { reducerEnum } from '@/redux/store';
 import type { HttpReqDataType } from '@/utils/HttpReq/type';
+import type { ActionCreatorWithPayload } from '@reduxjs/toolkit';
+import type { IResourcesErrorTableData } from '@/redux/resourceErrorSlice/type';
 
 export interface IGetTableDataConfig {
   current: number;
@@ -13,10 +15,13 @@ export interface ITableData {
   total: number;
 }
 
+export type ReduxTableType = IResourcesErrorTableData;
+
 export interface IBaseTable {
   columns: Record<string, any>[];
   getTableData: (...params: any[]) => Promise<HttpReqDataType<ITableData>>;
-  type: tableTypeEnum;
+  storage?: ActionCreatorWithPayload<ReduxTableType, string>;
+  reduxMark?: reducerEnum;
   selectType?: 'checkbox' | 'radio';
   tableParentClassName?: string;
   tableClassName?: string;

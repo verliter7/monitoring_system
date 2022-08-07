@@ -1,4 +1,4 @@
-import { createError_s, queryErrorCount_s, getResourceErrorData_s } from '@/service/error.service';
+import { createError_s, getErrorCount_s, getResourceErrorData_s } from '@/service/error.service';
 import type { Context } from 'koa';
 import type { Optional } from 'sequelize/types';
 
@@ -17,17 +17,17 @@ export async function createError_c(ctx: Context) {
   }
 }
 
-export async function queryErrorCount_c(ctx: Context) {
+export async function getErrorCount_c(ctx: Context) {
   try {
     const { errorType } = ctx.query;
 
     if (!errorType) return ctx.defaultError({ code: 400, message: '缺少errorType参数' });
 
-    const errorCounts = await queryErrorCount_s(errorType as string);
+    const errorCount = await getErrorCount_s(errorType as string);
 
     ctx.defaultResponse({
       code: 200,
-      data: errorCounts,
+      data: errorCount,
       message: '请求成功',
       success: true,
     });
