@@ -11,6 +11,7 @@ export enum metricsName {
   CBR = 'click-behavior-record',
   CDR = 'custom-define-record',
   HT = 'http-record',
+  RD = 'route-duration'
 }
 
 //Map 暂存数据

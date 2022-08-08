@@ -4,7 +4,7 @@ import { useState } from 'react';
 import PubTabs from '@/public/PubTabs';
 import useMount from '@/hooks/useMount';
 import PaintLine from './PaintLine';
-import { getPerformanceData } from '../../service';
+import { getPerformanceData, getUservitalsData } from '../../service';
 import type { ITab } from '@/public/PubTabs/type';
 import { useRequest } from '@/hooks';
 
@@ -25,6 +25,11 @@ const RenderingMetrics: FC = (): ReactElement => {
     },
 
   });
+
+  getUservitalsData((res:any) => {
+    console.log(res);
+
+  })
 
   const tabs: ITab[] = [
     {

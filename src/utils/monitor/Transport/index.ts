@@ -19,6 +19,7 @@ export enum transportType {
   CLS = 'CLS',
   RF = 'resource-flow',
   PV = 'PV',
+  RD = 'route-duration',
 }
 
 export enum transportHandlerType {

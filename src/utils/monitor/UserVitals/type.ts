@@ -62,3 +62,10 @@ export interface OriginInformation {
   referrer: string;
   type: number | string;
 }
+
+export interface routerList {
+  url: string;
+  startTime: number;
+  endTime: number;
+  duration: number;
+}
