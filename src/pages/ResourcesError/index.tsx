@@ -49,11 +49,13 @@ const ResourcesError: FC = (): ReactElement => {
         data: { frontErrorConutByTime, backErrorConutByTime },
       } = res;
 
+      // 转换后端数据以适应图表数据格式
       const backErrorCountData = Object.entries<number>(backErrorConutByTime).map(([time, errorCount]) => ({
         time,
         errorCount,
       }));
 
+      // 缓存图表数据到redux上
       dispatch(
         chartStorage({
           backErrorCountData,
@@ -67,6 +69,7 @@ const ResourcesError: FC = (): ReactElement => {
   });
 
   useMount(() => {
+    // backErrorCountData.length !== 0 代表数据已经缓存到redux上
     backErrorCountData.length === 0 && getResourceErrorCountsRun();
   });
 

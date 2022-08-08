@@ -21,19 +21,20 @@ export async function findInfo(httpId: string) {
   return res;
 }
 
+const oneDayHours = 24;
+const oneHourMilliseconds = 60 * 60 * 1000;
+const oneDayTime = oneDayHours * oneHourMilliseconds;
+const now = Date.now();
+const queryConfigWhere = {
+  timeStamp: {
+    [Op.lt]: now,
+    [Op.gt]: now - oneDayTime,
+  },
+};
+const timeFormat = 'YYYY-MM-DD HH:00';
+const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.get());
+
 export async function getHttpSuccessRate_s() {
-  const oneDayHours = 24;
-  const oneHourMilliseconds = 60 * 60 * 1000;
-  const oneDayTime = oneDayHours * oneHourMilliseconds;
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
-  const timeFormat = 'YYYY-MM-DD HH:00';
-  const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.get());
   const successedHttpCreatTimes = process(
     await HttpModel.findAll({
       attributes: ['timeStamp', 'requestUrl'],
@@ -49,7 +50,9 @@ export async function getHttpSuccessRate_s() {
       },
     }),
   );
+
   const successRateInfos: Record<string, Record<string, [number, number]>> = {};
+  let total = 0;
 
   for (const { requestUrl } of successedHttpCreatTimes.concat(failedHttpCreatTimes)) {
     if (!successRateInfos[requestUrl]) {
@@ -71,6 +74,7 @@ export async function getHttpSuccessRate_s() {
 
     successRateInfo[0]++;
     successRateInfo[1]++;
+    total++;
   }
 
   for (const { timeStamp, requestUrl } of failedHttpCreatTimes) {
@@ -78,9 +82,45 @@ export async function getHttpSuccessRate_s() {
     const successRateInfo = successRateInfos[requestUrl][formatTime];
 
     successRateInfo[1]++;
+    total++;
   }
 
-  return successRateInfos;
+  return { successRateInfos, total };
 }
 
-getHttpSuccessRate_s();
+export async function getHttpMsgCluster_s() {
+  const successedHttpInfo = process(
+    await HttpModel.findAll({
+      attributes: ['requestUrl', 'status', 'httpMessage'],
+      where: queryConfigWhere,
+    }),
+  );
+  const failedHttpInfo = process(
+    await ErrorModel.findAll({
+      attributes: ['requestUrl', 'status', 'httpMessage'],
+      where: {
+        ...queryConfigWhere,
+        type: 'httpError',
+      },
+    }),
+  );
+
+  const msgClusterInfo: Record<string, Record<string, Record<string, number>>> = {};
+  const allHttpInfo = successedHttpInfo.concat(failedHttpInfo);
+
+  for (const { httpMessage } of allHttpInfo) {
+    if (msgClusterInfo[httpMessage]) continue;
+
+    msgClusterInfo[httpMessage] = {};
+  }
+
+  for (const { requestUrl, status, httpMessage } of allHttpInfo) {
+    const callCount = msgClusterInfo[httpMessage][requestUrl]?.callCount;
+    msgClusterInfo[httpMessage][requestUrl] = {
+      callCount: callCount === void 0 ? 1 : (callCount as number) + 1,
+      status,
+    };
+  }
+
+  return msgClusterInfo;
+}

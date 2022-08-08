@@ -182,16 +182,23 @@ export default class ErrorVitals {
           requestUrl: requestUrlStr.split('?')[0],
           method,
           status,
-          statusText,
+          httpMessage: statusText,
           duration: `${Date.now() - start}`,
         };
 
         // 根据状态码判断是否ajax请求是否出错
-        if (eventType === 'loadend' && status < 400) {
+        if (eventType === 'loadend' && status > 0 && status < 400) {
           Reflect.deleteProperty(defaultParams, 'errorType');
           Reflect.deleteProperty(defaultParams, 'statusText');
 
-          const httpRequest = new HttpRequest({ ...defaultParams, responseText }, options);
+          let httpMessage: string;
+          try {
+            httpMessage = /{.*}/.test(responseText) ? JSON.parse(responseText).message : responseText;
+          } catch (error) {
+            httpMessage = '暂无信息';
+          }
+
+          const httpRequest = new HttpRequest({ ...defaultParams, httpMessage }, options);
 
           if (httpRequest.httpId) {
             httpSet.add(httpRequest);
@@ -212,6 +219,7 @@ export default class ErrorVitals {
             {
               ...defaultParams,
               errorType: errorTypeMap[eventType],
+              httpMessage: statusText,
             },
             options,
           );
@@ -289,7 +297,7 @@ export default class ErrorVitals {
             requestUrl: '',
             method: '',
             status,
-            responseText: '',
+            httpMessage: '',
             duration: `${Date.now() - start}`,
           };
 
@@ -311,8 +319,8 @@ export default class ErrorVitals {
               this.options,
             );
           }
-          cloneResponse.text().then((text) => {
-            httpRequest.responseText = text;
+          cloneResponse.json().then((res) => {
+            httpRequest.httpMessage = res?.httpMessage ?? '暂无信息';
             if (httpRequest.httpId) {
               httpSet.add(httpRequest);
 
@@ -331,7 +339,7 @@ export default class ErrorVitals {
             requestUrl: '',
             method: '',
             status,
-            statusText,
+            httpMessage: statusText,
             duration: `${Date.now() - start}`,
           };
 

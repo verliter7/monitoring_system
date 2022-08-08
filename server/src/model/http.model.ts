@@ -25,7 +25,7 @@ const HttpModel = seq.define('http', {
     allowNull: false,
     comment: 'http状态码',
   },
-  responseText: {
+  httpMessage: {
     type: DataTypes.TEXT('long'),
     allowNull: false,
     comment: 'http响应信息',
