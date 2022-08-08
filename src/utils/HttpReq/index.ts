@@ -7,7 +7,7 @@ import type { IHttpRequestConfig, IHttpReq, IcodeMap } from './type';
 /**
  * @description 基于umi-request封装的请求
  * @see https://github.com/umijs/umi-request/blob/master/README_zh-CN.md
- * @param url 请求地址 可只传一个url参数 例： httpReq.send('http://127.0.0.1:8080/api/xxx') 这样的意思就是默认发get请求不带任何数据
+ * @param url 请求地址 可只传一个url参数 例： httpReq.send('http://127.0.0.1:8081/api/xxx') 这样的意思就是默认发get请求不带任何数据
  * @param headers 自定义请求头 可不传
  * @param method 请求方式 可不传 默认get
  * @param body  要传的数据 无论是get或是post请求都是body 会自动做转换
@@ -58,7 +58,7 @@ class HttpReq implements IHttpReq {
 
   private static readonly requestInstance: RequestMethod = extend({
     // credentials 是Fetch接口的只读属性，用于表示用户代理是否应该在跨域请求的情况下从其他域发送cookies
-    credentials: "include",
+    credentials: 'include',
     prefix: '/api/v1',
     errorHandler: HttpReq.errorHandler,
   });

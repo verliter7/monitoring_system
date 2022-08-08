@@ -13,16 +13,16 @@ const styleObject = {
 
     '&::-webkit-scrollbar-thumb': {
       borderRadius: '10px',
-      backgroundColor: '#dadada',
+      backgroundColor: '#8d8d8d',
     },
 
     '&::-webkit-scrollbar-thumb:hover': {
-      backgroundColor: '#bbbbbb',
+      backgroundColor: '#7a7a7a',
     },
 
     '&::-webkit-scrollbar-track-piece': {
       borderRadius: '10px',
-      backgroundColor: '#f7f7f9',
+      backgroundColor: '#ffffff',
     },
   }),
 };

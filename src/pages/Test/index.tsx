@@ -30,7 +30,18 @@ const Test: FC = (): ReactElement => {
         type="primary"
         onClick={() => {
           const xhr = new XMLHttpRequest();
-          xhr.open('GET', '/api/v1/error/test?status=500');
+          xhr.open('GET', '/api/v1/test?status=200');
+          xhr.send(null);
+        }}
+      >
+        正常ajax请求
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', '/api/v1/test?status=500');
           xhr.send(null);
         }}
       >
@@ -42,7 +53,7 @@ const Test: FC = (): ReactElement => {
         onClick={() => {
           setTimeout(() => {
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', '/api/v1/error/test?status=500');
+            xhr.open('GET', '/api/v1/test?status=500');
             xhr.send(null);
           }, 5000);
         }}
@@ -67,7 +78,7 @@ const Test: FC = (): ReactElement => {
           const xhr = new XMLHttpRequest();
 
           xhr.timeout = 1;
-          xhr.open('GET', '/api/v1/error/test?status=200');
+          xhr.open('GET', '/api/v1/test?status=200');
           xhr.send(null);
         }}
       >
@@ -79,7 +90,7 @@ const Test: FC = (): ReactElement => {
         onClick={() => {
           const xhr = new XMLHttpRequest();
 
-          xhr.open('GET', '/api/v1/error/test?status=200');
+          xhr.open('GET', '/api/v1/test?status=200');
           xhr.send(null);
           xhr.abort();
         }}
@@ -90,7 +101,16 @@ const Test: FC = (): ReactElement => {
         block
         type="primary"
         onClick={() => {
-          fetch('/api/v1/error/test?status=500');
+          fetch('/api/v1/test?status=200');
+        }}
+      >
+        正常fetch请求
+      </Button>
+      <Button
+        block
+        type="primary"
+        onClick={() => {
+          fetch('/api/v1/test?status=500');
         }}
       >
         抛出fetch错误
@@ -100,7 +120,7 @@ const Test: FC = (): ReactElement => {
         type="primary"
         onClick={() => {
           setTimeout(() => {
-            fetch('/api/v1/error/test?status=500');
+            fetch('/api/v1/test?status=500');
           }, 5000);
         }}
       >
@@ -122,7 +142,7 @@ const Test: FC = (): ReactElement => {
           const controller = new AbortController();
           const { signal } = controller;
 
-          fetch('/api/v1/error/test?status=200', { signal });
+          fetch('/api/v1/test?status=200', { signal });
 
           controller.abort();
         }}
@@ -134,7 +154,7 @@ const Test: FC = (): ReactElement => {
         type="primary"
         onClick={() => {
           const script = document.createElement('script');
-          script.src = `http://localhost:8080/resources/${getRandomStr()}.js`;
+          script.src = `http://localhost:8081/resources/${getRandomStr()}.js`;
           document.head.appendChild(script);
         }}
       >
