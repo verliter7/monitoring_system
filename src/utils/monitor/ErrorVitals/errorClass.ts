@@ -91,12 +91,12 @@ export class HttpRequestError extends DimensionInstance {
   requestUrl: string;
   method: string;
   status: number;
-  statusText: string;
+  httpMessage: string;
   duration: string;
   errorId?: string;
 
   constructor(
-    { errorType, requestUrl, method, status, statusText, duration }: HttpRequestErrorParams,
+    { errorType, requestUrl, method, status, httpMessage, duration }: HttpRequestErrorParams,
     options: initOptions,
   ) {
     super(options);
@@ -107,7 +107,7 @@ export class HttpRequestError extends DimensionInstance {
     this.requestUrl = requestUrl;
     this.method = method;
     this.status = status;
-    this.statusText = statusText;
+    this.httpMessage = httpMessage;
     this.duration = duration;
     this.errorId = getId(submitErrorIds, mark);
   }
@@ -117,11 +117,11 @@ export class HttpRequest extends DimensionInstance {
   requestUrl: string;
   method: string;
   status: number;
-  responseText: string;
+  httpMessage: string;
   duration: string;
   httpId?: string;
 
-  constructor({ requestUrl, method, status, responseText, duration }: HttpRequestParams, options: initOptions) {
+  constructor({ requestUrl, method, status, httpMessage, duration }: HttpRequestParams, options: initOptions) {
     super(options);
 
     const mark = `${this.aid}${this.userMonitorId}${this.originUrl}${requestUrl}${method}`;
@@ -129,7 +129,7 @@ export class HttpRequest extends DimensionInstance {
     this.requestUrl = requestUrl;
     this.method = method;
     this.status = status;
-    this.responseText = responseText;
+    this.httpMessage = httpMessage;
     this.duration = duration;
     this.httpId = getId(submitErrorIds, mark);
   }

@@ -46,11 +46,11 @@ const ErrorModel = seq.define('error', {
     comment: 'http请求方式',
   },
   status: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: true,
     comment: 'http状态码',
   },
-  statusText: {
+  httpMessage: {
     type: DataTypes.STRING,
     allowNull: true,
     comment: 'http状态信息',

@@ -4,6 +4,11 @@ const styleObject = {
     justifyContent: 'center',
     alignItems: 'center',
   },
+  ellipsis: {
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+  },
   scroll: (axis?: 'x' | 'y') => ({
     [`overflow${axis ? `-${axis}` : ''}`]: 'auto',
     '&::-webkit-scrollbar': {

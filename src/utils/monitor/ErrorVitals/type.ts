@@ -37,7 +37,7 @@ export type HttpRequestErrorParams = {
   requestUrl: string;
   method: string;
   status: number;
-  statusText: string;
+  httpMessage: string;
   duration: string;
 };
 
@@ -45,7 +45,7 @@ export type HttpRequestParams = {
   requestUrl: string;
   method: string;
   status: number;
-  responseText: string;
+  httpMessage: string;
   duration: string;
 };
 

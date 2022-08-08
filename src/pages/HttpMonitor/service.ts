@@ -1,5 +1,5 @@
 import { api, HttpReq } from '@/utils';
 import type { HttpReqType } from '@/utils/HttpReq/type';
-import type { IHttpConutByTimeData } from './type';
+import type { IHttpSuccessRateData } from './type';
 
-export const getHttpSuccessRate: HttpReqType<IHttpConutByTimeData> = () => HttpReq.send(api.getHttpSuccessRate);
+export const getHttpSuccessRate: HttpReqType<IHttpSuccessRateData> = () => HttpReq.send(api.getHttpSuccessRate);

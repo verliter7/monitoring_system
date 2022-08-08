@@ -1,5 +1,3 @@
-import type { TableDefault } from '@/redux/tableSlice/type';
-
 export interface IErrorConutByTimeData {
   frontErrorConutByTime: Record<string, number>;
   backErrorConutByTime: Record<string, number>;
@@ -20,4 +18,7 @@ export interface IResourceErrorRecord {
 
 export type ResourceErrorData = {
   records: IResourceErrorRecord[];
-} & TableDefault;
+  current: number;
+  size: number;
+  total: number;
+};
