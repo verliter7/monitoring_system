@@ -86,7 +86,7 @@ const ResourcesError: FC = (): ReactElement => {
             columns={columns}
             getTableData={getResourceErrorData}
             storage={tableStorage}
-            reduxMark={reducerEnum.RS}
+            reduxMark={reducerEnum.RE}
           />
         </div>
       ),

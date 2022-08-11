@@ -1,4 +1,4 @@
 export const errorUrl = '/api/v1/error/create';
 export const httpUrl = '/api/v1/http/create';
-export const businessUrl = "http://localhost:8081/api/postp";
-export const performanceUrl = "http://localhost:8081/api/v1/performance/create"
+export const businessUrl = "/api/v1/postp";
+export const performanceUrl = "/api/v1/performance/create"
