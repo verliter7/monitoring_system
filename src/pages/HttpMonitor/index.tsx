@@ -1,186 +1,136 @@
 /* @jsxImportSource @emotion/react */
-import { useRef, useState } from 'react';
-import { Card, List, Radio, Spin, Tabs } from 'antd';
-import HttpChart from './HttpChart';
-import { useRequest, useCallbackState } from '@/hooks';
-import { getHttpSuccessRate } from './service';
-import SortIcon from './SortIcon';
-import { commonStyles } from '@/utils';
-import {
-  sortEnum,
-  ITab,
-  TabKeyType,
-  ISuccessRateChartData,
-  IActiveListItemInfo,
-  IRadioOptions,
-  RankType,
-} from './type';
+import { useCallback, useRef, useState } from 'react';
+import { Card, Radio, Spin, Tabs } from 'antd';
+import SortIcon from './views/SortIcon';
+import { useRequest, useCallbackState, useMount } from '@/hooks';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import tabMap from './tabMap';
+import { sortEnum, ITab, tabKeyEnum, IRadioOption, RankType, Content } from './type';
 import type { FC, ReactElement } from 'react';
 import type { RadioChangeEvent } from 'antd';
 
-const radioOptions: IRadioOptions[] = [
-  { label: '调用量(占比)排行', value: 'callRate' },
-  { label: '成功率排行', value: 'successRate' },
-];
-
 const HttpMonitor: FC = (): ReactElement => {
+  const allListItemInfo = useAppSelector((state) => state.httpMonitor);
+  const dispatch = useAppDispatch();
   // 用useRef缓存所有的item项信息
-  const allListItemInfoRef = useRef<Record<string, IActiveListItemInfo>>({});
   const sortTypeRef = useRef<sortEnum>(sortEnum.DF);
   // 激活项item信息即要展示的item项信息
-  const [activeListItemInfo, setActiveListItemInfo] = useState<IActiveListItemInfo>({} as IActiveListItemInfo);
+  const [activeListItemInfo, setActiveListItemInfo] = useState<Record<string, any>>({});
+  // item项列表名字
   const [listItemNames, setListItemNames] = useState<string[]>([]);
+  const [activeKey, setActiveKey] = useState(tabKeyEnum.SR);
+  const [radioValue, setRadioValue] = useCallbackState<RankType>(
+    (tabMap[tabKeyEnum.SR].radioOptions as IRadioOption[])[0].value,
+  );
+  // 获得安全范围百分比，不会出现NaN、Infinity等
   const getSafeRate = (num1: number, num2: number) => (num2 === 0 ? 100 : Number(((num1 / num2) * 100).toFixed(2)));
-  const { loading: SuccessRateLoaing } = useRequest(getHttpSuccessRate, {
-    onSuccess(res) {
-      const { successRateInfos, total } = res.data;
-
-      // 下面都是数据处理及转换格式
-      Object.keys(successRateInfos).forEach((itemKey) => {
-        const chartData: ISuccessRateChartData[] = [];
-        let successTotal_one_sum = 0;
-        let total_one_sum = 0;
-
-        Object.keys(successRateInfos[itemKey]).forEach((time) => {
-          const [successTotal_one, total_one] = successRateInfos[itemKey][time];
-
-          successTotal_one_sum += successTotal_one;
-          total_one_sum += total_one;
-          chartData.push({
-            time,
-            successRate: getSafeRate(successTotal_one, total_one),
-            callCount: total_one,
-          });
-        });
-
-        allListItemInfoRef.current[itemKey] = {
-          itemName: itemKey,
-          successRate: getSafeRate(successTotal_one_sum, total_one_sum),
-          callRate: getSafeRate(total_one_sum, total),
-          callCount: total_one_sum,
-          chartData,
-        };
-      });
-
-      setListItemNames(Object.keys(allListItemInfoRef.current));
-      setActiveListItemInfo(allListItemInfoRef.current[Object.keys(successRateInfos)[0]] ?? {});
+  const setListItem = (keys: string[], item: Record<string, any>) => {
+    setListItemNames(keys);
+    setActiveListItemInfo(item);
+  };
+  const { loading: successRateLoaing, run: getSuccessRateRun } = useRequest(
+    ...tabMap[tabKeyEnum.SR].getRequestConfig(dispatch, setListItem, getSafeRate),
+  );
+  const { loading: msgClusterLoaing, run: getMsgClusterRun } = useRequest(
+    ...tabMap[tabKeyEnum.MC].getRequestConfig(dispatch, setListItem, getSafeRate),
+  );
+  // 点击列表项时调用
+  const handleListItemClick = useCallback(
+    (itemName: string) => {
+      setActiveListItemInfo(allListItemInfo[activeKey][itemName]);
     },
-  });
-  const tabs: ITab[] = [
-    {
-      tab: '成功率',
-      key: 'successRate',
-      content: (
-        <List
-          size="small"
-          dataSource={listItemNames}
-          renderItem={(item: string) => {
-            const { successRate, callRate, callCount } = allListItemInfoRef.current[item];
-
-            return (
-              <List.Item
-                css={{
-                  '&.ant-list-item': {
-                    color: item === activeListItemInfo.itemName ? '#177ddc' : void 0,
-                    cursor: 'pointer',
-                  },
-                  '&:hover':
-                    item === activeListItemInfo.itemName
-                      ? null
-                      : {
-                          color: '#165996',
-                          transition: 'color 0.3s cubic-bezier(0.645, 0.045, 0.355, 1)',
-                        },
-                }}
-                onClick={() => {
-                  handleListItemClick(item);
-                }}
-              >
-                <div
-                  //  @ts-ignore
-                  css={{ width: '49%', ...commonStyles.ellipsis }}
-                  title={item}
-                >
-                  {item}
-                </div>
-                <div css={{ width: '49%', textAlign: 'right' }}>
-                  <span css={{ fontWeight: 'bold' }}>
-                    {`${callCount}次`}
-                    {`(${callRate}%)`}
-                  </span>{' '}
-                  | {`${successRate}%`}
-                </div>
-              </List.Item>
-            );
-          }}
-        />
-      ),
-    },
-    {
-      tab: 'Msg聚类',
-      key: 'msgCluster',
-    },
-    {
-      tab: '成功耗时',
-      key: 'successTimeConsume',
-    },
-    {
-      tab: '失败耗时',
-      key: 'failTimeConsume',
-    },
-  ];
-
-  const [radioValue, setRadioValue] = useCallbackState<RankType>(radioOptions[0].value);
-  const [activeKey, setActiveKey] = useState(tabs[0].key);
-
+    [allListItemInfo, activeKey],
+  );
   // 调用量，成功率变化时触发
   const handleRadioChange = (e: RadioChangeEvent) => {
     const value = e.target.value;
 
-    setRadioValue(value, () => handleSortClick(sortTypeRef.current, value));
+    setRadioValue(value, () => handleSortClick(sortTypeRef.current, value, activeKey));
   };
-
   // tab改变时触发
   const handleTabChange = (activeKey: string) => {
-    setActiveKey(activeKey as TabKeyType);
-  };
+    const tabKey = activeKey as tabKeyEnum;
+    const rankType = tabMap[tabKey].rankType;
+    const keys = allListItemInfo[tabKey] ? Object.keys(allListItemInfo[tabKey]) : [];
 
-  // 排序操作
-  const handleSortClick = (sortType: sortEnum, radioValue: RankType) => {
-    const allListItemInfo = allListItemInfoRef.current;
-    const keys = Object.keys(allListItemInfo);
-
-    sortTypeRef.current = sortType;
-    switch (sortType) {
-      case sortEnum.AC:
-        keys.sort((b, a) => allListItemInfo[a][radioValue]! - allListItemInfo[b][radioValue]!);
-        break;
-      case sortEnum.DC:
-        keys.sort((a, b) => allListItemInfo[a][radioValue]! - allListItemInfo[b][radioValue]!);
+    switch (tabKey) {
+      case tabKeyEnum.SR:
+        setRadioValue(rankType);
+        setListItem(keys, allListItemInfo[tabKey][keys[0]]);
+      case tabKeyEnum.MC:
+        allListItemInfo[tabKey] ? setListItem(keys, allListItemInfo[tabKey][keys[0]]) : getMsgClusterRun();
+        setRadioValue(rankType);
         break;
       default:
         break;
     }
-
-    setListItemNames(keys);
-    setActiveListItemInfo(allListItemInfoRef.current[keys[0]]);
+    setActiveKey(activeKey as tabKeyEnum);
   };
+  // 排序操作
+  const handleSortClick = useCallback(
+    (sortType: sortEnum, radioValue: RankType, activeKey: tabKeyEnum) => {
+      const tabListItemInfo = allListItemInfo[activeKey];
+      const keys = Object.keys(tabListItemInfo);
 
-  const handleListItemClick = (activeListItem: string) => {
-    setActiveListItemInfo(allListItemInfoRef.current[activeListItem]);
+      sortTypeRef.current = sortType;
+      switch (sortType) {
+        case sortEnum.AC:
+          keys.sort((b, a) => tabListItemInfo[a][radioValue]! - tabListItemInfo[b][radioValue]!);
+          break;
+        case sortEnum.DC:
+          keys.sort((a, b) => tabListItemInfo[a][radioValue]! - tabListItemInfo[b][radioValue]!);
+          break;
+        default:
+          break;
+      }
+
+      setListItemNames(keys);
+      setActiveListItemInfo(tabListItemInfo[keys[0]]);
+    },
+    [allListItemInfo],
+  );
+  // 获取tab内容项
+  const getContent = (tabKey: tabKeyEnum) => {
+    return activeKey === tabKey
+      ? tabMap[tabKey].content(listItemNames, allListItemInfo[activeKey], activeListItemInfo, handleListItemClick)
+      : null;
   };
+  const tabs: ITab[] = [
+    {
+      tab: '成功率',
+      key: tabKeyEnum.SR,
+      content: getContent(tabKeyEnum.SR),
+    },
+    {
+      tab: (tabMap[tabKeyEnum.MC].tab as Content)(handleSortClick, radioValue, activeKey),
+      key: tabKeyEnum.MC,
+      content: getContent(tabKeyEnum.MC),
+    },
+    {
+      tab: '成功耗时',
+      key: tabKeyEnum.ST,
+      content: tabMap[tabKeyEnum.ST].content(),
+    },
+    {
+      tab: (tabMap[tabKeyEnum.FT].tab as Content)(handleSortClick, radioValue, activeKey),
+      key: tabKeyEnum.FT,
+      content: tabMap[tabKeyEnum.FT].content(),
+    },
+  ];
+
+  useMount(getSuccessRateRun);
 
   return (
-    <Spin spinning={SuccessRateLoaing} tip="图表加载中..." size="large">
-      <section css={{ display: 'flex', gap: '20px', height: 'calc(100vh - 112px)' }}>
+    <Spin spinning={successRateLoaing || msgClusterLoaing} tip="图表加载中..." size="large">
+      <section css={{ position: 'relative', display: 'flex', gap: '20px', height: 'calc(100vh - 112px)' }}>
         <Card
-          style={{ flexBasis: '400px' }}
+          style={{ flexBasis: '420px' }}
           title={
-            <div css={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div css={{ display: 'flex', justifyContent: 'space-between', height: '27px' }}>
               <span>API请求</span>
-              <div>
+              <div css={{ display: activeKey === tabKeyEnum.SR || activeKey === tabKeyEnum.ST ? 'initial' : 'none' }}>
                 <Radio.Group
-                  options={radioOptions}
+                  options={tabMap[activeKey].radioOptions}
                   onChange={handleRadioChange}
                   value={radioValue}
                   optionType="button"
@@ -198,15 +148,13 @@ const HttpMonitor: FC = (): ReactElement => {
                   }}
                 />
                 <SortIcon
-                  handleSortClick={(e) => {
-                    handleSortClick(e, radioValue);
-                  }}
+                  handleSortClick={(sortType) => handleSortClick(sortType, radioValue, activeKey)}
+                  isVisible={activeKey === tabKeyEnum.SR || activeKey === tabKeyEnum.ST}
                 />
               </div>
             </div>
           }
           bordered
-          actions={[]}
         >
           <Tabs activeKey={activeKey} type="card" onChange={handleTabChange}>
             {tabs.map(({ tab, key, content }) => (
@@ -216,10 +164,23 @@ const HttpMonitor: FC = (): ReactElement => {
             ))}
           </Tabs>
         </Card>
-        <main css={{ flex: '1' }}>
-          <Card title="API成功率">
-            <HttpChart activeListItemInfo={activeListItemInfo} />
+        <main
+          css={{
+            display: 'flex',
+            gap: '20px',
+            flexDirection: 'column',
+            flex: '1',
+            height: '100%',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Card title={tabMap[activeKey].cartTitle}>
+            {(() => {
+              const { getChartOrTable, dataType } = tabMap[activeKey];
+              return getChartOrTable(activeListItemInfo[dataType] ?? []);
+            })()}
           </Card>
+          <Card title="API链路追踪" css={{ flex: '1' }}></Card>
         </main>
       </section>
     </Spin>

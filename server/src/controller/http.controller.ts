@@ -1,4 +1,4 @@
-import { createHttp_s, getHttpSuccessRate_s } from '@/service/http.service';
+import { createHttp_s, getHttpMsgCluster_s, getHttpSuccessRate_s } from '@/service/http.service';
 import type { Context } from 'koa';
 
 export async function createHttp_c(ctx: Context) {
@@ -23,6 +23,21 @@ export async function getHttpSuccessRate_c(ctx: Context) {
     ctx.defaultResponse({
       code: 200,
       data: httpSuccessRateData,
+      message: '请求成功',
+      success: true,
+    });
+  } catch (err) {
+    console.log(err);
+    ctx.defaultError({ code: 500, message: err as string });
+  }
+}
+
+export async function getHttpMsgCluster_c(ctx: Context) {
+  try {
+    const httpMsgClustereData = await getHttpMsgCluster_s();
+    ctx.defaultResponse({
+      code: 200,
+      data: httpMsgClustereData,
       message: '请求成功',
       success: true,
     });

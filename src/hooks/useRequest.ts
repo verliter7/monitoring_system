@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useMount } from '.';
 import { HttpReqType, HttpReqDataType } from '@/utils/HttpReq/type';
 
-type Result<D> = {
+export type requestResult<D> = {
   reqRes?: HttpReqDataType<D>;
   error?: Error;
   loading: boolean;
@@ -11,7 +11,7 @@ type Result<D> = {
   refresh: () => void;
   refreshAsync: () => ReturnType<HttpReqType<D>>;
 };
-type Options<D> = {
+export type requestOptions<D> = {
   manual: boolean;
   defaultParams: any[];
   onBefore: (...params: any[]) => void;
@@ -24,7 +24,7 @@ type Options<D> = {
  * @description: ahooks的简易版useRequest实现
  * @see: 用法请看 https://ahooks.js.org/zh-CN/hooks/use-request/basic/
  */
-const useRequest = <D>(request: HttpReqType<D>, options?: Partial<Options<D>>): Result<D> => {
+const useRequest = <D>(request: HttpReqType<D>, options?: Partial<requestOptions<D>>): requestResult<D> => {
   const { manual = false, defaultParams, onBefore, onSuccess, onError, onFinally } = options ?? {};
   const [reqRes, setReqRes] = useState<HttpReqDataType>();
   const [loading, setLoaing] = useState<boolean>(false);

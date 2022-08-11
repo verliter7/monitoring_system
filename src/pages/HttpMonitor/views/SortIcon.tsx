@@ -1,11 +1,12 @@
 /* @jsxImportSource @emotion/react */
-import { useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { Tooltip } from 'antd';
-import { sortEnum } from './type';
+import { sortEnum } from '../type';
 import type { FC, ReactElement } from 'react';
 
 interface IProps {
-  handleSortClick: (sortType: sortEnum) => void;
+  handleSortClick: (sortType: sortEnum) => void; // 排序按钮操作
+  isVisible?: boolean; // 排序按钮是否可见
 }
 
 export const sortTypeMap = {
@@ -41,15 +42,18 @@ const caretDefalutCssProperties = {
   },
 };
 
-const SortIcon: FC<IProps> = ({ handleSortClick }): ReactElement => {
+// 排序图标组件
+const SortIcon: FC<IProps> = ({ handleSortClick, isVisible = true }): ReactElement => {
   const sortTypeRef = useRef<sortEnum>(sortEnum.DF);
   const [label, setLabel] = useState(sortTypeMap[sortTypeRef.current].label);
+
+  isVisible === false && (sortTypeRef.current = sortEnum.DF);
 
   return (
     <Tooltip title={label}>
       <span
         css={{
-          display: 'inline-flex',
+          display: isVisible ? 'inline-flex' : 'none',
           flexDirection: 'column',
           alignItems: 'center',
           verticalAlign: 'middle',
@@ -107,4 +111,4 @@ const SortIcon: FC<IProps> = ({ handleSortClick }): ReactElement => {
   );
 };
 
-export default SortIcon;
+export default memo(SortIcon);

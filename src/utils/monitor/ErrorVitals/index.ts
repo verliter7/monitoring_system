@@ -6,6 +6,7 @@ import { httpUrl } from '../utils/urls';
 import { ErrorType } from './type';
 
 const HTTP_MAX_LIMIT = 10;
+const EMPTYRESPONSE = '暂无信息';
 const httpSet = new Set<HttpRequest>();
 
 export default class ErrorVitals {
@@ -111,6 +112,9 @@ export default class ErrorVitals {
    */
   initPromiseError() {
     const handler = (e: PromiseRejectionEvent) => {
+      // fetch取消错误，下面拦截fetch请求已经做过处理
+      if (e.reason.code === 20) return;
+
       const defaultErrorParams = {
         errorType: ErrorType.UJ,
       };
@@ -182,21 +186,26 @@ export default class ErrorVitals {
           requestUrl: requestUrlStr.split('?')[0],
           method,
           status,
-          httpMessage: statusText,
+          httpMessage: EMPTYRESPONSE,
           duration: `${Date.now() - start}`,
         };
+
+        let httpMessage: string;
+
+        try {
+          httpMessage = /{\\"message\\": (.*)}/.test(responseText)
+            ? JSON.parse(responseText).message
+            : statusText
+            ? statusText
+            : EMPTYRESPONSE;
+        } catch (e) {
+          httpMessage = EMPTYRESPONSE;
+        }
 
         // 根据状态码判断是否ajax请求是否出错
         if (eventType === 'loadend' && status > 0 && status < 400) {
           Reflect.deleteProperty(defaultParams, 'errorType');
           Reflect.deleteProperty(defaultParams, 'statusText');
-
-          let httpMessage: string;
-          try {
-            httpMessage = /{.*}/.test(responseText) ? JSON.parse(responseText).message : responseText;
-          } catch (error) {
-            httpMessage = '暂无信息';
-          }
 
           const httpRequest = new HttpRequest({ ...defaultParams, httpMessage }, options);
 
@@ -219,7 +228,7 @@ export default class ErrorVitals {
             {
               ...defaultParams,
               errorType: errorTypeMap[eventType],
-              httpMessage: statusText,
+              httpMessage,
             },
             options,
           );
@@ -234,6 +243,7 @@ export default class ErrorVitals {
                 {
                   ...defaultParams,
                   errorType: ErrorType.XN,
+                  httpMessage,
                 },
                 options,
               );
@@ -264,6 +274,7 @@ export default class ErrorVitals {
         'loadend',
         function (e) {
           handleError.call(this, e);
+
           this.removeEventListener('error', handleError);
           this.removeEventListener('timeout', handleError);
           this.removeEventListener('abort', handleError);
@@ -287,12 +298,10 @@ export default class ErrorVitals {
       const result = oldFetch(input, init);
       const start = Date.now();
 
-      result.then((response) => {
-        const { ok, status, statusText } = response;
-        const cloneResponse = response.clone(); // 需要额外克隆一个流，不然外面的fetch使用response.json()等方法就会不起作用
-
-        if (ok) {
-          let httpRequest: HttpRequest;
+      result.then(
+        (response) => {
+          const { ok, status } = response;
+          const cloneResponse = response.clone(); // 需要额外克隆一个流，不然外面的fetch使用response.json()等方法就会不起作用
           const defaultParams = {
             requestUrl: '',
             method: '',
@@ -301,45 +310,83 @@ export default class ErrorVitals {
             duration: `${Date.now() - start}`,
           };
 
-          if (input instanceof Request) {
-            const { url: requestUrl, method = 'GET' } = input;
+          if (ok) {
+            // 状态码大于0小于400
+            let httpRequest: HttpRequest;
 
-            httpRequest = new HttpRequest(
-              { ...defaultParams, requestUrl: requestUrl.split('?')[0], method: method.toUpperCase() },
-              this.options,
-            );
-          } else {
-            const requestUrl = input instanceof URL ? input.href : input;
-            httpRequest = new HttpRequest(
-              {
-                ...defaultParams,
-                requestUrl: requestUrl.split('?')[0],
-                method: init?.method ? init.method.toUpperCase() : 'GET',
-              },
-              this.options,
-            );
-          }
-          cloneResponse.json().then((res) => {
-            httpRequest.httpMessage = res?.httpMessage ?? '暂无信息';
-            if (httpRequest.httpId) {
-              httpSet.add(httpRequest);
+            if (input instanceof Request) {
+              const { url: requestUrl, method = 'GET' } = input;
 
-              if (httpSet.size === HTTP_MAX_LIMIT) {
-                const handler = this.transportInstance.beaconTransportHandler();
-
-                httpSet.forEach((h) => handler(h, httpUrl));
-                httpSet.clear();
-              }
+              httpRequest = new HttpRequest(
+                { ...defaultParams, requestUrl: requestUrl.split('?')[0], method: method.toUpperCase() },
+                this.options,
+              );
+            } else {
+              const requestUrl = input instanceof URL ? input.href : input;
+              httpRequest = new HttpRequest(
+                {
+                  ...defaultParams,
+                  requestUrl: requestUrl.split('?')[0],
+                  method: init?.method ? init.method.toUpperCase() : 'GET',
+                },
+                this.options,
+              );
             }
-          });
-        } else {
+            cloneResponse.json().then((res) => {
+              httpRequest.httpMessage = res?.message ?? EMPTYRESPONSE;
+
+              if (httpRequest.httpId) {
+                httpSet.add(httpRequest);
+
+                if (httpSet.size === HTTP_MAX_LIMIT) {
+                  const handler = this.transportInstance.beaconTransportHandler();
+
+                  httpSet.forEach((h) => handler(h, httpUrl));
+                  httpSet.clear();
+                }
+              }
+            });
+          } else {
+            // 状态码大于400
+            let httpRequestError: HttpRequestError;
+
+            if (input instanceof Request) {
+              const { url: requestUrl, method = 'GET' } = input;
+
+              httpRequestError = new HttpRequestError(
+                {
+                  ...defaultParams,
+                  errorType: ErrorType.HP,
+                  requestUrl: requestUrl.split('?')[0],
+                  method: method.toUpperCase(),
+                },
+                this.options,
+              );
+            } else {
+              input = input instanceof URL ? input.href : input;
+              httpRequestError = new HttpRequestError(
+                {
+                  ...defaultParams,
+                  errorType: ErrorType.HP,
+                  requestUrl: input.split('?')[0],
+                  method: init?.method ? init.method.toUpperCase() : 'GET',
+                },
+                this.options,
+              );
+            }
+
+            this.sendError(transportType.httpError, httpRequestError);
+          }
+        },
+        (error) => {
+          // 下面是fetch出现断网，跨域，取消
           let httpRequestError: HttpRequestError;
           const defaultParams = {
             errorType: ErrorType.HP,
             requestUrl: '',
             method: '',
-            status,
-            httpMessage: statusText,
+            status: 0,
+            httpMessage: `${error}`.split('\\n')[0],
             duration: `${Date.now() - start}`,
           };
 
@@ -351,20 +398,19 @@ export default class ErrorVitals {
               this.options,
             );
           } else {
-            input = input instanceof URL ? input.href : input;
+            const requestUrl = input instanceof URL ? input.href : input;
             httpRequestError = new HttpRequestError(
               {
                 ...defaultParams,
-                requestUrl: input.split('?')[0],
+                requestUrl: requestUrl.split('?')[0],
                 method: init?.method ? init.method.toUpperCase() : 'GET',
               },
               this.options,
             );
           }
-
           this.sendError(transportType.httpError, httpRequestError);
-        }
-      });
+        },
+      );
 
       return result;
     };
