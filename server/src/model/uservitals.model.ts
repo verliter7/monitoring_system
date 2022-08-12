@@ -11,19 +11,19 @@ const UservitalsModel = seq.define('duration', {
     defaultValue: '',
   },
   startTime: {
-    type: DataTypes.STRING,
+    type: DataTypes.BIGINT,
     allowNull: true,
     comment: '开始时间',
     defaultValue: 0,
   },
   endTime: {
-    type: DataTypes.STRING,
+    type: DataTypes.BIGINT,
     allowNull: true,
     comment: '结束时间',
     defaultValue: 0,
   },
   duration: {
-    type: DataTypes.STRING,
+    type: DataTypes.BIGINT,
     allowNull: true,
     comment: '持续时间',
     defaultValue: 0,
