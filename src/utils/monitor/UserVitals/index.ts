@@ -237,7 +237,7 @@ export default class UserVitals {
 
   recordNextPage = (): void => {
     // 记录前一个页面的页面停留时间
-    const time = new Date().getTime();
+    const time = Date.now();
     this.routeList[this.routeList.length - 1].endTime = time;
     this.routeList[this.routeList.length - 1].duration = time - this.routeList[this.routeList.length - 1].startTime;
     // 推一个新的页面停留记录
@@ -250,7 +250,7 @@ export default class UserVitals {
   getPageTime = (): void => {
     // 第一次进入页面时,记录
     window.addEventListener('load', () => {
-      const time = new Date().getTime();
+      const time = Date.now();
       this.routeList.push({
         ...{ url: window.location.pathname, startTime: time, duration: 0, endTime: 0 },
       });
@@ -262,7 +262,6 @@ export default class UserVitals {
     // 单页面应用触发 pushState 时的上报
     window.addEventListener('pushState', () => {
       this.recordNextPage();
-      // this.userSendHandler(this.routeList[this.routeList.length - 1], transportType.RD)
     });
     // 浏览器回退、前进行为触发的 可以自己判断是否要上报
     window.addEventListener('popstate', () => {
@@ -270,7 +269,7 @@ export default class UserVitals {
     });
     // 关闭浏览器前记录最后的时间并上报
     window.addEventListener('beforeunload', () => {
-      const time = new Date().getTime();
+      const time = Date.now();
       this.routeList[this.routeList.length - 1].endTime = time;
       this.routeList[this.routeList.length - 1].duration = time - this.routeList[this.routeList.length - 1].startTime;
       // 记录完了离开的时间，就可以上报了

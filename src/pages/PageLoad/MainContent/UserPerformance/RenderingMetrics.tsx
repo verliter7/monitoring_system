@@ -6,6 +6,7 @@ import useMount from '@/hooks/useMount';
 import PaintLine from './PaintLine';
 import { getPerformanceData, getUservitalsData } from '../../service';
 import type { ITab } from '@/public/PubTabs/type';
+import PubLine from '@/public/PubLine'
 import { useRequest } from '@/hooks';
 
 const RenderingMetrics: FC = (): ReactElement => {
@@ -37,35 +38,35 @@ const RenderingMetrics: FC = (): ReactElement => {
       middle: 123,
       bottomCenter: 233,
       unit: '',
-      content: <PaintLine paintData={paintData} title="首次绘制时间(FP)" type='FP' loading={loading} />,
+      content: <PubLine paintData={paintData} title="首次绘制时间(FP)" type='FP' loading={loading} />,
     },
     {
       title: '首次内容绘制时间(FCP)',
       middle: 4.05,
       bottomCenter: 4.08,
       unit: '%',
-      content: <PaintLine paintData={paintData} title='首次内容绘制时间(FCP)' type='FCP' loading={loading} />,
+      content: <PubLine paintData={paintData} title='首次内容绘制时间(FCP)' type='FCP' loading={loading} />,
     },
     {
       title: '首次有效绘制时间(FMP)',
       middle: 276,
       bottomCenter: 346,
       unit: '',
-      content: <PaintLine paintData={paintData} title='首次有效绘制时间(FMP)' type='FMP' loading={loading} />,
+      content: <PubLine paintData={paintData} title='首次有效绘制时间(FMP)' type='FMP' loading={loading} />,
     },
     {
       title: '最大内容绘画时间(LCP)',
       middle: 3.96,
       bottomCenter: 2.42,
       unit: '%',
-      content: <PaintLine paintData={paintData} title='最大内容绘画时间(LCP)' type='LCP' loading={loading} />,
+      content: <PubLine paintData={paintData} title='最大内容绘画时间(LCP)' type='LCP' loading={loading} />,
     },
     {
       title: '首次交互时间(FID)',
       middle: 3.96,
       bottomCenter: 2.42,
       unit: '%',
-      content: <PaintLine paintData={paintData} title='首次交互时间(FID)' type='FID' loading={loading} />,
+      content: <PubLine paintData={paintData} title='首次交互时间(FID)' type='FID' loading={loading} />,
     },
   ];
 
