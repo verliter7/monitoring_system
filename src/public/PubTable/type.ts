@@ -15,18 +15,17 @@ export interface ITableData {
   total: number; // 页面数据总条数
 }
 
-export type ReduxTableType = IResourcesErrorTableData;
-
 export type PaginationPosition = 'topLeft' | 'topCenter' | 'topRight' | 'bottomLeft' | 'bottomCenter' | 'bottomRight';
 
 export interface IBaseTable {
   columns: Record<string, any>[]; // 表格配置
   outerTableData?: ITableData; // 外面传入的表格数据
   getTableData?: (...params: any[]) => Promise<HttpReqDataType<ITableData>>; // 在表格内部获取数据
-  storage?: ActionCreatorWithPayload<ReduxTableType, string>; // 是否dispatch到redux
+  storage?: ActionCreatorWithPayload<any, string>; // 是否dispatch到redux
   reduxMark?: reducerEnum; // redux标识
   showSizeChanger?: boolean; // 是否展示页码切换器
   position?: [PaginationPosition];
+  defaultPageSize?: number; // 默认页码大小
 }
 
 export interface IPagination {

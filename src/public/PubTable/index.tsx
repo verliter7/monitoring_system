@@ -4,7 +4,7 @@ import { Table } from 'antd';
 import { useMount } from '@/hooks';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import type { FC, ReactElement } from 'react';
-import type { IBaseTable, IGetTableDataConfig, IPagination, ITableData, ReduxTableType } from './type';
+import type { IBaseTable, IGetTableDataConfig, IPagination, ITableData } from './type';
 
 const PubTable: FC<IBaseTable> = ({
   columns,
@@ -14,6 +14,7 @@ const PubTable: FC<IBaseTable> = ({
   outerTableData = {} as ITableData,
   showSizeChanger = true,
   position = ['bottomCenter'],
+  defaultPageSize = 2,
 }): ReactElement => {
   const reduxData = useAppSelector((state) => (reduxMark ? state[reduxMark] : null));
   const dispatch = useAppDispatch();
@@ -25,20 +26,16 @@ const PubTable: FC<IBaseTable> = ({
 
   // 最终的表格数据 表格数据有三个类别 外面传入 | 里面异步获取不传到redux | 里面异步获取传到redux
   const finalTableData: ITableData = reduxData ? reduxData.table : tableData ? tableData : outerTableData;
-
   // 获取表格配置
   const tableColumns: Record<string, any>[] = columns.map((column) => {
-    const { width, dataIndex, title, render, ellipsis, ...rest } = column;
+    const { width, ...rest } = column;
     const listStyle = () => ({
       style: { width: width ? width : 100, whiteSpace: 'nowrap' },
     });
 
     return {
-      title,
-      dataIndex,
-      render,
       align: 'center',
-      ellipsis,
+      onHeaderCell: listStyle,
       onCell: listStyle,
       ...rest,
     };
@@ -63,12 +60,12 @@ const PubTable: FC<IBaseTable> = ({
   const updateTableData = async (config?: IGetTableDataConfig) => {
     setLoading(true);
 
-    const defaultConfig = { current: 1, size: 2, ...(config ?? {}) };
+    const defaultConfig = { current: 1, size: defaultPageSize, ...(config ?? {}) };
     try {
       const res = await getTableData!(defaultConfig);
 
       // storage代表是否把表格数据缓存到redux上
-      storage ? dispatch(storage(res.data as ReduxTableType)) : setTableData(res.data);
+      storage ? dispatch(storage(res.data)) : setTableData(res.data);
     } catch (e) {
       console.error(e);
     }
@@ -98,13 +95,13 @@ const PubTable: FC<IBaseTable> = ({
 
   useMount(() => {
     // 有传getTableData就在表格组件里面请求数据，没有就在外面传入表格数据
-    // reduxData?.table.records.length === 0判断redux是否有表格数据
-    getTableData && reduxData?.table.records.length === 0 && updateTableData();
+    // reduxData?.table.records.length判断redux是否有表格数据
+    getTableData && !reduxData?.table.records.length && updateTableData();
   });
 
   return (
     <Table
-      // 是否使用redux上缓存的表格数据
+      scroll={{ x: 'max-content' }}
       dataSource={finalTableData.records}
       columns={tableColumns}
       pagination={pagination}

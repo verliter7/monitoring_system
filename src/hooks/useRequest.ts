@@ -51,6 +51,8 @@ const useRequest = <D>(request: HttpReqType<D>, options?: Partial<requestOptions
       onFinally?.(void 0, error, ...params);
       setError(error);
       setLoaing(false);
+
+      console.error(`请求出错: ${error}`);
     }
   };
   const run = useCallback((...params: any[]) => {

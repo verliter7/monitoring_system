@@ -9,8 +9,8 @@ const styleObject = {
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
   },
-  scroll: (axis?: 'x' | 'y') => ({
-    [`overflow${axis ? `-${axis}` : ''}`]: 'auto',
+  scroll: (axis?: 'X' | 'Y') => ({
+    [`overflow${axis ? `${axis}` : ''}`]: 'auto',
     '&::-webkit-scrollbar': {
       height: '7px',
       width: '6px',

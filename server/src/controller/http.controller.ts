@@ -1,4 +1,10 @@
-import { createHttp_s, getHttpMsgCluster_s, getHttpSuccessRate_s } from '@/service/http.service';
+import {
+  createHttp_s,
+  getAllHttpInfos_s,
+  getHttpMsgCluster_s,
+  getHttpSuccessRate_s,
+  getHttpTimeConsume_s,
+} from '@/service/http.service';
 import type { Context } from 'koa';
 
 export async function createHttp_c(ctx: Context) {
@@ -28,7 +34,7 @@ export async function getHttpSuccessRate_c(ctx: Context) {
     });
   } catch (err) {
     console.log(err);
-    ctx.defaultError({ code: 500, message: err as string });
+    ctx.defaultError({ code: 500, message: '服务器出错' });
   }
 }
 
@@ -43,6 +49,40 @@ export async function getHttpMsgCluster_c(ctx: Context) {
     });
   } catch (err) {
     console.log(err);
-    ctx.defaultError({ code: 500, message: err as string });
+    ctx.defaultError({ code: 500, message: '服务器出错' });
+  }
+}
+
+export async function getHttpTimeConsume_c(ctx: Context) {
+  const { type } = ctx.query;
+
+  try {
+    const httpSuccessTimeConsumeeData = await getHttpTimeConsume_s(type as 'success' | 'fail');
+    ctx.defaultResponse({
+      code: 200,
+      data: httpSuccessTimeConsumeeData,
+      message: '请求成功',
+      success: true,
+    });
+  } catch (err) {
+    console.log(err);
+    ctx.defaultError({ code: 500, message: '服务器出错' });
+  }
+}
+
+export async function getAllHttpInfos_c(ctx: Context) {
+  const { current, size } = ctx.query;
+
+  try {
+    const allHttpInfos = await getAllHttpInfos_s(parseInt(current as string), parseInt(size as string));
+    ctx.defaultResponse({
+      code: 200,
+      data: allHttpInfos,
+      message: '请求成功',
+      success: true,
+    });
+  } catch (err) {
+    console.log(err);
+    ctx.defaultError({ code: 500, message: '服务器出错' });
   }
 }

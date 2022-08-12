@@ -3,17 +3,54 @@ import { DualAxes } from '@ant-design/charts';
 import PubTable from '@/public/PubTable';
 import Aside from './views/Aside';
 import SortIcon from './views/SortIcon';
-import { getHttpMsgCluster, getHttpSuccessRate } from './service';
+import { getHttpMsgCluster, getHttpSuccessRate, getHttpSuccessTimeConsume, getHttpFailTimeConsume } from './service';
 import { getRandomStr } from '@/utils';
-import { msgClusterStorage, successRateStorage } from '@/redux/httpMonitorSlice';
+import {
+  failTimeConsumeStorage,
+  msgClusterStorage,
+  successRateStorage,
+  successTimeConsumeStorage,
+} from '@/redux/httpMonitorSlice';
 import {
   ITabMap,
   tabKeyEnum,
   ISuccessRateChartData,
-  IApiListInfo,
+  IMsgClusterTableData,
   ITabSuccessRateItemInfo,
   ITabMsgClusterItemInfo,
+  ITimeConsumeChartData,
+  ITabTimeConsumeItemInfo,
 } from './type';
+
+const getDefaultChartConfig = (chartData: any): any => ({
+  theme: 'dark',
+  data: [chartData, chartData],
+  geometryOptions: [
+    {
+      geometry: 'line',
+      lineStyle: {
+        lineWidth: 2,
+      },
+      color: '#5AD5AB',
+    },
+    {
+      geometry: 'column',
+      color: '#6395F9',
+    },
+  ],
+  legend: {
+    layout: 'horizontal',
+    position: 'top',
+  },
+  interactions: [
+    {
+      type: 'element-highlight',
+    },
+    {
+      type: 'active-region',
+    },
+  ],
+});
 
 // 各个tab对应的信息
 const tabMap: ITabMap = {
@@ -27,7 +64,7 @@ const tabMap: ITabMap = {
     getChartOrTable: (chartData) => (
       <DualAxes
         {...{
-          theme: 'dark',
+          ...getDefaultChartConfig(chartData),
           meta: {
             successRate: {
               alias: '成功率',
@@ -37,7 +74,6 @@ const tabMap: ITabMap = {
               alias: '调用次数',
             },
           },
-          data: [chartData, chartData],
           xField: 'time',
           yField: ['successRate', 'callCount'],
           yAxis: {
@@ -52,34 +88,10 @@ const tabMap: ITabMap = {
               title: {
                 text: '调用次数',
               },
-              tickInterval: 5,
+              min: 0,
+              tickInterval: 1,
             },
           },
-          geometryOptions: [
-            {
-              geometry: 'line',
-              lineStyle: {
-                lineWidth: 2,
-              },
-              color: '#5AD5AB',
-            },
-            {
-              geometry: 'column',
-              color: '#6395F9',
-            },
-          ],
-          legend: {
-            layout: 'horizontal',
-            position: 'top',
-          },
-          interactions: [
-            {
-              type: 'element-highlight',
-            },
-            {
-              type: 'active-region',
-            },
-          ],
         }}
         height={230}
       />
@@ -136,20 +148,29 @@ const tabMap: ITabMap = {
               chartData,
             };
           });
+
           dispatch(successRateStorage(successRateListItemInfo));
           setListItem(keys, successRateListItemInfo[keys[0]] ?? {});
         },
       },
     ],
     rankType: 'callRate',
+    runType: 'getSuccessRateRun',
     dataType: 'chartData',
   },
   msgCluster: {
-    tab: (handleSortClick, radioValue, activeKey) => (
+    tab: (handleSortClick, sortType, radioValue, activeKey, allListItemInfo) => (
       <div css={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-        <span>Msg聚类</span>
+        <span
+          css={{
+            transform: `translateX(${activeKey === tabKeyEnum.MC ? 0 : 8}px)`,
+          }}
+        >
+          Msg聚类
+        </span>
         <SortIcon
-          handleSortClick={(sortType) => handleSortClick(sortType, radioValue, activeKey)}
+          sortType={sortType}
+          handleSortClick={(sortType) => handleSortClick(sortType, radioValue, activeKey, allListItemInfo)}
           isVisible={activeKey === tabKeyEnum.MC}
         />
       </div>
@@ -176,7 +197,7 @@ const tabMap: ITabMap = {
           // 下面都是数据处理及转换格式
           keys.forEach((infoKey) => {
             let total_one_sum = 0;
-            const records: IApiListInfo[] = [];
+            const records: IMsgClusterTableData[] = [];
 
             Object.keys(data[infoKey]).forEach((apiKey) => {
               const { callCount, status } = data[infoKey][apiKey];
@@ -193,7 +214,7 @@ const tabMap: ITabMap = {
 
             msgClusterListItemInfo[infoKey] = {
               itemName: infoKey,
-              apiListInfo: {
+              tableData: {
                 records,
                 size: 2,
                 current: 1,
@@ -232,47 +253,200 @@ const tabMap: ITabMap = {
       />
     ),
     rankType: 'callCount',
-    dataType: 'apiListInfo',
+    runType: 'getMsgClusterRun',
+    dataType: 'tableData',
   },
   successTimeConsume: {
     tab: '成功耗时',
     cartTitle: 'API成功耗时',
     radioOptions: [
       { label: '调用量(占比)排行', value: 'callRate' },
-      { label: '成功率耗时排行', value: 'successRate' },
+      { label: '平均成功耗时排行', value: 'averageDuration' },
     ],
-    content: () => '成功耗时',
-    getRequestConfig: (dispatch, setListItemNames, setActiveListItemInfo, getSafeRate) => [
-      getHttpMsgCluster,
+    content: (listItemNames, listItemInfo, activeListItemInfo, handleListItemClick) => (
+      <Aside
+        listItemNames={listItemNames}
+        listItemInfo={listItemInfo}
+        activeListItemInfo={activeListItemInfo}
+        handleListItemClick={handleListItemClick}
+        getListItemRight={({ averageDuration, callRate, callCount }) => (
+          <>
+            <span css={{ fontWeight: 'bold' }}>
+              {`${callCount}次`}
+              {`(${callRate}%)`}
+            </span>{' '}
+            | {`${averageDuration}ms`}
+          </>
+        )}
+      />
+    ),
+    getRequestConfig: (dispatch, setListItem, getSafeRate) => [
+      getHttpSuccessTimeConsume,
       {
         manual: true,
-        onSuccess(reqRes) {},
+        onSuccess(reqRes) {
+          const { timeConsumeInfos: successTimeConsumeInfos, total } = reqRes.data;
+          const keys = Object.keys(successTimeConsumeInfos);
+          const successTimeConsumeListItemInfo: Record<string, ITabTimeConsumeItemInfo> = {};
+
+          // 下面都是数据处理及转换格式
+          keys.forEach((apiKey) => {
+            const chartData: ITimeConsumeChartData[] = [];
+            let callCount_sum = 0;
+            let duration_sum = 0;
+
+            Object.keys(successTimeConsumeInfos[apiKey]).forEach((time) => {
+              const { callCount, duration } = successTimeConsumeInfos[apiKey][time];
+
+              callCount_sum += callCount;
+              duration_sum += duration;
+              chartData.push({
+                time,
+                averageDuration: callCount === 0 ? 0 : Math.round(duration / callCount),
+                callCount,
+              });
+            });
+
+            successTimeConsumeListItemInfo[apiKey] = {
+              itemName: apiKey,
+              callRate: getSafeRate(callCount_sum, total),
+              callCount: callCount_sum,
+              averageDuration: Math.round(duration_sum / callCount_sum),
+              chartData,
+            };
+          });
+
+          dispatch(successTimeConsumeStorage(successTimeConsumeListItemInfo));
+          setListItem(keys, successTimeConsumeListItemInfo[keys[0]] ?? {});
+        },
       },
     ],
-    getChartOrTable: () => <div></div>,
+    getChartOrTable: (chartData) => (
+      <DualAxes
+        {...{
+          ...getDefaultChartConfig(chartData),
+          meta: {
+            averageDuration: {
+              alias: '成功耗时',
+              formatter: (value: number) => `${value}ms`,
+            },
+            callCount: {
+              alias: '调用次数',
+            },
+          },
+          xField: 'time',
+          yField: ['averageDuration', 'callCount'],
+          yAxis: {
+            averageDuration: {
+              title: {
+                text: '成功耗时',
+              },
+              min: 0,
+              tickInterval: 200,
+            },
+            callCount: {
+              title: {
+                text: '调用次数',
+              },
+              min: 0,
+              tickInterval: 1,
+            },
+          },
+        }}
+        height={230}
+      />
+    ),
     rankType: 'callRate',
+    runType: 'getHttpSuccessTimeConsumeRun',
     dataType: 'chartData',
   },
   failTimeConsume: {
-    tab: (handleSortClick, radioValue, activeKey) => (
-      <div css={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-        <span>失败耗时</span>
-        <SortIcon
-          handleSortClick={(e) => handleSortClick(e, radioValue, activeKey)}
-          isVisible={activeKey === tabKeyEnum.FT}
-        />
-      </div>
-    ),
+    tab: '失败耗时',
     cartTitle: 'API失败耗时',
-    content: () => '失败耗时',
-    getRequestConfig: (dispatch, setListItemNames, setActiveListItemInfo, getSafeRate) => [
-      getHttpSuccessRate,
+    radioOptions: [
+      { label: '调用量(占比)排行', value: 'callRate' },
+      { label: '平均失败耗时排行', value: 'averageDuration' },
+    ],
+    content: (listItemNames, listItemInfo, activeListItemInfo, handleListItemClick) =>
+      tabMap.successTimeConsume.content(listItemNames, listItemInfo, activeListItemInfo, handleListItemClick),
+    getRequestConfig: (dispatch, setListItem, getSafeRate) => [
+      getHttpFailTimeConsume,
       {
-        onSuccess(reqRes) {},
+        manual: true,
+        onSuccess(reqRes) {
+          const { timeConsumeInfos: failTimeConsumeInfos, total } = reqRes.data;
+          const keys = Object.keys(failTimeConsumeInfos);
+          const failTimeConsumeListItemInfo: Record<string, ITabTimeConsumeItemInfo> = {};
+
+          // 下面都是数据处理及转换格式
+          keys.forEach((apiKey) => {
+            const chartData: ITimeConsumeChartData[] = [];
+            let callCount_sum = 0;
+            let duration_sum = 0;
+
+            Object.keys(failTimeConsumeInfos[apiKey]).forEach((time) => {
+              const { callCount, duration } = failTimeConsumeInfos[apiKey][time];
+
+              callCount_sum += callCount;
+              duration_sum += duration;
+              chartData.push({
+                time,
+                averageDuration: callCount === 0 ? 0 : Math.round(duration / callCount),
+                callCount,
+              });
+            });
+
+            failTimeConsumeListItemInfo[apiKey] = {
+              itemName: apiKey,
+              callRate: getSafeRate(callCount_sum, total),
+              callCount: callCount_sum,
+              averageDuration: Math.round(duration_sum / callCount_sum),
+              chartData,
+            };
+          });
+
+          dispatch(failTimeConsumeStorage(failTimeConsumeListItemInfo));
+          setListItem(keys, failTimeConsumeListItemInfo[keys[0]] ?? {});
+        },
       },
     ],
-    getChartOrTable: () => <div></div>,
-    rankType: 'failTimeConsume',
+    getChartOrTable: (chartData) => (
+      <DualAxes
+        {...{
+          ...getDefaultChartConfig(chartData),
+          meta: {
+            averageDuration: {
+              alias: '失败耗时',
+              formatter: (value: number) => `${value}ms`,
+            },
+            callCount: {
+              alias: '调用次数',
+            },
+          },
+          xField: 'time',
+          yField: ['averageDuration', 'callCount'],
+          yAxis: {
+            averageDuration: {
+              title: {
+                text: '失败耗时',
+              },
+              min: 0,
+              tickInterval: 200,
+            },
+            callCount: {
+              title: {
+                text: '调用次数',
+              },
+              min: 0,
+              tickInterval: 1,
+            },
+          },
+        }}
+        height={230}
+      />
+    ),
+    rankType: 'callRate',
+    runType: 'getHttpFailTimeConsumeRun',
     dataType: 'chartData',
   },
 };

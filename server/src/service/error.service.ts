@@ -3,6 +3,10 @@ import dayjs from 'dayjs';
 import ErrorModel from '@/model/error.model';
 import type { Model, Optional } from 'sequelize/types';
 
+/**
+ * @description: 向数据库插入一条错误信息
+ * @param errorInfo 错误信息
+ */
 export async function createError_s(errorInfo: Optional<any, string>) {
   const isExisted = !!(await findErrorInfo(errorInfo.errorId));
   errorInfo.timeStamp = parseInt(errorInfo.timeStamp);
@@ -20,6 +24,10 @@ export async function findErrorInfo(errorId: string) {
   return res;
 }
 
+/**
+ * @description: 获取错误数量
+ * @param type 错误类型
+ */
 export async function getErrorCount_s(type: string) {
   const oneDayHours = 24;
   const oneHourMilliseconds = 60 * 60 * 1000;
@@ -69,6 +77,11 @@ enum typeEnum {
   PL = 'pageLoad',
 }
 
+/**
+ * @description: 获取静态资源加载错误信息（做成表格）
+ * @param current 当前页数
+ * @param size 当前页大小
+ */
 export async function getResourceErrorData_s(current: number, size: number) {
   const TYPE = 'resourceError';
   const timeFormat = 'YYYY-MM-DD HH:mm:ss';

@@ -19,7 +19,7 @@ const initialState: IResourcesErrorState = {
 };
 
 export const resourceErrorSlice = createSlice({
-  name: 'resource',
+  name: 'resourceError',
   initialState,
   reducers: {
     chartStorage: (state, action: PayloadAction<IResourcesErrorChartData>) => {

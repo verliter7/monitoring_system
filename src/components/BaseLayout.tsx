@@ -56,7 +56,8 @@ const BaseLayout: FC = (): ReactElement => {
         </Header>
         <Content
           css={{
-            ...commonStyles.scroll(),
+            ...commonStyles.scroll('Y'),
+            overflowX: 'hidden',
             margin: '16px',
             padding: '16px',
             minHeight: '280px',
