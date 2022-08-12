@@ -34,7 +34,7 @@ export async function getErrorCount_c(ctx: Context) {
   } catch (err) {
     console.log(err);
 
-    ctx.defaultError({ code: 500, message: err as string });
+    ctx.defaultError({ code: 500, message: '服务器出错' });
   }
 }
 
@@ -53,6 +53,6 @@ export async function getResourceErrorData_c(ctx: Context) {
     });
   } catch (err) {
     console.log(err);
-    ctx.defaultError({ code: 500, message: err as string });
+    ctx.defaultError({ code: 500, message: '服务器出错' });
   }
 }

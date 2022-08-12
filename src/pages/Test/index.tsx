@@ -41,7 +41,7 @@ const Test: FC = (): ReactElement => {
         type="primary"
         onClick={() => {
           const xhr = new XMLHttpRequest();
-          xhr.open('GET', '/api/v1/test?status=500');
+          xhr.open('GET', '/api/v1/business/getHttpSuccessTimeConsume');
           xhr.send(null);
         }}
       >

@@ -1,11 +1,13 @@
 /* @jsxImportSource @emotion/react */
 import { memo, useRef, useState } from 'react';
 import { Tooltip } from 'antd';
+import { useUpdateEffect } from '@/hooks';
 import { sortEnum } from '../type';
 import type { FC, ReactElement } from 'react';
 
 interface IProps {
   handleSortClick: (sortType: sortEnum) => void; // 排序按钮操作
+  sortType?: sortEnum;
   isVisible?: boolean; // 排序按钮是否可见
 }
 
@@ -43,22 +45,25 @@ const caretDefalutCssProperties = {
 };
 
 // 排序图标组件
-const SortIcon: FC<IProps> = ({ handleSortClick, isVisible = true }): ReactElement => {
-  const sortTypeRef = useRef<sortEnum>(sortEnum.DF);
+const SortIcon: FC<IProps> = ({ sortType = sortEnum.DF, handleSortClick, isVisible = true }): ReactElement => {
+  const sortTypeRef = useRef<sortEnum>(sortType);
   const [label, setLabel] = useState(sortTypeMap[sortTypeRef.current].label);
 
-  isVisible === false && (sortTypeRef.current = sortEnum.DF);
+  useUpdateEffect(() => {
+    sortTypeRef.current = sortType;
+  }, [sortType]);
 
   return (
     <Tooltip title={label}>
       <span
         css={{
-          display: isVisible ? 'inline-flex' : 'none',
+          display: 'inline-flex',
           flexDirection: 'column',
           alignItems: 'center',
           verticalAlign: 'middle',
           fontSize: '0',
           cursor: 'pointer',
+          visibility: isVisible ? 'visible' : 'hidden',
         }}
         onClick={() => {
           sortTypeRef.current = sortTypeMap[sortTypeRef.current].value;
@@ -70,7 +75,7 @@ const SortIcon: FC<IProps> = ({ handleSortClick, isVisible = true }): ReactEleme
           role="img"
           aria-label="caret-up"
           // @ts-ignore
-          css={{ ...caretDefalutCssProperties, color: sortTypeRef.current === sortEnum.AC ? '#177ddc' : '#bfbfbf' }}
+          css={{ ...caretDefalutCssProperties, color: sortType === sortEnum.AC ? '#177ddc' : '#bfbfbf' }}
         >
           <svg
             viewBox="0 0 1024 1024"
@@ -91,7 +96,7 @@ const SortIcon: FC<IProps> = ({ handleSortClick, isVisible = true }): ReactEleme
           css={{
             marginTop: '-0.3em',
             ...caretDefalutCssProperties,
-            color: sortTypeRef.current === sortEnum.DC ? '#177ddc' : '#bfbfbf',
+            color: sortType === sortEnum.DC ? '#177ddc' : '#bfbfbf',
           }}
         >
           <svg

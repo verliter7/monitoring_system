@@ -62,6 +62,12 @@ export function compose<
 /**
  * @description: 获取随机字符串
  */
-export function getRandomStr() {
-  return Math.random().toString(36).substring(2);
+export function getRandomStr(len = 16) {
+  const chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
+  let maxPos = chars.length;
+  let pwd = '';
+  for (let i = 0; i < len; i++) {
+    pwd += chars.charAt(Math.floor(Math.random() * maxPos));
+  }
+  return pwd;
 }
