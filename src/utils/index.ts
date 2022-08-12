@@ -58,3 +58,10 @@ export function compose<
     return fns.reduceRight((pre, cur) => cur(pre), value);
   } as R;
 }
+
+/**
+ * @description: 获取随机字符串
+ */
+export function getRandomStr() {
+  return Math.random().toString(36).substring(2);
+}
