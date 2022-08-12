@@ -8,8 +8,5 @@ export async function createUservitals_s(uservitalsInfo: Optional<any, string>) 
 
 export async function getUservitalsData_s() {
   const data = UservitalsModel.findAll()
-
-  console.log(data);
-
   return data
 }

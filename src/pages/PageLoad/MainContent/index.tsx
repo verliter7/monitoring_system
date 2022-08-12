@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 
 import UserPerformance from './UserPerformance'
 import TechnologyPerformance from './TechnologyPerformance'
+import UserVitals from './UserVitals'
 
 import { Tabs } from 'antd';
 
@@ -24,11 +25,16 @@ const MainContent: FC = (): ReactElement => {
       component: <TechnologyPerformance />
     }, {
       key: 3,
+      tab: '用户行为数据',
+      forceRender: false,
+      component: <UserVitals />
+    }, {
+      key: 4,
       tab: '慢加载列表',
       forceRender: false,
       component: 'content'
     }, {
-      key: 4,
+      key: 5,
       tab: '多维分析',
       forceRender: false,
       component: 'content'
