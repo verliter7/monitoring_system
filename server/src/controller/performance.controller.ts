@@ -6,7 +6,6 @@ import { JSON, Optional } from 'sequelize/types';
 export async function createPerformance_c(ctx: Context) {
   const performanceInfo = ctx.request.body as Optional<any, string>;
   performanceInfo.ip = ctx.ip;
-  console.log(performanceInfo);
   ctx.body = {
     code: 200,
     success: true,
@@ -14,7 +13,11 @@ export async function createPerformance_c(ctx: Context) {
   try {
     await createPerformance_s(performanceInfo);
 
-    ctx.defaultResponse();
+    ctx.defaultResponse({
+      code: 200,
+      message: "success",
+      success: true,
+    });
   } catch (err) {
     console.log(err);
 
@@ -25,8 +28,6 @@ export async function createPerformance_c(ctx: Context) {
 
 export async function getPerformanceData_c(ctx: Context) {
   const { type } = ctx.query
-  // console.log(performanceInfo);
-  console.log(type);
 
   try {
     let data = await getPerformanceData_s(type as string)

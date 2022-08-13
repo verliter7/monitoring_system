@@ -26,7 +26,7 @@ export default defineConfig({
     preprocessorOptions: {
       less: {
         modifyVars: getThemeVariables({
-          dark: true, // 开启暗黑模式
+          dark: false, // 开启暗黑模式
         }),
         javascriptEnabled: true,
       },

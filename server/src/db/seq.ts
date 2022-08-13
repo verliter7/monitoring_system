@@ -9,6 +9,10 @@ const seq = new Sequelize('test', 'root', '123456', {
     min: 0,
     idle: 30000,
   },
+  define: {
+    charset: 'utf8',
+    timestamps: true
+  }
 });
 
 seq

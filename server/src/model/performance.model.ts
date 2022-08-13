@@ -52,6 +52,45 @@ export const PerformanceTimingModel = seq.define('timing', {
   ...defalutConfig,
   kind: {
     type: DataTypes.STRING,
+    allowNull: false,
+    comment: '监控类型',
+  },
+  type: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: '类型',
+  },
+  timingType: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: '时间性能类型',
+  },
+  describe: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: '时间性能类型描述',
+  },
+  during: {
+    type: DataTypes.FLOAT(30, 16),
+    allowNull: false,
+    comment: '耗时',
+  },
+  start: {
+    type: DataTypes.FLOAT(30, 16),
+    allowNull: false,
+    comment: '开始时间',
+  },
+  end: {
+    type: DataTypes.FLOAT(30, 16),
+    allowNull: false,
+    comment: '结束时间',
+  }
+});
+
+export const PerformanceCLSModel = seq.define('cls', {
+  ...defalutConfig,
+  kind: {
+    type: DataTypes.STRING,
     allowNull: true,
     comment: '监控类型',
     defaultValue: '',
@@ -62,79 +101,14 @@ export const PerformanceTimingModel = seq.define('timing', {
     comment: '类型',
     defaultValue: '',
   },
-  FP: {
+  CLS: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: '首次渲染耗时',
+    comment: '累积布局偏移',
     defaultValue: '',
-  },
-  TTI: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: '首次可交互时间',
-    defaultValue: '',
-  },
-  DomReady: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'DOM阶段渲染耗时',
-    defaultValue: '',
-  },
-  Load: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: '首次可交互时间',
-    defaultValue: '',
-  },
-  FirstByte: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: '首包时间耗时',
-    defaultValue: '',
-  },
-  DNS: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: ' DNS解析耗时',
-    defaultValue: '',
-  },
-  TCP: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: ' TCP建立连接耗时',
-    defaultValue: '',
-  },
-  SSL: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: ' 数据安全连接耗时',
-    defaultValue: '',
-  },
-  TTFB: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: ' 网络请求耗时',
-    defaultValue: '',
-  },
-  Trans: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: ' 响应数据传输耗时',
-    defaultValue: '',
-  },
-  DomParse: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: ' DOM解析耗时',
-    defaultValue: '',
-  },
-  Res: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: ' 资源加载耗时',
-    defaultValue: '',
-  },
+  }
 });
+
 // PerformancePaintModel.sync({ force: true });
 // PerformanceTimingModel.sync({ force: true });
-
+// PerformanceCLSModel.sync({ force: true });
