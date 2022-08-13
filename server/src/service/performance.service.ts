@@ -20,23 +20,20 @@ export async function getPerformanceData_s(type: string) {
   let data;
   switch (type) {
     case 'timing':
-      data = PerformanceTimingModel.findAll()
+      data = PerformanceTimingModel.findAll();
       break;
     case 'paint':
-      data = PerformancePaintModel.findAll()
+      data = PerformancePaintModel.findAll();
       break;
     default:
-      data = PerformanceTimingModel.findAll()
+      data = PerformanceTimingModel.findAll();
   }
 
-  console.log(data);
-
-  return data
+  return data;
 }
 
 export async function getTimingData_s(type: string) {
-  const data = PerformanceTimingModel.findAll()
-  console.log(data);
+  const data = PerformanceTimingModel.findAll();
 
-  return data
+  return data;
 }

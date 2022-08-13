@@ -22,35 +22,38 @@ import {
   ITabTimeConsumeItemInfo,
 } from './type';
 
-const getDefaultChartConfig = (chartData: any): any => ({
-  theme: 'dark',
-  data: [chartData, chartData],
-  geometryOptions: [
-    {
-      geometry: 'line',
-      lineStyle: {
-        lineWidth: 2,
+const getDefaultChartConfig = (chartData: any): any => {
+  console.log(chartData);
+
+  return {
+    data: [chartData, chartData],
+    geometryOptions: [
+      {
+        geometry: 'line',
+        lineStyle: {
+          lineWidth: 2,
+        },
+        color: '#5AD5AB',
       },
-      color: '#5AD5AB',
+      {
+        geometry: 'column',
+        color: '#6395F9',
+      },
+    ],
+    legend: {
+      layout: 'horizontal',
+      position: 'top',
     },
-    {
-      geometry: 'column',
-      color: '#6395F9',
-    },
-  ],
-  legend: {
-    layout: 'horizontal',
-    position: 'top',
-  },
-  interactions: [
-    {
-      type: 'element-highlight',
-    },
-    {
-      type: 'active-region',
-    },
-  ],
-});
+    interactions: [
+      {
+        type: 'element-highlight',
+      },
+      {
+        type: 'active-region',
+      },
+    ],
+  };
+};
 
 // 各个tab对应的信息
 const tabMap: ITabMap = {
@@ -155,7 +158,6 @@ const tabMap: ITabMap = {
       },
     ],
     rankType: 'callRate',
-    runType: 'getSuccessRateRun',
     dataType: 'chartData',
   },
   msgCluster: {
@@ -253,7 +255,6 @@ const tabMap: ITabMap = {
       />
     ),
     rankType: 'callCount',
-    runType: 'getMsgClusterRun',
     dataType: 'tableData',
   },
   successTimeConsume: {
@@ -357,7 +358,6 @@ const tabMap: ITabMap = {
       />
     ),
     rankType: 'callRate',
-    runType: 'getHttpSuccessTimeConsumeRun',
     dataType: 'chartData',
   },
   failTimeConsume: {
@@ -446,7 +446,6 @@ const tabMap: ITabMap = {
       />
     ),
     rankType: 'callRate',
-    runType: 'getHttpFailTimeConsumeRun',
     dataType: 'chartData',
   },
 };

@@ -1,6 +1,6 @@
 /* @jsxImportSource @emotion/react */
-import { useCallback, useRef, useState } from 'react';
-import { Card, Radio, Spin, Tabs } from 'antd';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Card, Empty, Radio, Spin, Tabs } from 'antd';
 import PubTable from '@/public/PubTable';
 import SortIcon from './views/SortIcon';
 import { useRequest, useCallbackState, useMount, useUpdateEffect } from '@/hooks';
@@ -9,7 +9,7 @@ import { tableStorage } from '@/redux/httpMonitorSlice';
 import { reducerEnum } from '@/redux/store';
 import tabMap from './tabMap';
 import { getAllHttpInfos } from './service';
-import { commonStyles } from '@/utils';
+import { Eventemit, commonStyles } from '@/utils';
 import { sortEnum, ITab, tabKeyEnum, IRadioOption, RankType, Content, IHttpInfo } from './type';
 import type { FC, ReactElement } from 'react';
 import type { RadioChangeEvent } from 'antd';
@@ -64,9 +64,7 @@ const HttpMonitor: FC = (): ReactElement => {
   // item项列表名字
   const [listItemNames, setListItemNames] = useState<string[]>([]);
   const [activeKey, setActiveKey] = useState(tabKeyEnum.SR);
-  const [radioValue, setRadioValue] = useCallbackState<RankType>(
-    (tabMap[tabKeyEnum.SR].radioOptions as IRadioOption[])[0].value,
-  );
+  const [radioValue, setRadioValue] = useCallbackState<RankType>(tabMap[tabKeyEnum.SR].rankType);
   // 获得安全范围百分比，不会出现NaN、Infinity等
   const getSafeRate = (num1: number, num2: number) => (num2 === 0 ? 100 : Number(((num1 / num2) * 100).toFixed(2)));
   const setListItem = (keys: string[], item: Record<string, any>) => {
@@ -79,17 +77,17 @@ const HttpMonitor: FC = (): ReactElement => {
   const { loading: msgClusterLoaing, run: getMsgClusterRun } = useRequest(
     ...tabMap[tabKeyEnum.MC].getRequestConfig(dispatch, setListItem),
   );
-  const { loading: successTimeConsumeLoaing, run: getHttpSuccessTimeConsumeRun } = useRequest(
+  const { loading: successTimeConsumeLoaing, run: getSuccessTimeConsumeRun } = useRequest(
     ...tabMap[tabKeyEnum.ST].getRequestConfig(dispatch, setListItem, getSafeRate),
   );
-  const { loading: failTimeConsumeLoaing, run: getHttpFailTimeConsumeRun } = useRequest(
+  const { loading: failTimeConsumeLoaing, run: getFailTimeConsumeRun } = useRequest(
     ...tabMap[tabKeyEnum.FT].getRequestConfig(dispatch, setListItem, getSafeRate),
   );
-  const runMap = {
-    getSuccessRateRun,
-    getMsgClusterRun,
-    getHttpSuccessTimeConsumeRun,
-    getHttpFailTimeConsumeRun,
+  const runMap: Record<tabKeyEnum, (...params: any[]) => void> = {
+    successRate: getSuccessRateRun,
+    msgCluster: getMsgClusterRun,
+    successTimeConsume: getSuccessTimeConsumeRun,
+    failTimeConsume: getFailTimeConsumeRun,
   };
   // 点击列表项时调用
   const handleListItemClick = useCallback(
@@ -107,11 +105,11 @@ const HttpMonitor: FC = (): ReactElement => {
   // tab改变时触发
   const handleTabChange = (activeKey: string) => {
     const tabKey = activeKey as tabKeyEnum;
-    const { rankType, runType } = tabMap[tabKey];
+    const { rankType } = tabMap[tabKey];
 
     allListItemInfo[tabKey]
       ? handleSortClick(sortTypeRef.current, rankType, tabKey, allListItemInfo)
-      : runMap[runType]();
+      : runMap[tabKey]();
     setRadioValue(rankType);
     setActiveKey(activeKey as tabKeyEnum);
   };
@@ -119,6 +117,9 @@ const HttpMonitor: FC = (): ReactElement => {
   const handleSortClick = useCallback(
     (sortType: sortEnum, radioValue: RankType, activeKey: tabKeyEnum, allListItemInfo: Record<string, any>) => {
       const tabListItemInfo = allListItemInfo[activeKey];
+
+      if (!tabListItemInfo) return;
+
       const keys = Object.keys(tabListItemInfo);
 
       sortTypeRef.current = sortType;
@@ -174,109 +175,133 @@ const HttpMonitor: FC = (): ReactElement => {
 
   const initState = () => {
     const tabKey = activeKey as tabKeyEnum;
-    const { rankType } = tabMap[tabKey];
 
-    handleSortClick(sortTypeRef.current, rankType, tabKey, allListItemInfo);
+    handleSortClick(sortTypeRef.current, radioValue, tabKey, allListItemInfo);
   };
 
-  useMount(allListItemInfo[tabKeyEnum.SR] ? initState : runMap[tabMap[tabKeyEnum.SR].runType]);
+  const eventemitCb = (e: Event) => {
+    const { allListItemInfo } = (e as CustomEvent).detail;
+
+    for (const k in runMap) {
+      const tabKey = k as tabKeyEnum;
+      if (Object.prototype.hasOwnProperty.call(runMap, k) && allListItemInfo[tabKey]) {
+        runMap[k as tabKeyEnum]();
+      }
+    }
+  };
+
+  useMount(allListItemInfo[tabKeyEnum.SR] ? initState : runMap[tabKeyEnum.SR]);
 
   useUpdateEffect(initState, [allListItemInfo]);
 
+  useEffect(() => {
+    Eventemit.addEventListener('HttpMonitor', eventemitCb);
+
+    return () => {
+      Eventemit.removeEventListener('HttpMonitor', eventemitCb);
+    };
+  }, []);
+
+  const loading = successRateLoaing || msgClusterLoaing || successTimeConsumeLoaing || failTimeConsumeLoaing;
+
   return (
-    <Spin
-      spinning={successRateLoaing || msgClusterLoaing || successTimeConsumeLoaing || failTimeConsumeLoaing}
-      tip="图表加载中..."
-      size="large"
+    <section
+      css={{
+        display: 'flex',
+        gap: '20px',
+        position: 'relative',
+        height: 'calc(100vh - 112px)',
+        ...commonStyles.scroll('Y'),
+        overflowX: 'hidden',
+
+        '& > .ant-card': {
+          position: 'sticky',
+          top: '0',
+          width: '417px',
+        },
+      }}
     >
-      <section
+      <Card
+        loading={loading}
+        title={
+          <div css={{ display: 'flex', justifyContent: 'space-between', height: '27px' }}>
+            <span>API请求</span>
+            <div
+              css={{
+                visibility:
+                  // tabkey等于Msg聚类或者tab栏切换加载数据或者第一次载入页面加载数据时排序选项和按钮不可见
+                  // 以防加载数据时点击出现不可控错误
+                  activeKey === tabKeyEnum.MC || loading || allListItemInfo[tabKeyEnum.SR] === void 0
+                    ? 'hidden'
+                    : 'visible',
+              }}
+            >
+              <Radio.Group
+                options={tabMap[activeKey].radioOptions}
+                onChange={handleRadioChange}
+                value={radioValue}
+                optionType="button"
+                size="small"
+              />
+              <SortIcon
+                sortType={sortTypeRef.current}
+                handleSortClick={(sortType) => handleSortClick(sortType, radioValue, activeKey, allListItemInfo)}
+                isVisible={activeKey !== tabKeyEnum.MC && !loading && allListItemInfo[tabKeyEnum.SR] !== void 0}
+              />
+            </div>
+          </div>
+        }
+        bordered
+      >
+        <Tabs activeKey={activeKey} type="card" onChange={handleTabChange}>
+          {tabs.map(({ tab, key, content }) => (
+            <Tabs.TabPane tab={tab} key={key}>
+              {content}
+            </Tabs.TabPane>
+          ))}
+        </Tabs>
+      </Card>
+      <main
         css={{
-          position: 'relative',
           display: 'flex',
           gap: '20px',
-          height: 'calc(100% - 112px)',
+          flexDirection: 'column',
+          flex: '1',
+          justifyContent: 'space-between',
+          width: 'calc(100% - 509px)',
         }}
       >
-        <Card
-          css={{ width: '417px' }}
-          title={
-            <div css={{ display: 'flex', justifyContent: 'space-between', height: '27px' }}>
-              <span>API请求</span>
-              <div css={{ display: activeKey === tabKeyEnum.MC ? 'none' : 'initial' }}>
-                <Radio.Group
-                  options={tabMap[activeKey].radioOptions}
-                  onChange={handleRadioChange}
-                  value={radioValue}
-                  optionType="button"
-                  size="small"
-                  css={{
-                    '&>.ant-radio-button-wrapper': {
-                      border: 'none',
-                      '&:first-of-type': {
-                        borderLeft: 'none',
-                      },
-                      '&:not(:first-of-type)::before': {
-                        backgroundColor: '#434343!important',
-                      },
-                    },
-                  }}
-                />
-                <SortIcon
-                  sortType={sortTypeRef.current}
-                  handleSortClick={(sortType) => handleSortClick(sortType, radioValue, activeKey, allListItemInfo)}
-                  isVisible={activeKey !== tabKeyEnum.MC}
-                />
-              </div>
-            </div>
-          }
-          bordered
-        >
-          <Tabs activeKey={activeKey} type="card" onChange={handleTabChange}>
-            {tabs.map(({ tab, key, content }) => (
-              <Tabs.TabPane tab={tab} key={key}>
-                {content}
-              </Tabs.TabPane>
-            ))}
-          </Tabs>
+        <Card loading={loading} title={tabMap[activeKey].cartTitle} css={{ width: '100%' }}>
+          {(() => {
+            const { getChartOrTable, dataType } = tabMap[activeKey];
+
+            return activeListItemInfo?.[dataType] ? (
+              getChartOrTable(activeListItemInfo[dataType])
+            ) : (
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            );
+          })()}
         </Card>
-        <main
+        <Card
+          title="API链路追踪"
           css={{
-            display: 'flex',
-            gap: '20px',
-            flexDirection: 'column',
             flex: '1',
-            height: '100%',
-            width: 'calc(100% - 509px)',
-            justifyContent: 'space-between',
+            width: '100%',
+            '.ant-table-content': {
+              ...commonStyles.scroll(),
+            },
           }}
         >
-          <Card title={tabMap[activeKey].cartTitle} css={{ width: '100%' }}>
-            {(() => {
-              const { getChartOrTable, dataType } = tabMap[activeKey];
-              return getChartOrTable(activeListItemInfo[dataType] ?? []);
-            })()}
-          </Card>
-          <Card
-            title="API链路追踪"
-            css={{
-              flex: '1',
-              width: '100%',
-              '.ant-table-content': {
-                ...commonStyles.scroll(),
-              },
-            }}
-          >
-            <PubTable
-              getTableData={getAllHttpInfos}
-              columns={allHttpInfoTableColumns}
-              defaultPageSize={5}
-              storage={tableStorage}
-              reduxMark={reducerEnum.HM}
-            />
-          </Card>
-        </main>
-      </section>
-    </Spin>
+          <PubTable
+            getTableData={getAllHttpInfos}
+            columns={allHttpInfoTableColumns}
+            defaultPageSize={5}
+            storage={tableStorage}
+            reduxMark={reducerEnum.HM}
+          />
+        </Card>
+      </main>
+    </section>
   );
 };
 
