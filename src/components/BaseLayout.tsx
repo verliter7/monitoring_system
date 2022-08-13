@@ -2,16 +2,18 @@
 import { useState, createElement } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
-import { Layout, Menu } from 'antd';
+import { Button, Layout, Menu, Popconfirm } from 'antd';
 import meunConfig from '@/router/meunConfig';
 import HomePageRouters from '@/router/HomePageRouters';
 import IconFont from '@/components/Iconfont';
-import { commonStyles } from '@/utils';
+import { Eventemit, commonStyles } from '@/utils';
+import { useAppSelector } from '@/redux/hooks';
 import type { FC, ReactElement } from 'react';
 
 const { Header, Sider, Content } = Layout;
 
 const BaseLayout: FC = (): ReactElement => {
+  const reduxState = useAppSelector((state) => state);
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
@@ -21,7 +23,7 @@ const BaseLayout: FC = (): ReactElement => {
         height: '100%',
       }}
     >
-      <Sider trigger={null} collapsible collapsed={collapsed}>
+      <Sider trigger={null} collapsible collapsed={collapsed} css={{ backgroundColor: '#ffffff' }}>
         <Menu
           theme="light"
           mode="inline"
@@ -36,9 +38,12 @@ const BaseLayout: FC = (): ReactElement => {
       <Layout className="site-layout">
         <Header
           css={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '20px',
             padding: '0px',
             height: '48px',
-            lineHeight: '48px',
+            backgroundColor: '#ffffff',
 
             '& > .trigger': {
               padding: '0 12px',
@@ -53,6 +58,18 @@ const BaseLayout: FC = (): ReactElement => {
             className: 'trigger',
             onClick: () => setCollapsed(!collapsed),
           })}
+          <Popconfirm
+            placement="bottom"
+            title="确认重载该页面的数据吗？"
+            onConfirm={() => {
+              Eventemit.dispatchEvent('HttpMonitor', { allListItemInfo: reduxState.httpMonitor });
+            }}
+            okText="确认"
+            cancelText="取消"
+            disabled={!reduxState.httpMonitor.successRate || true}
+          >
+            <Button type="default">reload</Button>
+          </Popconfirm>
         </Header>
         <Content
           css={{

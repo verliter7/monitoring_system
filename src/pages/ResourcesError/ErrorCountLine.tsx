@@ -139,7 +139,6 @@ const ErrorCountLine: FC<IProps> = ({ backErrorCountData, loading }): ReactEleme
   });
 
   const config: any = {
-    theme: 'dark',
     data: backErrorCountData,
     padding: 'auto' as 'auto',
     xField: 'time',

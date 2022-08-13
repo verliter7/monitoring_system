@@ -83,6 +83,16 @@ enum typeEnum {
  * @param size 当前页大小
  */
 export async function getResourceErrorData_s(current: number, size: number) {
+  const oneDayHours = 24;
+  const oneHourMilliseconds = 60 * 60 * 1000;
+  const oneDayTime = oneDayHours * oneHourMilliseconds;
+  const now = Date.now();
+  const queryConfigWhere = {
+    timeStamp: {
+      [Op.lt]: now,
+      [Op.gt]: now - oneDayTime,
+    },
+  };
   const TYPE = 'resourceError';
   const timeFormat = 'YYYY-MM-DD HH:mm:ss';
   const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.get());
@@ -90,6 +100,7 @@ export async function getResourceErrorData_s(current: number, size: number) {
     await ErrorModel.findAll({
       attributes: ['errorId', 'timeStamp', 'originUrl', 'requestUrl'],
       where: {
+        ...queryConfigWhere,
         type: TYPE,
       },
       limit: size,
@@ -100,6 +111,7 @@ export async function getResourceErrorData_s(current: number, size: number) {
 
   const total = await ErrorModel.count({
     where: {
+      ...queryConfigWhere,
       type: TYPE,
     },
   });

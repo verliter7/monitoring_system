@@ -96,7 +96,7 @@ const SortIcon: FC<IProps> = ({ sortType = sortEnum.DF, handleSortClick, isVisib
           css={{
             marginTop: '-0.3em',
             ...caretDefalutCssProperties,
-            color: sortType === sortEnum.DC ? '#177ddc' : '#bfbfbf',
+            color: sortType === sortEnum.DC ? '#1890ff' : '#bfbfbf',
           }}
         >
           <svg
