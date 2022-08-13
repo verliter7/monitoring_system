@@ -1,7 +1,11 @@
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { ConfigProvider } from 'antd';
+import zhCN from 'antd/es/locale/zh_CN';
 import { Global, css } from '@emotion/react';
 import App from './App';
+import store from '@/redux/store';
 import WebSdk from './utils/monitor';
 
 new WebSdk({
@@ -23,8 +27,12 @@ const globalStyles = css`
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <>
     <Global styles={globalStyles} />
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ConfigProvider locale={zhCN}>
+      <Provider store={store}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </Provider>
+    </ConfigProvider>
   </>,
 );

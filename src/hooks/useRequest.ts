@@ -1,33 +1,38 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useMount } from '.';
 import { HttpReqType, HttpReqDataType } from '@/utils/HttpReq/type';
 
-type Result<D, P extends any[] = any[]> = {
+export type requestResult<D> = {
   reqRes?: HttpReqDataType<D>;
   error?: Error;
   loading: boolean;
-  run: (...params: P) => void;
+  run: (...params: any[]) => void;
+  runAsync: (...params: any[]) => ReturnType<HttpReqType<D>>;
+  refresh: () => void;
+  refreshAsync: () => ReturnType<HttpReqType<D>>;
 };
-type Options<D, P extends any[] = any[]> = {
+export type requestOptions<D> = {
   manual: boolean;
-  defaultParams: P;
-  onBefore: (...params: P) => void;
-  onSuccess: (reqRes: HttpReqDataType<D>, ...params: P) => void;
-  onError: (error: Error, ...params: P) => void;
-  onFinally: (reqRes?: HttpReqDataType<D>, e?: Error, ...params: P) => void;
+  defaultParams: any[];
+  onBefore: (...params: any[]) => void;
+  onSuccess: (reqRes: HttpReqDataType<D>, ...params: any[]) => void;
+  onError: (error: Error, ...params: any[]) => void;
+  onFinally: (reqRes?: HttpReqDataType<D>, e?: Error, ...params: any[]) => void;
 };
 
-const useRequest = <D = any, P extends any[] = any[]>(
-  request: HttpReqType<D, P>,
-  options?: Partial<Options<D, P>>,
-): Result<D, P> => {
+/**
+ * @description: ahooks的简易版useRequest实现
+ * @see: 用法请看 https://ahooks.js.org/zh-CN/hooks/use-request/basic/
+ */
+const useRequest = <D>(request: HttpReqType<D>, options?: Partial<requestOptions<D>>): requestResult<D> => {
   const { manual = false, defaultParams, onBefore, onSuccess, onError, onFinally } = options ?? {};
   const [reqRes, setReqRes] = useState<HttpReqDataType>();
   const [loading, setLoaing] = useState<boolean>(false);
   const [error, setError] = useState<Error>();
+  const paramsRef = useRef<any[] | undefined>(defaultParams);
 
-  const completeRequest = async (defaultParams?: P) => {
-    const params = (defaultParams ?? []) as P;
+  const completeRequest = async (defaultParams?: any[]) => {
+    const params = (defaultParams ?? []) as any[];
 
     onBefore?.(...params);
     setLoaing(true);
@@ -46,17 +51,32 @@ const useRequest = <D = any, P extends any[] = any[]>(
       onFinally?.(void 0, error, ...params);
       setError(error);
       setLoaing(false);
+
+      console.error(`请求出错: ${error}`);
     }
   };
-  const run = useCallback((...params: P) => {
-    completeRequest(params);
+  const run = useCallback((...params: any[]) => {
+    paramsRef.current = params;
+    completeRequest(paramsRef.current);
+  }, []);
+  const runAsync = useCallback((...params: any[]) => {
+    paramsRef.current = params;
+    return request(...paramsRef.current);
+  }, []);
+  const refresh = useCallback(() => {
+    completeRequest(paramsRef.current);
+  }, []);
+  const refreshAsync = useCallback(() => {
+    const params = (paramsRef.current ?? []) as any[];
+
+    return request(...params);
   }, []);
 
   useMount(() => {
     manual === false && completeRequest(defaultParams);
   });
 
-  return { reqRes, error, loading, run };
+  return { reqRes, error, loading, run, runAsync, refresh, refreshAsync };
 };
 
 export default useRequest;

@@ -1,8 +1,10 @@
 import { EngineInstance } from '..';
 import { MetricsStore as UserMetricsStore, IMetrics, metricsName, BehaviorStore } from './store';
-import { PageInformation, customAnalyticsData, httpMetrics, behaviorStack, OriginInformation } from './type';
+import { PageInformation, customAnalyticsData, httpMetrics, behaviorStack, OriginInformation, routerList } from './type';
 import { wrHistory, proxyHistory, proxyHash, proxyXmlHttp, proxyFetch, getOriginInfo } from './event';
 import { transportHandlerType, transportKind, transportType } from '../Transport';
+import DimensionInstance from '../DimensionInstance';
+import type { initOptions } from '..';
 
 export const afterLoad = (callback: any) => {
   if (document.readyState === 'complete') {
@@ -27,8 +29,9 @@ export default class UserVitals {
 
   // 允许捕获click事件的DOM标签 eg:button div img canvas
   clickMountList: Array<string>;
+  routeList: routerList[];
 
-  constructor(engineInstance: EngineInstance) {
+  constructor(engineInstance: EngineInstance, public options: initOptions) {
     this.engineInstance = engineInstance;
     this.metrics = new UserMetricsStore();
     // 限制最大行为追踪记录数为 100，真实场景下需要外部传入自定义;
@@ -39,6 +42,7 @@ export default class UserVitals {
     this.customHandler = this.initCustomerHandler();
     // 作为 真实sdk 的时候，需要在初始化时传入与默认值合并;
     this.clickMountList = ['button'].map((x) => x.toLowerCase());
+    this.routeList = [];
     // 重写事件
     wrHistory();
     // 初始化页面基本信息
@@ -51,19 +55,23 @@ export default class UserVitals {
     this.initPV();
     // 初始化 click 事件捕获
     this.initClickHandler(this.clickMountList);
-    // 初始化 Http 请求事件捕获
-    // this.initHttpHandler();
+    this.getPageTime()
   }
 
   // 封装用户行为的上报入口
-  userSendHandler = (data: IMetrics) => {
+  userSendHandler = (data: IMetrics, type: transportType) => {
+    console.log(data);
+
     // 进行通知内核实例进行上报;
-    // this.engineInstance.transportInstance.kernelTransportHandler(
-    //   transportKind.business,
-    //   transportType.PV,
-    //   data,
-    //   transportHandlerType.xmlTransport,
-    // );
+    this.engineInstance.transportInstance.kernelTransportHandler(
+      transportKind.business,
+      type,
+      {
+        ...new DimensionInstance(this.options),
+        ...data,
+      },
+      transportHandlerType.xmlTransport,
+    );
   };
 
   // 补齐 pathname 和 timestamp 参数
@@ -80,7 +88,7 @@ export default class UserVitals {
       // 记录到 UserMetricsStore
       this.metrics.add(metricsName.CDR, options);
       // 自定义埋点的信息一般立即上报
-      this.userSendHandler(options);
+      // this.userSendHandler(options);
       // 记录到用户行为记录栈
       const behavior = {
         category: metricsName.CDR,
@@ -167,7 +175,7 @@ export default class UserVitals {
         // 用户来路
         originInformation: getOriginInfo(),
       } as IMetrics;
-      this.userSendHandler(metrics);
+      // this.userSendHandler(metrics);
       // 一般来说， PV 可以立即上报
     };
     afterLoad(() => {
@@ -227,25 +235,45 @@ export default class UserVitals {
     );
   };
 
-  // 初始化 http 请求的数据获取和上报
-  // initHttpHandler = (): void => {
-  //   const loadHandler = (metrics: httpMetrics) => {
-  //     if (metrics.status < 400) {
-  //       // 对于正常请求的 HTTP 请求来说,不需要记录 请求体 和 响应体
-  //       delete metrics.response;
-  //       delete metrics.body;
-  //     }
-  //     // 记录到 UserMetricsStore
-  //     this.metrics.add(metricsName.HT, metrics);
-  //     // 记录到用户行为记录栈
-  //     const behavior = {
-  //       category: metricsName.HT,
-  //       data: metrics,
-  //       ...this.getExtends(),
-  //     } as behaviorStack;
-  //     this.breadcrumbs.push(behavior);
-  //   };
-  //   proxyXmlHttp(null, loadHandler);
-  //   proxyFetch(null, loadHandler);
-  // };
+  recordNextPage = (): void => {
+    // 记录前一个页面的页面停留时间
+    const time = Date.now();
+    this.routeList[this.routeList.length - 1].endTime = time;
+    this.routeList[this.routeList.length - 1].duration = time - this.routeList[this.routeList.length - 1].startTime;
+    // 推一个新的页面停留记录
+    this.routeList.push({
+      ...{ url: window.location.pathname, startTime: time, duration: 0, endTime: 0 },
+    });
+    this.metrics.set(metricsName.RD, this.routeList);
+  }
+
+  getPageTime = (): void => {
+    // 第一次进入页面时,记录
+    window.addEventListener('load', () => {
+      const time = Date.now();
+      this.routeList.push({
+        ...{ url: window.location.pathname, startTime: time, duration: 0, endTime: 0 },
+      });
+    });
+    // 单页面应用触发 replaceState 时的上报
+    window.addEventListener('replaceState', () => {
+      this.recordNextPage();
+    });
+    // 单页面应用触发 pushState 时的上报
+    window.addEventListener('pushState', () => {
+      this.recordNextPage();
+    });
+    // 浏览器回退、前进行为触发的 可以自己判断是否要上报
+    window.addEventListener('popstate', () => {
+      this.recordNextPage();
+    });
+    // 关闭浏览器前记录最后的时间并上报
+    window.addEventListener('beforeunload', () => {
+      const time = Date.now();
+      this.routeList[this.routeList.length - 1].endTime = time;
+      this.routeList[this.routeList.length - 1].duration = time - this.routeList[this.routeList.length - 1].startTime;
+      // 记录完了离开的时间，就可以上报了
+      this.userSendHandler(this.routeList[this.routeList.length - 1], transportType.RD)
+    });
+  }
 }

@@ -47,7 +47,7 @@ export interface IHttpReq {
   }: IHttpRequestConfig): Promise<HttpReqDataType>;
 }
 
-export type HttpReqType<D = any, P extends any[] = any[]> = (...params: P) => Promise<HttpReqDataType<D>>;
+export type HttpReqType<D> = (...params: any[]) => Promise<HttpReqDataType<D>>;
 
 export interface HttpReqDataType<D = any> {
   code: number;

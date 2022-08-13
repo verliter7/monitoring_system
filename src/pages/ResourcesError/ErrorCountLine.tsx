@@ -6,11 +6,11 @@ import type { FC, ReactElement } from 'react';
 import type { IErrorCountData } from './type';
 
 interface IProps {
-  backErrorData: IErrorCountData[];
+  backErrorCountData: IErrorCountData[];
   loading: boolean;
 }
 
-const ErrorCountLine: FC<IProps> = ({ backErrorData, loading }): ReactElement => {
+const ErrorCountLine: FC<IProps> = ({ backErrorCountData, loading }): ReactElement => {
   const { InteractionAction, registerInteraction, registerAction } = G2;
 
   G2.registerShape('point', 'custom-point', {
@@ -140,11 +140,14 @@ const ErrorCountLine: FC<IProps> = ({ backErrorData, loading }): ReactElement =>
 
   const config: any = {
     theme: 'dark',
-    data: backErrorData,
+    data: backErrorCountData,
     padding: 'auto' as 'auto',
     xField: 'time',
     yField: 'errorCount',
     yAxis: {
+      title: {
+        text: '错误数量',
+      },
       tickInterval: 1,
       top: true,
     },

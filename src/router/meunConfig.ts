@@ -9,7 +9,7 @@ const meunConfig = [
   },
   {
     pathname: '/httpError',
-    icon: 'icon-a-fabufeihangzhifeiji',
+    icon: 'icon-cloud-times',
     label: '请求错误',
     componentPath: getComponentPath('HttpError'),
   },
@@ -24,6 +24,12 @@ const meunConfig = [
     icon: 'icon-yemian',
     label: '页面加载',
     componentPath: getComponentPath('PageLoad'),
+  },
+  {
+    pathname: '/httpMonitor',
+    icon: 'icon-ic_http',
+    label: '请求监控',
+    componentPath: getComponentPath('HttpMonitor'),
   },
   {
     pathname: '/test',

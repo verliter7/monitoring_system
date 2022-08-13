@@ -1,6 +1,6 @@
-export interface IData {
-  frontErrorConutsByTime: Record<string, number>;
-  backErrorConutsByTime: Record<string, number>;
+export interface IErrorConutByTimeData {
+  frontErrorConutByTime: Record<string, number>;
+  backErrorConutByTime: Record<string, number>;
 }
 
 export interface IErrorCountData {
@@ -8,7 +8,17 @@ export interface IErrorCountData {
   errorCount: number;
 }
 
-export interface IErrorSum {
-  front: number;
-  back: number;
+export interface IResourceErrorRecord {
+  key: string;
+  date: string;
+  originUrl: string;
+  requestUrl: string;
+  count: number;
 }
+
+export type ResourceErrorData = {
+  records: IResourceErrorRecord[];
+  current: number;
+  size: number;
+  total: number;
+};

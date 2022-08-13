@@ -19,6 +19,7 @@ export enum transportType {
   CLS = 'CLS',
   RF = 'resource-flow',
   PV = 'PV',
+  RD = 'route-duration',
 }
 
 export enum transportHandlerType {
@@ -42,7 +43,7 @@ export interface TransportParams {
 }
 
 export default class TransportInstance {
-  constructor(public engineInstance: EngineInstance, public options: TransportParams) { }
+  constructor(public engineInstance: EngineInstance, public options: TransportParams) {}
 
   /**
    * 对外暴露的上报函数
@@ -82,13 +83,11 @@ export default class TransportInstance {
   // beacon 形式上报
   beaconTransportHandler = (): Function => {
     const handler = (data: TransportStructure, transportUrl: string) => {
-      const formData = new FormData()
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          formData.append(key, data[key]);
-        }
-      }
-      const status = window.navigator.sendBeacon(transportUrl, formData);
+      const blob = new Blob([JSON.stringify(data)], {
+        type: 'application/json; charset=UTF-8',
+      });
+      const status = navigator.sendBeacon(transportUrl, blob);
+
       // 如果数据量过大，则本次大数据量用 XMLHttpRequest 上报
       if (!status) this.xmlTransportHandler().apply(this, data);
     };
@@ -98,16 +97,10 @@ export default class TransportInstance {
   // XMLHttpRequest 形式上报
   xmlTransportHandler = (): Function => {
     const handler = (data: TransportStructure, transportUrl: string) => {
-      const formData = new FormData()
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          formData.append(key, data[key]);
-        }
-      }
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', transportUrl, true);
-      // xhr.setRequestHeader('Content-type', 'application/json');
-      xhr.send(formData);
+      xhr.oldOpen('POST', transportUrl, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.oldSend(JSON.stringify(data));
     };
     return handler;
   };

@@ -6,6 +6,7 @@ import useMount from '@/hooks/useMount';
 import PaintLine from './PaintLine';
 import { getPerformanceData } from '../../service';
 import type { ITab } from '@/public/PubTabs/type';
+import PubLine from '@/public/PubLine'
 import { useRequest } from '@/hooks';
 import type { HPaintData, IPaintData, ICLSData } from './type';
 

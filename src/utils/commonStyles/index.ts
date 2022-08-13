@@ -4,8 +4,13 @@ const styleObject = {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  scroll: (axis?: 'x' | 'y') => ({
-    [`overflow${axis ? `-${axis}` : ''}`]: 'auto',
+  ellipsis: {
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+  },
+  scroll: (axis?: 'X' | 'Y') => ({
+    [`overflow${axis ? `${axis}` : ''}`]: 'auto',
     '&::-webkit-scrollbar': {
       height: '7px',
       width: '6px',
@@ -13,16 +18,16 @@ const styleObject = {
 
     '&::-webkit-scrollbar-thumb': {
       borderRadius: '10px',
-      backgroundColor: '#dadada',
+      backgroundColor: '#8d8d8d',
     },
 
     '&::-webkit-scrollbar-thumb:hover': {
-      backgroundColor: '#bbbbbb',
+      backgroundColor: '#7a7a7a',
     },
 
     '&::-webkit-scrollbar-track-piece': {
       borderRadius: '10px',
-      backgroundColor: '#f7f7f9',
+      backgroundColor: '#ffffff',
     },
   }),
 };

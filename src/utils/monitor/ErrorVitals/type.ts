@@ -37,7 +37,15 @@ export type HttpRequestErrorParams = {
   requestUrl: string;
   method: string;
   status: number;
-  statusText: string;
+  httpMessage: string;
+  duration: string;
+};
+
+export type HttpRequestParams = {
+  requestUrl: string;
+  method: string;
+  status: number;
+  httpMessage: string;
   duration: string;
 };
 
@@ -52,3 +60,6 @@ export type ResourceTransportError = ResourceErrorErrorParams & DimensionStructu
 
 // Http请求错误type
 export type HttpRequestTransportError = HttpRequestErrorParams & DimensionStructure;
+
+// Http请求type
+export type HttpRequestTransport = HttpRequestParams & DimensionStructure;
