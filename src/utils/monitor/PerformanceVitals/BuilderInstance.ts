@@ -12,6 +12,7 @@ export default class BuilderInstance {
    */
   performanceDataBuilder(type: transportType) {
     const metrics = this.performanceInstance.metrics;
+
     function paintBuilder() {
       return {
         FP: metrics.get(metricsName.FP)?.startTime,
@@ -32,18 +33,12 @@ export default class BuilderInstance {
 
     function CLSBuilder() {
       return {
-        clsValue: metrics.get(metricsName.CLS)?.clsValue,
+        CLS: metrics.get(metricsName.CLS)?.clsValue,
       };
     }
 
     function RFBuilder() {
       return metrics.get(metricsName.RF)
-    }
-
-    function FIDBuilder() {
-      return {
-        FID: metrics.get(metricsName.FID)?.delay
-      }
     }
 
     const buiderStore: Map<transportType, Function> = new Map([
@@ -52,7 +47,6 @@ export default class BuilderInstance {
       [transportType.LT, longTaskBuilder],
       [transportType.CLS, CLSBuilder],
       [transportType.RF, RFBuilder],
-      [transportType.FID, FIDBuilder],
     ]);
     return buiderStore.get(type)?.();
   }

@@ -5,7 +5,6 @@ import { JSON, Optional } from 'sequelize/types';
 export async function createPerformance_c(ctx: Context) {
   const performanceInfo = ctx.request.body as Optional<any, string>;
   performanceInfo.ip = ctx.ip;
-
   ctx.body = {
     code: 200,
     success: true,
@@ -13,7 +12,11 @@ export async function createPerformance_c(ctx: Context) {
   try {
     await createPerformance_s(performanceInfo);
 
-    ctx.defaultResponse();
+    ctx.defaultResponse({
+      code: 200,
+      message: "success",
+      success: true,
+    });
   } catch (err) {
     console.log(err);
 

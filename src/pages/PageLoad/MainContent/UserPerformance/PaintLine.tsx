@@ -1,11 +1,11 @@
 import { Line } from '@ant-design/plots';
 import { Spin } from 'antd';
 import type { FC, ReactElement } from 'react';
-import type { IPaintData } from './type';
+import type { HPaintData } from './type';
 
 interface IProps {
-  paintData: IPaintData[];
-  type: "FP" | "FCP" | "FMP" | "LCP" | "FID"
+  paintData: HPaintData[];
+  type: "FP" | "FCP" | "FMP" | "LCP" | "FID" | "CLS"
   title: string
   loading: boolean
 }
@@ -25,7 +25,8 @@ const PaintLine: FC<IProps> = ({ paintData, type, title, loading }): ReactElemen
     xField: 'timeStamp',
     yField: type,
     xAxis: {
-      tickCount: 5,
+      // tickCount: 5,
+      // tickInterval: 4,
     },
   };
 

@@ -16,6 +16,7 @@ import DimensionInstance from '../DimensionInstance';
 import { EngineInstance } from '..';
 import { transportKind, transportType, transportHandlerType } from '../Transport';
 import type { initOptions } from '..';
+import { proxyHash, proxyHistory } from '../UserVitals/event';
 
 export const afterLoad = (callback: any) => {
   //Document.readyState 属性描述了document 的加载状态 complete加载完成
@@ -64,13 +65,11 @@ export default class PerformanceVitals {
       // this.perfSendHandler();
     });
 
-    window.addEventListener('beforeunload ', (event) => {
-      console.log(event);
-
-      event.preventDefault();
-      this.sendPerformanceData(transportType.CLS);
-      return 'true';
-    });
+    window.onbeforeunload = (event) => {
+      event.preventDefault()
+      this.sendPerformanceData(transportType.CLS)
+      return ""
+    }
   }
 
   //性能数据的上报策略
@@ -85,7 +84,8 @@ export default class PerformanceVitals {
   };
 
   sendPerformanceData(type: transportType) {
-    // let a = {
+    // let a = this.builderInstance.performanceDataBuilder(type)
+    // {
     //   kind: transportKind.performance,
     //   type,
     //   ...new DimensionInstance(this.options),

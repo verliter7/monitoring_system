@@ -10,10 +10,3 @@ export const getPerformanceData: HttpReqType<any> = (type: string) => {
     },
   });
 };
-
-export const getUservitalsData: HttpReqType<any> = () => {
-  return HttpReq.send({
-    url: api.getUservitalsData,
-    method: 'get',
-  });
-};
