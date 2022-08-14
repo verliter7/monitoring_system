@@ -56,6 +56,8 @@ export async function getHttpMsgCluster_c(ctx: Context) {
 export async function getHttpTimeConsume_c(ctx: Context) {
   const { type } = ctx.query;
 
+  if (!type) return ctx.defaultError({ code: 400, message: '缺少type参数' });
+
   try {
     const httpSuccessTimeConsumeeData = await getHttpTimeConsume_s(type as 'success' | 'fail');
     ctx.defaultResponse({
@@ -72,6 +74,8 @@ export async function getHttpTimeConsume_c(ctx: Context) {
 
 export async function getAllHttpInfos_c(ctx: Context) {
   const { current, size } = ctx.query;
+
+  if (!current || !size) return ctx.defaultError({ code: 400, message: '缺少current或者size参数' });
 
   try {
     const allHttpInfos = await getAllHttpInfos_s(parseInt(current as string), parseInt(size as string));

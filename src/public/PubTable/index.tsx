@@ -105,7 +105,7 @@ const PubTable: FC<IBaseTable> = ({
       dataSource={finalTableData.records}
       columns={tableColumns}
       pagination={pagination}
-      loading={{ tip: '表格加载中...', spinning: loading, size: 'large' }}
+      loading={{ tip: '加载中...', spinning: loading, size: 'large' }}
       bordered
     />
   );

@@ -76,10 +76,10 @@ export async function getPerformanceData_s(type: string) {
   let data;
   switch (type) {
     case 'timing':
-      data = PerformanceTimingModel.findAll()
+      data = PerformanceTimingModel.findAll();
       break;
     case 'paint':
-      data = PerformancePaintModel.findAll()
+      data = PerformancePaintModel.findAll();
       break;
     case 'CLS':
       data = PerformanceCLSModel.findAll()
@@ -89,3 +89,4 @@ export async function getPerformanceData_s(type: string) {
   }
   return data
 }
+

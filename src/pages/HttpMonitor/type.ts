@@ -47,7 +47,6 @@ export type ITabMap = {
     ) => [HttpReqType<Record<string, any>>, Partial<requestOptions<Record<string, any>>>];
     rankType: RankType;
     dataType: 'chartData' | 'tableData';
-    runType: 'getSuccessRateRun' | 'getMsgClusterRun' | 'getHttpSuccessTimeConsumeRun' | 'getHttpFailTimeConsumeRun';
     getChartOrTable: (...args: any[]) => ReactNode;
     radioOptions?: IRadioOption[];
   };

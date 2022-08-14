@@ -220,8 +220,8 @@ export async function getAllHttpInfos_s(current: number, size: number) {
   };
   const defaultQueryConfig = {
     attributes: ['timeStamp', 'originUrl', 'requestUrl', 'status', 'httpMessage', 'duration'],
-    limit: Math.ceil(size / 2),
-    offset: (current - 1) * Math.ceil(size / 2),
+    limit: size,
+    offset: (current - 1) * size,
     order: [['timeStamp', 'DESC']],
   };
   const httpModelQueryConfig: Record<string, any> = {

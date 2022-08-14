@@ -29,16 +29,16 @@ const Aside: FC<IProps> = ({
           <List.Item
             css={{
               '&.ant-list-item': {
-                color: item === activeListItemInfo.itemName ? '#177ddc' : void 0,
+                color: item === activeListItemInfo.itemName ? '#1890ff' : '',
                 cursor: 'pointer',
               },
               '&:hover':
                 item === activeListItemInfo.itemName
                   ? null
                   : {
-                    color: '#165996',
-                    transition: 'color 0.3s cubic-bezier(0.645, 0.045, 0.355, 1)',
-                  },
+                      color: '#40a9ff',
+                      transition: 'color 0.3s cubic-bezier(0.645, 0.045, 0.355, 1)',
+                    },
             }}
             onClick={() => handleListItemClick(item)}
           >
