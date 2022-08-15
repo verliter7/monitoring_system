@@ -1,6 +1,13 @@
 import { EngineInstance } from '..';
 import { MetricsStore as UserMetricsStore, IMetrics, metricsName, BehaviorStore } from './store';
-import { PageInformation, customAnalyticsData, httpMetrics, behaviorStack, OriginInformation, routerList } from './type';
+import {
+  PageInformation,
+  customAnalyticsData,
+  httpMetrics,
+  behaviorStack,
+  OriginInformation,
+  routerList,
+} from './type';
 import { wrHistory, proxyHistory, proxyHash, proxyXmlHttp, proxyFetch, getOriginInfo } from './event';
 import { transportHandlerType, transportKind, transportType } from '../Transport';
 import DimensionInstance from '../DimensionInstance';
@@ -55,7 +62,7 @@ export default class UserVitals {
     this.initPV();
     // 初始化 click 事件捕获
     this.initClickHandler(this.clickMountList);
-    this.getPageTime()
+    this.getPageTime();
   }
 
   // 封装用户行为的上报入口
@@ -245,7 +252,7 @@ export default class UserVitals {
       ...{ url: window.location.pathname, startTime: time, duration: 0, endTime: 0 },
     });
     this.metrics.set(metricsName.RD, this.routeList);
-  }
+  };
 
   getPageTime = (): void => {
     // 第一次进入页面时,记录
@@ -273,7 +280,9 @@ export default class UserVitals {
       this.routeList[this.routeList.length - 1].endTime = time;
       this.routeList[this.routeList.length - 1].duration = time - this.routeList[this.routeList.length - 1].startTime;
       // 记录完了离开的时间，就可以上报了
-      this.userSendHandler(this.routeList[this.routeList.length - 1], transportType.RD)
+      this.userSendHandler(this.routeList[this.routeList.length - 1], transportType.RD);
+
+      return null;
     });
-  }
+  };
 }

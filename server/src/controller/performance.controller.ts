@@ -1,6 +1,6 @@
 import { createPerformance_s, getPerformanceData_s } from '@/service/performance.service';
 import type { Context } from 'koa';
-import { JSON, Optional } from 'sequelize/types';
+import { Optional } from 'sequelize/types';
 
 export async function createPerformance_c(ctx: Context) {
   const performanceInfo = ctx.request.body as Optional<any, string>;
@@ -14,7 +14,7 @@ export async function createPerformance_c(ctx: Context) {
 
     ctx.defaultResponse({
       code: 200,
-      message: "success",
+      message: 'success',
       success: true,
     });
   } catch (err) {

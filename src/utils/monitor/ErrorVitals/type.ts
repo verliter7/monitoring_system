@@ -1,5 +1,12 @@
 import DimensionStructure from '../DimensionInstance/type';
 
+export enum ErrorWideType {
+  JE = 'jsError',
+  PE = 'promiseError',
+  HE = 'httpError',
+  RE = 'resourceError',
+}
+
 export enum ErrorType {
   JS = 'JSError',
   RS = 'ResourceLoadedError',

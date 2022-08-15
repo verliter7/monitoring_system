@@ -1,13 +1,15 @@
 import DimensionInstance from '../DimensionInstance';
 import { hashCode } from '../utils';
 import type { initOptions } from '..';
-import type {
+import {
+  ErrorWideType,
   HttpRequestErrorParams,
   HttpRequestParams,
   JsErrorParams,
   PromiseErrorParams,
   ResourceErrorErrorParams,
 } from './type';
+import { transportKind } from '../Transport';
 
 const submitErrorIds = new Set<string>();
 
@@ -23,16 +25,25 @@ function getId(errorIds: Set<string>, input: string) {
 }
 
 /**
+ * @description: 通用错误类
+ */
+class CurrencyError extends DimensionInstance {
+  constructor(public kind: transportKind, public type: ErrorWideType, options: initOptions) {
+    super(options);
+  }
+}
+
+/**
  * @description: JS错误类
  */
-export class JsError extends DimensionInstance {
+export class JsError extends CurrencyError {
   errorType: string;
   errorStack: string;
   errorMsg: string;
   errorId?: string;
 
   constructor({ errorType, errorStack, errorMsg, errPos }: JsErrorParams, options: initOptions) {
-    super(options);
+    super(transportKind.stability, ErrorWideType.JE, options);
 
     this.errorType = errorType;
     this.errorStack = errorStack;
@@ -44,14 +55,14 @@ export class JsError extends DimensionInstance {
 /**
  * @description: Promise错误类
  */
-export class PromiseError extends DimensionInstance {
+export class PromiseError extends CurrencyError {
   errorType: string;
   errorMsg: string;
   errorId?: string;
   errorStack?: string;
 
   constructor({ errorType, errorStack, errorMsg }: PromiseErrorParams, options: initOptions) {
-    super(options);
+    super(transportKind.stability, ErrorWideType.PE, options);
 
     const mark = `${this.aid}${this.userMonitorId}${this.originUrl}${errorMsg}`;
 
@@ -65,14 +76,14 @@ export class PromiseError extends DimensionInstance {
 /**
  * @description: 静态资源错误类
  */
-export class ResourceError extends DimensionInstance {
+export class ResourceError extends CurrencyError {
   errorType: string;
   errorMsg: string;
   requestUrl: string;
   errorId?: string;
 
   constructor({ errorType, errorMsg, requestUrl }: ResourceErrorErrorParams, options: initOptions) {
-    super(options);
+    super(transportKind.stability, ErrorWideType.RE, options);
 
     const mark = `${this.aid}${this.userMonitorId}${this.originUrl}${requestUrl}`;
 
@@ -86,7 +97,7 @@ export class ResourceError extends DimensionInstance {
 /**
  * @description: Http请求错误类
  */
-export class HttpRequestError extends DimensionInstance {
+export class HttpRequestError extends CurrencyError {
   errorType: string;
   requestUrl: string;
   method: string;
@@ -99,7 +110,7 @@ export class HttpRequestError extends DimensionInstance {
     { errorType, requestUrl, method, status, httpMessage, duration }: HttpRequestErrorParams,
     options: initOptions,
   ) {
-    super(options);
+    super(transportKind.stability, ErrorWideType.HE, options);
 
     const mark = `${this.aid}${this.userMonitorId}${this.originUrl}${errorType}${requestUrl}${method}`;
 

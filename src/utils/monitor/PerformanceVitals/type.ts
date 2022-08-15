@@ -1,5 +1,5 @@
 export interface PerformanceEntryHandler {
-  (entry: any): void
+  (entry: any): void;
 }
 
 export interface LayoutShift extends PerformanceEntry {
@@ -23,15 +23,12 @@ export interface MPerformanceNavigationTiming {
 }
 
 export interface ResourceFlowTiming {
-  name: string;
+  requestUrl: string;
   transferSize: number;
   initiatorType: string;
-  startTime: number;
-  responseEnd: number;
   dnsLookup: number;
   initialConnect: number;
   ssl: number;
-  request: number;
-  ttfb: number;
   contentDownload: number;
+  duration: number;
 }

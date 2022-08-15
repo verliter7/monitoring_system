@@ -10,7 +10,7 @@ const styleObject = {
     textOverflow: 'ellipsis',
   },
   scroll: (axis?: 'X' | 'Y') => ({
-    [`overflow${axis ? `${axis}` : ''}`]: 'auto',
+    [`overflow${axis ? `${axis}` : ''}`]: 'overlay',
     '&::-webkit-scrollbar': {
       height: '7px',
       width: '6px',

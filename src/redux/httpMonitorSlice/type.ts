@@ -1,3 +1,3 @@
 import { IAllHttpInfos, ITabActiveListItemInfo } from '@/pages/HttpMonitor/type';
 
-export type InitialState = ITabActiveListItemInfo & { table: IAllHttpInfos };
+export type IHttpMonitorState = { allListItemInfo: ITabActiveListItemInfo } & { table: IAllHttpInfos };

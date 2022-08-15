@@ -1,14 +1,14 @@
 import { createError_s, getErrorCount_s, getResourceErrorData_s } from '@/service/error.service';
 import type { Context } from 'koa';
-import type { Optional } from 'sequelize/types';
 
 export async function createError_c(ctx: Context) {
-  const errorInfo = ctx.query as Optional<any, string>;
-  errorInfo.ip = ctx.ip;
+  const errorInfos = ctx.request.body;
 
   try {
-    await createError_s(errorInfo);
-
+    for (const e of errorInfos) {
+      e.ip = ctx.ip;
+      await createError_s(e);
+    }
     ctx.defaultResponse();
   } catch (err) {
     console.log(err);

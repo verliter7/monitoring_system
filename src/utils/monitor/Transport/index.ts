@@ -7,10 +7,6 @@ export enum transportKind {
 }
 
 export enum transportType {
-  jsError = 'jsError',
-  promiseError = 'promiseError',
-  httpError = 'httpError',
-  resourceError = 'resourceError',
   blank = 'blank',
   timing = 'timing',
   paint = 'paint', // FP FCP FMP LCP FID

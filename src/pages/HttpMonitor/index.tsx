@@ -1,6 +1,6 @@
 /* @jsxImportSource @emotion/react */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Card, Empty, Radio, Spin, Tabs } from 'antd';
+import { Card, Empty, Radio, Tabs } from 'antd';
 import PubTable from '@/public/PubTable';
 import SortIcon from './views/SortIcon';
 import { useRequest, useCallbackState, useMount, useUpdateEffect } from '@/hooks';
@@ -10,7 +10,7 @@ import { reducerEnum } from '@/redux/store';
 import tabMap from './tabMap';
 import { getAllHttpInfos } from './service';
 import { Eventemit, commonStyles } from '@/utils';
-import { sortEnum, ITab, tabKeyEnum, IRadioOption, RankType, Content, IHttpInfo } from './type';
+import { sortEnum, ITab, tabKeyEnum, RankType, Content, IHttpInfo } from './type';
 import type { FC, ReactElement } from 'react';
 import type { RadioChangeEvent } from 'antd';
 
@@ -55,7 +55,10 @@ const allHttpInfoTableColumns = [
   },
 ];
 const HttpMonitor: FC = (): ReactElement => {
-  const allListItemInfo = useAppSelector((state) => state.httpMonitor);
+  const { allListItemInfo } = useAppSelector(
+    (state) => state.httpMonitor,
+    (pre, cur) => pre.allListItemInfo === cur.allListItemInfo,
+  );
   const dispatch = useAppDispatch();
   // 用useRef缓存所有的item项信息
   const sortTypeRef = useRef<sortEnum>(sortEnum.DF);
