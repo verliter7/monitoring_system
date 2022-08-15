@@ -1,13 +1,14 @@
 import { JsError, PromiseError, ResourceError, HttpRequestError, HttpRequest } from './errorClass';
 import { pocessStackInfo, getErrorKey, errorTypeMap } from './utils';
 import { EngineInstance, initOptions } from '..';
-import TransportInstance, { transportKind, transportType, transportHandlerType } from '../Transport';
-import { httpUrl } from '../utils/urls';
+import TransportInstance, { transportKind } from '../Transport';
+import { httpUrl, errorUrl } from '../utils/urls';
 import { ErrorType } from './type';
 
 const HTTP_MAX_LIMIT = 10;
 const EMPTYRESPONSE = '暂无信息';
 const httpSet = new Set<HttpRequest>();
+const httpErrorSet = new Set<JsError | PromiseError | ResourceError | HttpRequestError>();
 
 export default class ErrorVitals {
   serverUrl: string; // 上报错误数据url
@@ -21,12 +22,19 @@ export default class ErrorVitals {
     this.init();
 
     window.addEventListener('beforeunload', () => {
-      const handler = this.transportInstance.beaconTransportHandler();
+      const handler = this.transportInstance.initTransportHandler();
 
       if (httpSet.size) {
-        httpSet.forEach((h) => handler(h, httpUrl));
+        handler(Array.from(httpSet), httpUrl);
         httpSet.clear();
       }
+
+      if (httpErrorSet.size) {
+        handler(Array.from(httpErrorSet), errorUrl);
+        httpErrorSet.clear();
+      }
+
+      return null;
     });
   }
 
@@ -40,19 +48,17 @@ export default class ErrorVitals {
 
   /**
    * @description: 上报错误数据方法
-   * @param errorType 错误类型
    * @param errorData 错误数据
    */
-  sendError(
-    errorType: transportType,
-    errorData: JsError | PromiseError | ResourceError | HttpRequestError | HttpRequest,
-  ) {
-    this.transportInstance.kernelTransportHandler(
-      transportKind.stability,
-      errorType,
-      errorData,
-      transportHandlerType.imageTransport,
-    );
+  sendError(errorData: JsError | PromiseError | ResourceError | HttpRequestError) {
+    httpErrorSet.add(errorData);
+
+    if (httpErrorSet.size === HTTP_MAX_LIMIT) {
+      const handler = this.transportInstance.initTransportHandler();
+
+      handler(Array.from(httpErrorSet), errorUrl);
+      httpErrorSet.clear();
+    }
   }
 
   /**
@@ -74,7 +80,7 @@ export default class ErrorVitals {
         this.options,
       );
 
-      jsError.errorId && this.sendError(transportType.jsError, jsError);
+      jsError.errorId && this.sendError(jsError);
     };
 
     window.addEventListener('error', handler, true);
@@ -101,7 +107,7 @@ export default class ErrorVitals {
         this.options,
       );
 
-      resourceError.errorId && this.sendError(transportType.resourceError, resourceError);
+      resourceError.errorId && this.sendError(resourceError);
     };
 
     window.addEventListener('error', handler, true);
@@ -139,7 +145,7 @@ export default class ErrorVitals {
         );
       }
 
-      promiseError.errorId && this.sendError(transportType.promiseError, promiseError);
+      promiseError.errorId && this.sendError(promiseError);
     };
 
     window.addEventListener('unhandledrejection', handler, true);
@@ -215,7 +221,7 @@ export default class ErrorVitals {
             if (httpSet.size === HTTP_MAX_LIMIT) {
               const handler = _this.transportInstance.beaconTransportHandler();
 
-              httpSet.forEach((h) => handler(h, httpUrl));
+              handler(Array.from(httpSet), httpUrl);
               httpSet.clear();
             }
           }
@@ -233,7 +239,7 @@ export default class ErrorVitals {
             options,
           );
 
-          httpRequestError.errorId && _this.sendError(transportType.httpError, httpRequestError);
+          httpRequestError.errorId && _this.sendError(httpRequestError);
         } else {
           // 如果是断网导致的请求失败，则缓存请求，等到网络连接后重新上报数据
           window.addEventListener(
@@ -248,7 +254,7 @@ export default class ErrorVitals {
                 options,
               );
 
-              httpRequestError.errorId && _this.sendError(transportType.httpError, httpRequestError);
+              httpRequestError.errorId && _this.sendError(httpRequestError);
             },
             {
               once: true,
@@ -341,7 +347,7 @@ export default class ErrorVitals {
                 if (httpSet.size === HTTP_MAX_LIMIT) {
                   const handler = this.transportInstance.beaconTransportHandler();
 
-                  httpSet.forEach((h) => handler(h, httpUrl));
+                  handler(Array.from(httpSet), httpUrl);
                   httpSet.clear();
                 }
               }
@@ -375,7 +381,8 @@ export default class ErrorVitals {
               );
             }
 
-            this.sendError(transportType.httpError, httpRequestError);
+            httpRequestError.httpMessage = response.statusText ?? EMPTYRESPONSE;
+            httpRequestError.errorId && this.sendError(httpRequestError);
           }
         },
         (error) => {
@@ -408,7 +415,7 @@ export default class ErrorVitals {
               this.options,
             );
           }
-          this.sendError(transportType.httpError, httpRequestError);
+          httpRequestError.errorId && this.sendError(httpRequestError);
         },
       );
 

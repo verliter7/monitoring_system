@@ -8,12 +8,13 @@ import {
 import type { Context } from 'koa';
 
 export async function createHttp_c(ctx: Context) {
-  const errorInfo = ctx.request.body;
-
-  errorInfo.ip = ctx.ip;
+  const httpInfos = ctx.request.body;
 
   try {
-    await createHttp_s(errorInfo);
+    for (const e of httpInfos) {
+      e.ip = ctx.ip;
+      await createHttp_s(e);
+    }
 
     ctx.defaultResponse();
   } catch (err) {

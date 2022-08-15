@@ -22,38 +22,34 @@ import {
   ITabTimeConsumeItemInfo,
 } from './type';
 
-const getDefaultChartConfig = (chartData: any): any => {
-  console.log(chartData);
-
-  return {
-    data: [chartData, chartData],
-    geometryOptions: [
-      {
-        geometry: 'line',
-        lineStyle: {
-          lineWidth: 2,
-        },
-        color: '#5AD5AB',
+const getDefaultChartConfig = (chartData: any): any => ({
+  data: [chartData, chartData],
+  geometryOptions: [
+    {
+      geometry: 'line',
+      lineStyle: {
+        lineWidth: 2,
       },
-      {
-        geometry: 'column',
-        color: '#6395F9',
-      },
-    ],
-    legend: {
-      layout: 'horizontal',
-      position: 'top',
+      color: '#5AD5AB',
     },
-    interactions: [
-      {
-        type: 'element-highlight',
-      },
-      {
-        type: 'active-region',
-      },
-    ],
-  };
-};
+    {
+      geometry: 'column',
+      color: '#6395F9',
+    },
+  ],
+  legend: {
+    layout: 'horizontal',
+    position: 'top',
+  },
+  interactions: [
+    {
+      type: 'element-highlight',
+    },
+    {
+      type: 'active-region',
+    },
+  ],
+});
 
 // 各个tab对应的信息
 const tabMap: ITabMap = {

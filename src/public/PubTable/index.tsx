@@ -1,5 +1,5 @@
 /* @jsxImportSource @emotion/react */
-import { useRef, useState } from 'react';
+import { memo, useRef, useState } from 'react';
 import { Table } from 'antd';
 import { useMount } from '@/hooks';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -16,7 +16,7 @@ const PubTable: FC<IBaseTable> = ({
   position = ['bottomCenter'],
   defaultPageSize = 2,
 }): ReactElement => {
-  const reduxData = useAppSelector((state) => (reduxMark ? state[reduxMark] : null));
+  const { table: reduxTableData } = useAppSelector((state) => (reduxMark ? state[reduxMark] : ({} as any)));
   const dispatch = useAppDispatch();
   const [tableData, setTableData] = useState<ITableData>();
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ const PubTable: FC<IBaseTable> = ({
   outerTableDataRef.current = outerTableData;
 
   // 最终的表格数据 表格数据有三个类别 外面传入 | 里面异步获取不传到redux | 里面异步获取传到redux
-  const finalTableData: ITableData = reduxData ? reduxData.table : tableData ? tableData : outerTableData;
+  const finalTableData: ITableData = reduxTableData ? reduxTableData : tableData ? tableData : outerTableData;
   // 获取表格配置
   const tableColumns: Record<string, any>[] = columns.map((column) => {
     const { width, ...rest } = column;
@@ -95,8 +95,8 @@ const PubTable: FC<IBaseTable> = ({
 
   useMount(() => {
     // 有传getTableData就在表格组件里面请求数据，没有就在外面传入表格数据
-    // reduxData?.table.records.length判断redux是否有表格数据
-    getTableData && !reduxData?.table.records.length && updateTableData();
+    // reduxTableData.records.length判断redux是否有表格数据
+    getTableData && !reduxTableData.records.length && updateTableData();
   });
 
   return (
@@ -111,4 +111,4 @@ const PubTable: FC<IBaseTable> = ({
   );
 };
 
-export default PubTable;
+export default memo(PubTable);

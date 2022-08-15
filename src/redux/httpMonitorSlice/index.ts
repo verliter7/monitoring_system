@@ -6,9 +6,10 @@ import type {
   ITabSuccessRateItemInfo,
   ITabTimeConsumeItemInfo,
 } from '@/pages/HttpMonitor/type';
-import type { InitialState } from './type';
+import type { IHttpMonitorState } from './type';
 
-const initialState: InitialState = {
+const initialState: IHttpMonitorState = {
+  allListItemInfo: {},
   table: { records: [], current: 1, size: 0, total: 0 },
 } as any;
 
@@ -17,16 +18,16 @@ export const httpMonitorSlice = createSlice({
   initialState,
   reducers: {
     successRateStorage: (state, action: PayloadAction<Record<string, ITabSuccessRateItemInfo>>) => {
-      state.successRate = action.payload;
+      state.allListItemInfo.successRate = action.payload;
     },
     msgClusterStorage: (state, action: PayloadAction<Record<string, ITabMsgClusterItemInfo>>) => {
-      state.msgCluster = action.payload;
+      state.allListItemInfo.msgCluster = action.payload;
     },
     successTimeConsumeStorage: (state, action: PayloadAction<Record<string, ITabTimeConsumeItemInfo>>) => {
-      state.successTimeConsume = action.payload;
+      state.allListItemInfo.successTimeConsume = action.payload;
     },
     failTimeConsumeStorage: (state, action: PayloadAction<Record<string, ITabTimeConsumeItemInfo>>) => {
-      state.failTimeConsume = action.payload;
+      state.allListItemInfo.failTimeConsume = action.payload;
     },
     tableStorage: (state, action: PayloadAction<IAllHttpInfos>) => {
       state.table = action.payload;

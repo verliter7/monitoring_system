@@ -1,5 +1,5 @@
 export interface IMetrics {
-  [prop: string]: any
+  [prop: string]: any;
 }
 
 export enum metricsName {
@@ -11,7 +11,6 @@ export enum metricsName {
   FID = 'first-input-delay',
   CLS = 'cumulative-layout-shift',
   NT = 'navigation-timing',
-  RF = 'resource-flow',
   LT = 'longtask',
   //用户行为
   PI = 'page-information',
@@ -27,11 +26,11 @@ export default class MetricsStore {
   state: Map<metricsName | string, IMetrics>;
 
   constructor() {
-    this.state = new Map<metricsName | string, IMetrics>()
+    this.state = new Map<metricsName | string, IMetrics>();
   }
 
   set(key: metricsName | string, value: IMetrics): void {
-    this.state.set(key, value)
+    this.state.set(key, value);
   }
 
   add(key: metricsName | string, value: IMetrics): void {
@@ -55,6 +54,4 @@ export default class MetricsStore {
     // Map 转为 对象 返回
     return Object.fromEntries(this.state);
   }
-
 }
-

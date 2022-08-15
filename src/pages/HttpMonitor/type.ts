@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import type { HttpReqType } from '@/utils/HttpReq/type';
 import { requestOptions } from '@/hooks/useRequest';
 

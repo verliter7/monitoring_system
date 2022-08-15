@@ -3,7 +3,7 @@ import { transportType } from '../Transport';
 import PerformanceVitals from '.';
 
 export default class BuilderInstance {
-  constructor(public performanceInstance: PerformanceVitals) { }
+  constructor(public performanceInstance: PerformanceVitals) {}
 
   /**
    * 页面性能数据 格式化
@@ -19,7 +19,7 @@ export default class BuilderInstance {
         FCP: metrics.get(metricsName.FCP)?.startTime,
         FMP: metrics.get(metricsName.FMP)?.startTime,
         LCP: metrics.get(metricsName.LCP)?.startTime,
-        FID: metrics.get(metricsName.FID)?.delay
+        FID: metrics.get(metricsName.FID)?.delay,
       };
     }
 
@@ -28,7 +28,7 @@ export default class BuilderInstance {
     }
 
     function longTaskBuilder() {
-      return JSON.parse(JSON.stringify(metrics.get(metricsName.LT)))
+      return JSON.parse(JSON.stringify(metrics.get(metricsName.LT)));
     }
 
     function CLSBuilder() {
@@ -37,16 +37,11 @@ export default class BuilderInstance {
       };
     }
 
-    function RFBuilder() {
-      return metrics.get(metricsName.RF)
-    }
-
     const buiderStore: Map<transportType, Function> = new Map([
       [transportType.paint, paintBuilder],
       [transportType.timing, timingBuilder],
       [transportType.LT, longTaskBuilder],
       [transportType.CLS, CLSBuilder],
-      [transportType.RF, RFBuilder],
     ]);
     return buiderStore.get(type)?.();
   }

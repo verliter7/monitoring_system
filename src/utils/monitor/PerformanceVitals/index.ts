@@ -10,13 +10,12 @@ import {
   getResourceFlow,
   getLongTask,
 } from './GetEntry';
-import { LayoutShift, ResourceFlowTiming } from './type';
 import BuilderInstance from './BuilderInstance';
-import DimensionInstance from '../DimensionInstance';
 import { EngineInstance } from '..';
-import { transportKind, transportType, transportHandlerType } from '../Transport';
+import { transportType } from '../Transport';
+import { resourceUrl } from '../utils/urls';
 import type { initOptions } from '..';
-import { proxyHash, proxyHistory } from '../UserVitals/event';
+import type { LayoutShift, ResourceFlowTiming } from './type';
 
 export const afterLoad = (callback: any) => {
   //Document.readyState 属性描述了document 的加载状态 complete加载完成
@@ -40,14 +39,11 @@ export const afterLoad = (callback: any) => {
 
 // 初始化入口，外部调用只需要 new PerformanceVitals();
 export default class PerformanceVitals {
-  private engineInstance: EngineInstance;
-
   //本地暂存数据在Map里面
   public metrics: MetricsStore;
   builderInstance: BuilderInstance;
 
-  constructor(engineInstance: EngineInstance, public options: initOptions) {
-    this.engineInstance = engineInstance;
+  constructor(private engineInstance: EngineInstance, public options: initOptions) {
     this.builderInstance = new BuilderInstance(this);
 
     this.metrics = new MetricsStore();
@@ -65,11 +61,11 @@ export default class PerformanceVitals {
       // this.perfSendHandler();
     });
 
-    window.onbeforeunload = (event) => {
-      event.preventDefault()
-      this.sendPerformanceData(transportType.CLS)
-      return ""
-    }
+    window.addEventListener('beforeunload', (event) => {
+      event.preventDefault();
+      this.sendPerformanceData(transportType.CLS);
+      return '';
+    });
   }
 
   //性能数据的上报策略
@@ -222,16 +218,18 @@ export default class PerformanceVitals {
 
   // 初始化 RF 的获取以及返回 静态资源瀑布图
   initResourceFlow = (): void => {
-    const resourceFlow: Array<ResourceFlowTiming> = [];
-    const observer = getResourceFlow(resourceFlow);
+    const resourceFlowSet: Set<ResourceFlowTiming> = new Set();
 
-    const stopListening = () => {
-      const metrics = resourceFlow as IMetrics;
-      this.metrics.set(metricsName.RF, metrics);
-      observer?.disconnect();
-    };
-    // 当页面 pageshow 触发时，中止
-    window.addEventListener('pageshow', stopListening, { once: true, capture: true });
+    getResourceFlow(this.engineInstance, resourceFlowSet, resourceUrl, this.options);
+
+    window.addEventListener('beforeunload', () => {
+      if (resourceFlowSet.size) {
+        const handler = this.engineInstance.transportInstance.initTransportHandler();
+
+        handler(Array.from(resourceFlowSet), resourceUrl);
+        resourceFlowSet.clear();
+      }
+    });
   };
 
   // 初始化 longtask 的获取以及返回
