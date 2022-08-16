@@ -1,11 +1,16 @@
 export interface IErrorConutByTimeData {
-  frontErrorConutByTime: Record<string, number>;
-  backErrorConutByTime: Record<string, number>;
+  frontErrorConutByTime: Record<string, [number, number]>;
+  backErrorConutByTime: Record<string, [number, number]>;
 }
 
-export interface IErrorCountData {
+export interface IResourcesBackErrorCountData {
   time: string;
   errorCount: number;
+}
+
+export interface IResourcesBackErrorRateData {
+  time: string;
+  errorRate: number;
 }
 
 export interface IResourceErrorRecord {

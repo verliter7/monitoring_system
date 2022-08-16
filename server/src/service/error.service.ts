@@ -1,6 +1,7 @@
 import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 import ErrorModel from '@/model/error.model';
+import ResourceModel from '@/model/resource.model';
 import type { Model, Optional } from 'sequelize/types';
 
 /**
@@ -24,57 +25,82 @@ export async function findErrorInfo(errorId: string) {
   return res;
 }
 
+export enum errorEnum {
+  JE = 'jsError',
+  PE = 'promiseError',
+  HE = 'httpError',
+  RE = 'resourceError',
+}
+
+export type ErrorType = 'jsError' | 'promiseError' | 'httpError' | 'resourceError';
+
 /**
  * @description: 获取错误数量
  * @param type 错误类型
  */
-export async function getErrorCount_s(type: string) {
+export async function getErrorCount_s(pastDays: number, type: ErrorType) {
   const oneDayHours = 24;
   const oneHourMilliseconds = 60 * 60 * 1000;
   const oneDayTime = oneDayHours * oneHourMilliseconds;
   const now = Date.now();
   const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.getDataValue('timeStamp'));
-  const getQueryConfig = (ago: number) => ({
-    where: {
-      type,
-      timeStamp: {
-        [Op.lt]: now - (ago - 1) * oneDayTime,
-        [Op.gt]: now - ago * oneDayTime,
+  const getQueryConfig = (type?: string) => {
+    const config: Record<string, any> = {
+      where: {
+        type,
+        timeStamp: {
+          [Op.lt]: now,
+          [Op.gt]: now - 2 * pastDays * oneDayTime,
+        },
       },
-    },
-    attributes: ['timeStamp'],
-  });
-  const frontErrorCreatTimes = process(await ErrorModel.findAll(getQueryConfig(2)));
-  const backErrorCreatTimes = process(await ErrorModel.findAll(getQueryConfig(1)));
-  const frontErrorConutByTime: Record<string, number> = {};
-  const backErrorConutByTime: Record<string, number> = {};
-  const timeFormat = 'YYYY-MM-DD HH:00';
+      attributes: ['timeStamp'],
+      order: [['timeStamp', 'DESC']],
+    };
 
-  for (let i = oneDayHours; i >= 0; i--) {
-    const frontTime = dayjs(now - oneDayTime - i * oneHourMilliseconds).format(timeFormat);
-    const backTime = dayjs(now - i * oneHourMilliseconds).format(timeFormat);
+    type === void 0 && delete config.where.type;
 
-    frontErrorConutByTime[frontTime] = 0;
-    backErrorConutByTime[backTime] = 0;
+    return config;
+  };
+
+  const allErrorCreatTimes = process(await ErrorModel.findAll(getQueryConfig(type)));
+  let allCreatTimes: any[];
+
+  switch (type) {
+    case errorEnum.RE:
+      allCreatTimes = process(await ResourceModel.findAll(getQueryConfig()));
+      break;
+
+    default:
+      allCreatTimes = process(await ResourceModel.findAll(getQueryConfig()));
+      break;
   }
 
-  frontErrorCreatTimes.forEach((time: number) => {
-    const frontTime = dayjs(time).format(timeFormat);
-    frontErrorConutByTime[frontTime] !== void 0 && frontErrorConutByTime[frontTime]++;
+  const frontErrorConutByTime: Record<string, [number, number]> = {};
+  const backErrorConutByTime: Record<string, [number, number]> = {};
+  const timeFormat = 'YYYY-MM-DD HH:00';
+  const oneCycleTime = oneDayHours * pastDays * 2 - 1;
+
+  for (let i = oneCycleTime; i >= 0; i--) {
+    const formatTime = dayjs(now - i * oneHourMilliseconds).format(timeFormat);
+
+    i > oneCycleTime / 2 ? (frontErrorConutByTime[formatTime] = [0, 0]) : (backErrorConutByTime[formatTime] = [0, 0]);
+  }
+
+  allErrorCreatTimes.forEach((time: number) => {
+    const formatTime = dayjs(time).format(timeFormat);
+
+    Reflect.has(frontErrorConutByTime, formatTime) && frontErrorConutByTime[formatTime][0]++;
+    Reflect.has(backErrorConutByTime, formatTime) && backErrorConutByTime[formatTime][0]++;
   });
-  backErrorCreatTimes.forEach((time: number) => {
-    const backTime = dayjs(time).format(timeFormat);
-    backErrorConutByTime[backTime] !== void 0 && backErrorConutByTime[backTime]++;
+
+  allCreatTimes.forEach((time: number) => {
+    const formatTime = dayjs(time).format(timeFormat);
+
+    Reflect.has(frontErrorConutByTime, formatTime) && frontErrorConutByTime[formatTime][1]++;
+    Reflect.has(backErrorConutByTime, formatTime) && backErrorConutByTime[formatTime][1]++;
   });
 
   return { frontErrorConutByTime, backErrorConutByTime };
-}
-
-enum typeEnum {
-  HP = 'httpError',
-  JS = 'jsError',
-  RS = 'resourcesError',
-  PL = 'pageLoad',
 }
 
 /**
@@ -82,7 +108,8 @@ enum typeEnum {
  * @param current 当前页数
  * @param size 当前页大小
  */
-export async function getResourceErrorData_s(current: number, size: number) {
+export async function getResourceErrorData_s(...args: number[]) {
+  const [pastDays, current, size] = args;
   const oneDayHours = 24;
   const oneHourMilliseconds = 60 * 60 * 1000;
   const oneDayTime = oneDayHours * oneHourMilliseconds;
@@ -90,7 +117,7 @@ export async function getResourceErrorData_s(current: number, size: number) {
   const queryConfigWhere = {
     timeStamp: {
       [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
+      [Op.gt]: now - oneDayTime * pastDays,
     },
   };
   const TYPE = 'resourceError';
@@ -132,7 +159,6 @@ export async function getResourceErrorData_s(current: number, size: number) {
     current,
     size,
     total,
-    type: typeEnum.RS,
     records: records.map((record) => {
       const { errorId, timeStamp, originUrl, requestUrl } = record;
 

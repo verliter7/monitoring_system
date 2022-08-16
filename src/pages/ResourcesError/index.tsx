@@ -1,15 +1,19 @@
 /* @jsxImportSource @emotion/react */
+import { useCallback, useRef } from 'react';
+import { Card, Select } from 'antd';
 import PubTabs from '@/public/PubTabs';
 import PubTable from '@/public/PubTable';
-import { useMount, useRequest } from '@/hooks';
+import PubHeader from '@/public/PubHeader';
+import { useCallbackState, useMount, useRequest, useUnmount } from '@/hooks';
 import ErrorCountLine from './ErrorCountLine';
 import { getResourceErrorCount, getResourceErrorData } from './service';
 import { useAppSelector, useAppDispatch } from '@/redux/hooks';
-import { chartStorage, tableStorage } from '@/redux/resourceErrorSlice';
+import { cardStorage, chartStorage, pastDaysStorage, tableStorage } from '@/redux/resourceErrorSlice';
 import { reducerEnum } from '@/redux/store';
-import type { FC, ReactElement } from 'react';
+import { FC, ReactElement } from 'react';
 import type { ITab } from '@/public/PubTabs/type';
-import type { IResourceErrorRecord } from './type';
+import type { IResourceErrorRecord, IResourcesBackErrorCountData, IResourcesBackErrorRateData } from './type';
+import type { IBaseTableRef } from '@/public/PubTable/type';
 
 const columns: Record<string, any>[] = [
   {
@@ -39,9 +43,17 @@ const columns: Record<string, any>[] = [
 ];
 
 const ResourcesError: FC = (): ReactElement => {
-  const { backErrorCountData, errorSum } = useAppSelector((state) => state.resourceError.chart);
+  const {
+    pastDays: reduxPastDays,
+    chart: { backErrorCountData, backErrorRateData },
+    card: { errorSum, errorRate },
+  } = useAppSelector(
+    (state) => state.resourceError,
+    (pre, cur) => pre.pastDays === cur.pastDays && pre.card === cur.card && pre.chart === cur.chart,
+  );
+  const [pastDays, setPastDays] = useCallbackState<string>(reduxPastDays);
   const dispatch = useAppDispatch();
-  const getSum = (values: number[]) => values.reduce((prev, cur) => prev + cur, 0);
+  const getDecimal = (v1: number, v2: number) => (v2 === 0 ? 0 : Math.round((v1 / v2) * 100) / 100);
   const { loading: resourceErrorCountLoading, run: getResourceErrorCountsRun } = useRequest(getResourceErrorCount, {
     manual: true,
     onSuccess(res) {
@@ -49,28 +61,74 @@ const ResourcesError: FC = (): ReactElement => {
         data: { frontErrorConutByTime, backErrorConutByTime },
       } = res;
 
-      // 转换后端数据以适应图表数据格式
-      const backErrorCountData = Object.entries<number>(backErrorConutByTime).map(([time, errorCount]) => ({
-        time,
-        errorCount,
-      }));
+      const backErrorCountData: IResourcesBackErrorCountData[] = [], // 后一周期错误数据(图表)
+        backErrorRateData: IResourcesBackErrorRateData[] = []; // 后一周期错误率数据(图表)
+      let f_errorCount = 0, // 前一周期错误数
+        b_errorCount = 0, // 后一周期错误数
+        f_count = 0, // 前一周期总的资源请求数
+        b_count = 0; // 后一周期总的资源请求数
 
+      // 转换后端数据以适应图表数据格式
+      Object.entries<[number, number]>(frontErrorConutByTime).forEach(([_, count]) => {
+        f_errorCount += count[0];
+        f_count += count[1];
+      });
+      Object.entries<[number, number]>(backErrorConutByTime).forEach(([time, count]) => {
+        b_errorCount += count[0];
+        b_count += count[1];
+        backErrorCountData.push({
+          time,
+          errorCount: count[0],
+        });
+        backErrorRateData.push({
+          time,
+          errorRate: getDecimal(count[0], count[1]),
+        });
+      });
+
+      // 缓存tab栏数据到redux上
+      dispatch(
+        cardStorage({
+          errorSum: {
+            front: f_errorCount,
+            back: b_errorCount,
+          },
+          errorRate: {
+            front: getDecimal(f_errorCount, f_count),
+            back: getDecimal(b_errorCount, b_count),
+          },
+        }),
+      );
       // 缓存图表数据到redux上
       dispatch(
         chartStorage({
           backErrorCountData,
-          errorSum: {
-            front: getSum(Object.values(frontErrorConutByTime)),
-            back: getSum(Object.values(backErrorConutByTime)),
-          },
+          backErrorRateData,
         }),
       );
     },
   });
+  const tableRef = useRef<IBaseTableRef | null>(null);
+
+  const handleChange = useCallback((value: string) => {
+    setPastDays(value, () => {
+      const { updateTableData, current, size } = tableRef.current as IBaseTableRef;
+
+      getResourceErrorCountsRun(value);
+      updateTableData({
+        current,
+        size,
+      });
+    });
+  }, []);
 
   useMount(() => {
     // backErrorCountData.length !== 0 代表数据已经缓存到redux上
-    backErrorCountData.length === 0 && getResourceErrorCountsRun();
+    backErrorCountData.length === 0 && getResourceErrorCountsRun(pastDays);
+  });
+
+  useUnmount(() => {
+    dispatch(pastDaysStorage(pastDays));
   });
 
   const tabs: ITab[] = [
@@ -80,23 +138,52 @@ const ResourcesError: FC = (): ReactElement => {
       bottomCenter: errorSum.front,
       unit: '',
       content: (
-        <div css={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-          <ErrorCountLine backErrorCountData={backErrorCountData} loading={resourceErrorCountLoading} />
-          <PubTable
-            columns={columns}
-            getTableData={getResourceErrorData}
-            storage={tableStorage}
-            reduxMark={reducerEnum.RE}
+        <Card>
+          <ErrorCountLine
+            config={{
+              meta: {
+                errorCount: {
+                  alias: '错误数量',
+                },
+              },
+              data: backErrorCountData,
+              yField: 'errorCount',
+              yAxis: {
+                title: {
+                  text: '错误数量(个)',
+                },
+                tickInterval: 1,
+              },
+            }}
+            loading={resourceErrorCountLoading}
           />
-        </div>
+        </Card>
       ),
     },
     {
       title: '错误率',
-      middle: 4.05,
-      bottomCenter: 4.08,
+      middle: errorRate.back,
+      bottomCenter: errorRate.front,
       unit: '%',
-      content: <div>2</div>,
+      content: (
+        <ErrorCountLine
+          config={{
+            meta: {
+              errorRate: {
+                alias: '错误率',
+                formatter: (value: number) => `${value}%`,
+              },
+            },
+            data: backErrorRateData,
+            yField: 'errorRate',
+            yAxis: {
+              title: {
+                text: '错误率',
+              },
+            },
+          }}
+        />
+      ),
     },
     {
       title: '影响用户数',
@@ -115,12 +202,22 @@ const ResourcesError: FC = (): ReactElement => {
   ];
 
   return (
-    <PubTabs
-      tabs={tabs}
-      onChange={(activeKey: string) => {
-        console.log(activeKey);
-      }}
-    />
+    <div css={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <PubHeader handleSelectChange={handleChange} pastDays={pastDays} />
+      <PubTabs
+        tabs={tabs}
+        onChange={(activeKey: string) => {
+          console.log(activeKey);
+        }}
+      />
+      <PubTable
+        columns={columns}
+        getTableData={getResourceErrorData.bind(null, pastDays)}
+        storage={tableStorage}
+        reduxMark={reducerEnum.RS}
+        ref={tableRef}
+      />
+    </div>
   );
 };
 

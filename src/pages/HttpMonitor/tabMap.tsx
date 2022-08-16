@@ -247,6 +247,7 @@ const tabMap: ITabMap = {
           },
         ]}
         outerTableData={tableData}
+        pageSize={2}
         showSizeChanger={false}
       />
     ),
