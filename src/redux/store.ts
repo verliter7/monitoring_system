@@ -13,6 +13,6 @@ export default store;
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 export enum reducerEnum {
-  RE = 'resourceError',
+  RS = 'resourceError',
   HM = 'httpMonitor',
 }

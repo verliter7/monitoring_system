@@ -1,8 +1,10 @@
 import DimensionInstance from '../DimensionInstance';
+import { hashCode } from '../utils';
 import type { EngineInstance, initOptions } from '..';
 import type { PerformanceEntryHandler, MPerformanceNavigationTiming, ResourceFlowTiming } from './type';
 
 const MAX_LIMIT = 10;
+const resourceIdSet = new Set<string>();
 
 /**
  * 性能条目观察者
@@ -131,11 +133,24 @@ export const getResourceFlow = (
       requestStart,
       duration,
     } = entry;
-    // 这三种不算静态资源请求 排除
-    if (initiatorType === 'xmlhttprequest' || initiatorType === 'fetch' || initiatorType === 'beacon') return;
+    const dimensionInstance = new DimensionInstance(options);
+    const resourceId = hashCode(
+      `${dimensionInstance.aid}${dimensionInstance.userMonitorId}${dimensionInstance.originUrl}${name}`,
+    );
 
+    // 这三种不算静态资源请求 排除
+    if (
+      initiatorType === 'xmlhttprequest' ||
+      initiatorType === 'fetch' ||
+      initiatorType === 'beacon' ||
+      resourceIdSet.has(resourceId)
+    )
+      return;
+
+    resourceIdSet.add(resourceId);
     resourceFlowSet.add(
-      Object.assign(new DimensionInstance(options), {
+      Object.assign(dimensionInstance, {
+        resourceId,
         // name 资源地址
         requestUrl: name,
         // responseEnd - startTime 即开始发起请求到完整收到资源、传输连接关闭的时间

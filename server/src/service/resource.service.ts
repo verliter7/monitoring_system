@@ -1,13 +1,13 @@
 import { Op } from 'sequelize';
 import ResourceModel from '@/model/resource.model';
-import type { Model, Optional } from 'sequelize/types';
+import type { Optional } from 'sequelize/types';
 
 /**
  * @description: 向数据库插入一条静态资源请求信息
  * @param resourceInfo 静态资源请求信息
  */
 export async function createResource_s(resourceInfo: Optional<any, string>) {
-  const isExisted = !!(await findInfo(resourceInfo.requestUrl));
+  const isExisted = !!(await findInfo(resourceInfo.resourceId));
   resourceInfo.timeStamp = parseInt(resourceInfo.timeStamp);
 
   return isExisted ? null : await ResourceModel.create(resourceInfo);
@@ -15,12 +15,12 @@ export async function createResource_s(resourceInfo: Optional<any, string>) {
 
 /**
  * @description: 在数据库中查找某个静态资源请求
- * @param requestUrl 每一个静态资源请求的url
+ * @param resourceId 每一个静态资源的id
  */
-export async function findInfo(requestUrl: string) {
+export async function findInfo(resourceId: string) {
   const res = await ResourceModel.findOne({
     where: {
-      requestUrl,
+      resourceId,
     },
   });
 

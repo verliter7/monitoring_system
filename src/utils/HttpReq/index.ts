@@ -1,6 +1,5 @@
 import { extend, RequestMethod, ResponseError } from 'umi-request';
 import { message } from 'antd';
-import { JType } from '..';
 import type { IHttpRequestConfig, IHttpReq, IcodeMap } from './type';
 
 // Fetch永生
@@ -88,7 +87,7 @@ class HttpReq implements IHttpReq {
   send<P>(option: IHttpRequestConfig | string): Promise<P> {
     const { url, headers, method, body, requestType, responseType, signal } = option as IHttpRequestConfig;
 
-    if (JType.isString(option)) {
+    if (typeof option === 'string') {
       return HttpReq.requestInstance(option);
     }
 

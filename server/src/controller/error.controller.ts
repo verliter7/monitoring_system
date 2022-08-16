@@ -1,5 +1,6 @@
 import { createError_s, getErrorCount_s, getResourceErrorData_s } from '@/service/error.service';
 import type { Context } from 'koa';
+import type { ErrorType } from '@/service/error.service';
 
 export async function createError_c(ctx: Context) {
   const errorInfos = ctx.request.body;
@@ -19,11 +20,11 @@ export async function createError_c(ctx: Context) {
 
 export async function getErrorCount_c(ctx: Context) {
   try {
-    const { errorType } = ctx.query;
+    const { pastDays = 1, errorType } = ctx.query;
 
     if (!errorType) return ctx.defaultError({ code: 400, message: '缺少errorType参数' });
 
-    const errorCount = await getErrorCount_s(errorType as string);
+    const errorCount = await getErrorCount_s(Number(pastDays), errorType as ErrorType);
 
     ctx.defaultResponse({
       code: 200,
@@ -40,11 +41,11 @@ export async function getErrorCount_c(ctx: Context) {
 
 export async function getResourceErrorData_c(ctx: Context) {
   try {
-    const { current, size } = ctx.query;
+    const { pastDays = 1, current, size } = ctx.query;
 
     if (!current || !size) return ctx.defaultError({ code: 400, message: '缺少current或者size参数' });
 
-    const resourcesErrors = await getResourceErrorData_s(parseInt(current as string), parseInt(size as string));
+    const resourcesErrors = await getResourceErrorData_s(...[pastDays, current, size].map(Number));
     ctx.defaultResponse({
       code: 200,
       data: resourcesErrors,

@@ -35,18 +35,25 @@ const oneHourMilliseconds = 60 * 60 * 1000;
 const oneDayTime = oneDayHours * oneHourMilliseconds;
 const timeFormat = 'YYYY-MM-DD HH:00';
 const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.get());
+const getQueryConfigWhere = (pastDays: number) => {
+  const now = Date.now();
+
+  return {
+    now,
+    queryConfigWhere: {
+      timeStamp: {
+        [Op.lt]: now,
+        [Op.gt]: now - oneDayTime * pastDays,
+      },
+    },
+  };
+};
 
 /**
  * @description: 获取http调用成功率信息
  */
-export async function getHttpSuccessRate_s() {
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
+export async function getHttpSuccessRate_s(pastDays: number) {
+  const { now, queryConfigWhere } = getQueryConfigWhere(pastDays);
   const successedHttpInfos = process(
     await HttpModel.findAll({
       attributes: ['timeStamp', 'requestUrl', 'status'],
@@ -70,7 +77,7 @@ export async function getHttpSuccessRate_s() {
     if (!successRateInfos[requestUrl]) {
       const successRateInfo: Record<string, [number, number]> = {};
 
-      for (let i = oneDayHours; i >= 0; i--) {
+      for (let i = oneDayHours * pastDays; i >= 0; i--) {
         const time = dayjs(now - i * oneHourMilliseconds).format(timeFormat);
 
         successRateInfo[time] = [0, 0];
@@ -91,14 +98,8 @@ export async function getHttpSuccessRate_s() {
 /**
  * @description: 获取httpMsg聚类信息
  */
-export async function getHttpMsgCluster_s() {
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
+export async function getHttpMsgCluster_s(pastDays: number) {
+  const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const successedHttpInfos = process(
     await HttpModel.findAll({
       attributes: ['requestUrl', 'status', 'httpMessage'],
@@ -145,14 +146,8 @@ type TimeConsumeInfo = Record<
 /**
  * @description: 获取http耗时信息
  */
-export async function getHttpTimeConsume_s(type: 'success' | 'fail') {
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
+export async function getHttpTimeConsume_s(pastDays: number, type: 'success' | 'fail') {
+  const { now, queryConfigWhere } = getQueryConfigWhere(pastDays);
   const httpInfos = process(
     type === 'success'
       ? await HttpModel.findAll({
@@ -170,7 +165,7 @@ export async function getHttpTimeConsume_s(type: 'success' | 'fail') {
   for (const { timeStamp, requestUrl, duration } of httpInfos) {
     const timeConsumeInfo: TimeConsumeInfo = {};
 
-    for (let i = oneDayHours; i >= 0; i--) {
+    for (let i = oneDayHours * pastDays; i >= 0; i--) {
       const time = dayjs(now - i * oneHourMilliseconds).format(timeFormat);
 
       timeConsumeInfo[time] = {
@@ -210,14 +205,9 @@ export async function getHttpTimeConsume_s(type: 'success' | 'fail') {
  * @description: 获取所有http请求信息（做成表格）
  */
 
-export async function getAllHttpInfos_s(current: number, size: number) {
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
+export async function getAllHttpInfos_s(...args: number[]) {
+  const [pastDays, current, size] = args;
+  const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const defaultQueryConfig = {
     attributes: ['timeStamp', 'originUrl', 'requestUrl', 'status', 'httpMessage', 'duration'],
     limit: size,

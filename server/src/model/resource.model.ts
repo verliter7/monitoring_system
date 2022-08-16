@@ -4,6 +4,12 @@ import defalutConfig from './defalutConfig';
 
 const ResourceModel = seq.define('resource', {
   ...defalutConfig,
+  resourceId: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+    allowNull: false,
+    comment: '每个静态资源id',
+  },
   requestUrl: {
     type: DataTypes.STRING,
     allowNull: false,
