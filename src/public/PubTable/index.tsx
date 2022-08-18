@@ -87,10 +87,9 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
     // 显示目前位置
     const showTotal = () => {
       const { current, size, total } = finalTableData;
-      const start = (current - 1) * size + 1,
-        tempEnd = current * size,
-        end = tempEnd > total ? total : tempEnd;
-      return `显示 第 ${end === 1 ? '1 ' : `${start} - ${end}`} 条 ， 共  ${total} 条`;
+      const start = (current - 1) * size;
+      const end = start + finalTableData.records.length;
+      return `显示 第 ${end === 1 ? '1 ' : `${start + 1} - ${end}`} 条 ， 共  ${total} 条`;
     };
 
     const pagination: IPagination = {

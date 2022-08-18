@@ -209,7 +209,7 @@ export async function getAllHttpInfos_s(...args: number[]) {
   const [pastDays, current, size] = args;
   const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const defaultQueryConfig = {
-    attributes: ['timeStamp', 'originUrl', 'requestUrl', 'status', 'httpMessage', 'duration'],
+    attributes: ['timeStamp', 'originUrl', 'requestUrl', 'method', 'status', 'httpMessage', 'duration'],
     limit: size,
     offset: (current - 1) * size,
     order: [['timeStamp', 'DESC']],

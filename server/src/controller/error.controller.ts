@@ -1,4 +1,4 @@
-import { createError_s, getErrorCount_s, getResourceErrorData_s } from '@/service/error.service';
+import { createError_s, getErrorCount_s, getHttpErrorData_s, getResourceErrorData_s } from '@/service/error.service';
 import type { Context } from 'koa';
 import type { ErrorType } from '@/service/error.service';
 
@@ -49,6 +49,25 @@ export async function getResourceErrorData_c(ctx: Context) {
     ctx.defaultResponse({
       code: 200,
       data: resourcesErrors,
+      message: '请求成功',
+      success: true,
+    });
+  } catch (err) {
+    console.log(err);
+    ctx.defaultError({ code: 500, message: '服务器出错' });
+  }
+}
+
+export async function getHttpErrorData_c(ctx: Context) {
+  try {
+    const { pastDays = 1, current, size } = ctx.query;
+
+    if (!current || !size) return ctx.defaultError({ code: 400, message: '缺少current或者size参数' });
+
+    const httpsErrors = await getHttpErrorData_s(...[pastDays, current, size].map(Number));
+    ctx.defaultResponse({
+      code: 200,
+      data: httpsErrors,
       message: '请求成功',
       success: true,
     });

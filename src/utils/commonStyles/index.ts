@@ -11,24 +11,7 @@ const styleObject = {
   },
   scroll: (axis?: 'X' | 'Y') => ({
     [`overflow${axis ? `${axis}` : ''}`]: 'overlay',
-    '&::-webkit-scrollbar': {
-      height: '7px',
-      width: '6px',
-    },
-
-    '&::-webkit-scrollbar-thumb': {
-      borderRadius: '10px',
-      backgroundColor: '#8d8d8d',
-    },
-
-    '&::-webkit-scrollbar-thumb:hover': {
-      backgroundColor: '#7a7a7a',
-    },
-
-    '&::-webkit-scrollbar-track-piece': {
-      borderRadius: '10px',
-      backgroundColor: '#ffffff',
-    },
+    [`overflow${axis ? `${axis}` : ''}`]: 'auto',
   }),
 };
 

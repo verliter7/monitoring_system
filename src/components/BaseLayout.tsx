@@ -62,7 +62,9 @@ const BaseLayout: FC = (): ReactElement => {
             ...commonStyles.scroll('Y'),
             overflowX: 'hidden',
             margin: '16px',
+            marginRight: '0',
             padding: '16px',
+            paddingRight: '0px',
             minHeight: '280px',
           }}
         >
