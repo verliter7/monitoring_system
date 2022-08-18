@@ -48,7 +48,7 @@ export async function getErrorCount_c(ctx: Context) {
 export async function getJsErrorData_c(ctx: Context) {
   try {
     const { pastDays = 1, current, size } = ctx.query;
-
+    console.log('收到了：', current, size, 666)
     if (!current || !size) return ctx.defaultError({ code: 400, message: '缺少current或者size参数' });
 
     const jsErrors = await getJsErrorData_s(...[pastDays, current, size].map(Number));
