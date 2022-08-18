@@ -20,14 +20,9 @@ const columns: Record<string, any>[] = [
     title: '发生时间',
     dataIndex: 'date',
     key: 'date',
-    sorter: (a: IResourceErrorRecord, b: IResourceErrorRecord) => {
+    sorter: (b: IResourceErrorRecord, a: IResourceErrorRecord) => {
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     },
-  },
-  {
-    title: '源url',
-    dataIndex: 'originUrl',
-    key: 'originUrl',
   },
   {
     title: 'src属性',
@@ -38,7 +33,7 @@ const columns: Record<string, any>[] = [
     title: '错误数',
     dataIndex: 'count',
     key: 'count',
-    sorter: (a: IResourceErrorRecord, b: IResourceErrorRecord) => a.count - b.count,
+    sorter: (b: IResourceErrorRecord, a: IResourceErrorRecord) => a.count - b.count,
   },
 ];
 
@@ -121,6 +116,8 @@ const ResourcesError: FC = (): ReactElement => {
       });
     });
   }, []);
+  // 防止组件无关表格的刷新，导致表格不必要的刷新
+  const getResourceErrorDataBind = useCallback(getResourceErrorData.bind(null, pastDays), [pastDays]);
 
   useMount(() => {
     // backErrorCountData.length !== 0 代表数据已经缓存到redux上
@@ -207,7 +204,7 @@ const ResourcesError: FC = (): ReactElement => {
       <PubTabs tabs={tabs} onChange={(activeKey: string) => {}} />
       <PubTable
         columns={columns}
-        getTableData={getResourceErrorData.bind(null, pastDays)}
+        getTableData={getResourceErrorDataBind}
         storage={tableStorage}
         reduxMark={reducerEnum.RE}
         ref={tableRef}

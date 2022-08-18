@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
 import dayjs from 'dayjs';
+import { uniq } from '@/utils';
 import ErrorModel from '@/model/error.model';
 import ResourceModel from '@/model/resource.model';
 import HttpModel from '@/model/http.model';
@@ -125,17 +126,6 @@ export async function getErrorCount_s(pastDays: number, type: ErrorType) {
 }
 
 /**
- * @description: 计算错误数量
- * @param attr 属性名
- * @param value 查找的值
- * @param records 错误信息对象数组
- * @return number
- */
-const getErrorCount = (attr: string, value: string, records: any[]) => {
-  return records.reduce((acc, cur) => (cur[attr] === value ? acc + 1 : acc), 0);
-};
-
-/**
  * @description: 获取js请求错误信息（做成表格）
  */
 export async function getJsErrorData_s(...args: number[]) {
@@ -144,34 +134,35 @@ export async function getJsErrorData_s(...args: number[]) {
   const timeFormat = 'YYYY-MM-DD HH:mm:ss';
   const records = process(
     await ErrorModel.findAll({
-      attributes: ['errorId', 'timeStamp', 'originUrl', 'errorStack', 'errorMsg'],
+      attributes: ['errorId', 'timeStamp', 'errorType', 'errorStack', 'errorMsg'],
       where: {
         ...queryConfigWhere,
         type: errorEnum.JE,
       },
-      limit: size,
-      offset: (current - 1) * size,
-      order: [['timeStamp', 'DESC']],
     }),
   );
-  const total = await ErrorModel.count({
-    where: {
-      ...queryConfigWhere,
-      type: errorEnum.JE,
-    },
-  });
+  const uniqRecords = uniq(
+    records,
+    (a, b) => a.errorType === b.errorType && a.errorStack === b.errorStack && a.errorMsg === b.errorMsg,
+  );
+  const finalRecords: any[] = [];
+
+  for (const { errorId, timeStamp, ...rest } of uniqRecords) {
+    finalRecords.push({
+      key: errorId,
+      date: dayjs(timeStamp).format(timeFormat),
+      count: await ErrorModel.count({
+        where: Object.assign(queryConfigWhere, rest),
+      }),
+      ...rest,
+    });
+  }
 
   return {
     current,
     size,
-    total,
-    records: records.map(({ errorId, timeStamp, originUrl, ...rest }) => ({
-      key: errorId,
-      date: dayjs(timeStamp).format(timeFormat),
-      originUrl,
-      count: getErrorCount('errorId', errorId, records),
-      ...rest,
-    })),
+    total: finalRecords.length,
+    records: finalRecords.slice((current - 1) * size, current * size),
   };
 }
 /**
@@ -183,34 +174,35 @@ export async function getHttpErrorData_s(...args: number[]) {
   const timeFormat = 'YYYY-MM-DD HH:mm:ss';
   const records = process(
     await ErrorModel.findAll({
-      attributes: ['errorId', 'timeStamp', 'originUrl', 'requestUrl', 'method', 'status', 'httpMessage', 'duration'],
+      attributes: ['errorId', 'timeStamp', 'requestUrl'],
       where: {
         ...queryConfigWhere,
         type: errorEnum.HE,
       },
-      limit: size,
-      offset: (current - 1) * size,
-      order: [['timeStamp', 'DESC']],
     }),
   );
-  const total = await ErrorModel.count({
-    where: {
-      ...queryConfigWhere,
-      type: errorEnum.HE,
-    },
-  });
+  const uniqRecords = uniq(records, (a, b) => a.requestUrl === b.requestUrl);
+  const finalRecords: any[] = [];
+
+  for (const { errorId, timeStamp, requestUrl } of uniqRecords) {
+    finalRecords.push({
+      key: errorId,
+      date: dayjs(timeStamp).format(timeFormat),
+      count: await ErrorModel.count({
+        where: {
+          ...queryConfigWhere,
+          requestUrl,
+        },
+      }),
+      requestUrl,
+    });
+  }
 
   return {
     current,
     size,
-    total,
-    records: records.map(({ errorId, timeStamp, requestUrl, ...rest }) => ({
-      key: errorId,
-      date: dayjs(timeStamp).format(timeFormat),
-      requestUrl,
-      count: getErrorCount('requestUrl', requestUrl, records),
-      ...rest,
-    })),
+    total: finalRecords.length,
+    records: finalRecords.slice((current - 1) * size, current * size),
   };
 }
 
@@ -223,34 +215,33 @@ export async function getResourceErrorData_s(...args: number[]) {
   const timeFormat = 'YYYY-MM-DD HH:mm:ss';
   const records = process(
     await ErrorModel.findAll({
-      attributes: ['errorId', 'timeStamp', 'originUrl', 'requestUrl'],
+      attributes: ['errorId', 'timeStamp', 'requestUrl'],
       where: {
         ...queryConfigWhere,
         type: errorEnum.RE,
       },
-      limit: size,
-      offset: (current - 1) * size,
-      order: [['timeStamp', 'DESC']],
     }),
   );
+  const uniqRecords = uniq(records, (a, b) => a.requestUrl === b.requestUrl);
+  const finalRecords: any[] = [];
 
-  const total = await ErrorModel.count({
-    where: {
-      ...queryConfigWhere,
-      type: errorEnum.RE,
-    },
-  });
-
+  for (const { errorId, timeStamp, requestUrl } of uniqRecords) {
+    finalRecords.push({
+      key: errorId,
+      date: dayjs(timeStamp).format(timeFormat),
+      count: await ErrorModel.count({
+        where: {
+          ...queryConfigWhere,
+          requestUrl,
+        },
+      }),
+      requestUrl,
+    });
+  }
   return {
     current,
     size,
-    total,
-    records: records.map(({ errorId, timeStamp, originUrl, requestUrl }) => ({
-      key: errorId,
-      date: dayjs(timeStamp).format(timeFormat),
-      originUrl,
-      requestUrl,
-      count: getErrorCount('requestUrl', requestUrl, records),
-    })),
+    total: finalRecords.length,
+    records: finalRecords.slice((current - 1) * size, current * size),
   };
 }
