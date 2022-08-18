@@ -73,7 +73,7 @@ const HttpError: FC = (): ReactElement => {
     (pre, cur) => pre.pastDays === cur.pastDays && pre.card === cur.card && pre.chart === cur.chart,
   );
   const dispatch = useAppDispatch();
-  const getDecimal = (v1: number, v2: number) => (v2 === 0 ? 0 : Math.round((v1 / v2) * 100) / 100);
+  const getDecimal = (v1: number, v2: number) => (v2 === 0 ? 0 : Math.round((v1 / v2) * 10000) / 100);
   const { loading: httpErrorCountLoading, run: getHttpErrorCountRun } = useRequest(getHttpErrorCount, {
     manual: true,
     onSuccess(res) {
@@ -102,7 +102,7 @@ const HttpError: FC = (): ReactElement => {
         });
         backErrorRateData.push({
           time,
-          errorRate: getDecimal(count[0], count[1]) * 100,
+          errorRate: getDecimal(count[0], count[1]),
         });
       });
 
@@ -114,8 +114,8 @@ const HttpError: FC = (): ReactElement => {
             back: b_errorCount,
           },
           errorRate: {
-            front: getDecimal(f_errorCount, f_count) * 100,
-            back: getDecimal(b_errorCount, b_count) * 100,
+            front: getDecimal(f_errorCount, f_count),
+            back: getDecimal(b_errorCount, b_count),
           },
         }),
       );
@@ -217,7 +217,7 @@ const HttpError: FC = (): ReactElement => {
   });
 
   return (
-    <div css={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div css={{ marginRight: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <PubHeader handleSelectChange={handleChange} pastDays={pastDays} />
       <PubTabs tabs={tabs} onChange={(activeKey: string) => {}} />
       <PubTable

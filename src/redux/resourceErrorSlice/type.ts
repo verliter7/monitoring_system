@@ -15,9 +15,14 @@ export interface IResourcesErrorSum {
   back: number;
 }
 
+export interface IHttpErrorRate {
+  front: number;
+  back: number;
+}
+
 export interface IResourcesErrorCardData {
   errorSum: IResourcesErrorSum;
-  errorRate: IResourcesErrorSum;
+  errorRate: IHttpErrorRate;
 }
 
 export interface IResourcesErrorChartData {

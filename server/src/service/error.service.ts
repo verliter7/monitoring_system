@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import ErrorModel from '@/model/error.model';
 import ResourceModel from '@/model/resource.model';
 import HttpModel from '@/model/http.model';
+import UservitalsModel from '@/model/uservitals.model';
 import type { Model, Optional } from 'sequelize/types';
 
 /**
@@ -60,13 +61,13 @@ const getQueryConfigWhere = (pastDays: number) => {
 export async function getErrorCount_s(pastDays: number, type: ErrorType) {
   const now = Date.now();
   const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.getDataValue('timeStamp'));
-  const getQueryConfig = (pastTime: number, type?: string) => {
+  const getQueryConfig = (type?: string) => {
     const config: Record<string, any> = {
       where: {
         type,
         timeStamp: {
           [Op.lt]: now,
-          [Op.gt]: now - pastTime,
+          [Op.gt]: now - 2 * pastDays * oneDayTime,
         },
       },
       attributes: ['timeStamp'],
@@ -78,18 +79,18 @@ export async function getErrorCount_s(pastDays: number, type: ErrorType) {
     return config;
   };
 
-  const allErrorCreatTimes = process(await ErrorModel.findAll(getQueryConfig(pastDays * oneDayTime, type)));
+  const allErrorCreatTimes = process(await ErrorModel.findAll(getQueryConfig(type)));
   let allCreatTimes: any[] = [];
 
   switch (type) {
-    case errorEnum.RE:
-      allCreatTimes = process(await ResourceModel.findAll(getQueryConfig(2 * pastDays * oneDayTime)));
+    case errorEnum.JE:
+      allCreatTimes = process(await UservitalsModel.findAll(getQueryConfig()));
       break;
-
+    case errorEnum.RE:
+      allCreatTimes = process(await ResourceModel.findAll(getQueryConfig()));
+      break;
     case errorEnum.HE:
-      allCreatTimes = process(await HttpModel.findAll(getQueryConfig(2 * pastDays * oneDayTime))).concat(
-        allErrorCreatTimes,
-      );
+      allCreatTimes = [...allErrorCreatTimes, ...process(await HttpModel.findAll(getQueryConfig()))];
       break;
     default:
       break;
@@ -123,17 +124,56 @@ export async function getErrorCount_s(pastDays: number, type: ErrorType) {
   return { frontErrorConutByTime, backErrorConutByTime };
 }
 
-const getResourceErrorCount = (requestUrl: string, records: any[]) => {
-  let count = 0;
-
-  for (const record of records) {
-    if (record.requestUrl === requestUrl) {
-      count++;
-    }
-  }
-
-  return count;
+/**
+ * @description: 计算错误数量
+ * @param attr 属性名
+ * @param value 查找的值
+ * @param records 错误信息对象数组
+ * @return number
+ */
+const getErrorCount = (attr: string, value: string, records: any[]) => {
+  return records.reduce((acc, cur) => (cur[attr] === value ? acc + 1 : acc), 0);
 };
+
+/**
+ * @description: 获取js请求错误信息（做成表格）
+ */
+export async function getJsErrorData_s(...args: number[]) {
+  const [pastDays, current, size] = args;
+  const { queryConfigWhere } = getQueryConfigWhere(pastDays);
+  const timeFormat = 'YYYY-MM-DD HH:mm:ss';
+  const records = process(
+    await ErrorModel.findAll({
+      attributes: ['errorId', 'timeStamp', 'originUrl', 'errorStack', 'errorMsg'],
+      where: {
+        ...queryConfigWhere,
+        type: errorEnum.JE,
+      },
+      limit: size,
+      offset: (current - 1) * size,
+      order: [['timeStamp', 'DESC']],
+    }),
+  );
+  const total = await ErrorModel.count({
+    where: {
+      ...queryConfigWhere,
+      type: errorEnum.JE,
+    },
+  });
+
+  return {
+    current,
+    size,
+    total,
+    records: records.map(({ errorId, timeStamp, originUrl, ...rest }) => ({
+      key: errorId,
+      date: dayjs(timeStamp).format(timeFormat),
+      originUrl,
+      count: getErrorCount('errorId', errorId, records),
+      ...rest,
+    })),
+  };
+}
 /**
  * @description: 获取http请求错误信息（做成表格）
  */
@@ -168,7 +208,7 @@ export async function getHttpErrorData_s(...args: number[]) {
       key: errorId,
       date: dayjs(timeStamp).format(timeFormat),
       requestUrl,
-      count: getResourceErrorCount(requestUrl, records),
+      count: getErrorCount('requestUrl', requestUrl, records),
       ...rest,
     })),
   };
@@ -210,7 +250,7 @@ export async function getResourceErrorData_s(...args: number[]) {
       date: dayjs(timeStamp).format(timeFormat),
       originUrl,
       requestUrl,
-      count: getResourceErrorCount(requestUrl, records),
+      count: getErrorCount('requestUrl', requestUrl, records),
     })),
   };
 }

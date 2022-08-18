@@ -293,41 +293,43 @@ const HttpMonitor: FC = (): ReactElement => {
           width: 'calc(100% - 509px)',
         }}
       >
-        <PubHeader handleSelectChange={handleSelectChange} pastDays={pastDays} />
-        <Card title={tabMap[activeKey].cartTitle} css={{ width: '100%' }}>
-          {(() => {
-            const { getChartOrTable, dataType } = tabMap[activeKey];
+        <div css={{ marginRight: '32px' }}>
+          <PubHeader handleSelectChange={handleSelectChange} pastDays={pastDays} />
+          <Card title={tabMap[activeKey].cartTitle} css={{ width: '100%' }}>
+            {(() => {
+              const { getChartOrTable, dataType } = tabMap[activeKey];
 
-            return activeListItemInfo?.[dataType] && loading === false ? (
-              getChartOrTable(activeListItemInfo[dataType], loading)
-            ) : (
-              <Spin tip="图表加载中..." spinning={loading} size="large">
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  css={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '175px' }}
-                />
-              </Spin>
-            );
-          })()}
-        </Card>
-        <Card
-          title="API链路追踪"
-          css={{
-            flex: '1',
-            width: '100%',
-            '.ant-table-content': {
-              ...commonStyles.scroll(),
-            },
-          }}
-        >
-          <PubTable
-            getTableData={getAllHttpInfos.bind(null, pastDays)}
-            columns={allHttpInfoTableColumns}
-            storage={tableStorage}
-            reduxMark={reducerEnum.HM}
-            ref={tableRef}
-          />
-        </Card>
+              return activeListItemInfo?.[dataType] && loading === false ? (
+                getChartOrTable(activeListItemInfo[dataType], loading)
+              ) : (
+                <Spin tip="图表加载中..." spinning={loading} size="large">
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    css={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '175px' }}
+                  />
+                </Spin>
+              );
+            })()}
+          </Card>
+          <Card
+            title="API链路追踪"
+            css={{
+              flex: '1',
+              width: '100%',
+              '.ant-table-content': {
+                ...commonStyles.scroll(),
+              },
+            }}
+          >
+            <PubTable
+              getTableData={getAllHttpInfos.bind(null, pastDays)}
+              columns={allHttpInfoTableColumns}
+              storage={tableStorage}
+              reduxMark={reducerEnum.HM}
+              ref={tableRef}
+            />
+          </Card>
+        </div>
       </main>
     </section>
   );

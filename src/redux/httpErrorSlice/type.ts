@@ -15,9 +15,14 @@ export interface IHttpErrorSum {
   back: number;
 }
 
+export interface IHttpErrorRate {
+  front: number;
+  back: number;
+}
+
 export interface IHttpErrorCardData {
   errorSum: IHttpErrorSum;
-  errorRate: IHttpErrorSum;
+  errorRate: IHttpErrorRate;
 }
 
 export interface IHttpErrorChartData {
