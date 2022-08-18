@@ -53,7 +53,7 @@ const ResourcesError: FC = (): ReactElement => {
   );
   const [pastDays, setPastDays] = useCallbackState<string>(reduxPastDays);
   const dispatch = useAppDispatch();
-  const getDecimal = (v1: number, v2: number) => (v2 === 0 ? 0 : Math.round((v1 / v2) * 100) / 100);
+  const getDecimal = (v1: number, v2: number) => (v2 === 0 ? 0 : Math.round((v1 / v2) * 10000) / 100);
   const { loading: resourceErrorCountLoading, run: getResourceErrorCountRun } = useRequest(getResourceErrorCount, {
     manual: true,
     onSuccess(res) {
@@ -202,7 +202,7 @@ const ResourcesError: FC = (): ReactElement => {
   ];
 
   return (
-    <div css={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div css={{ marginRight: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <PubHeader handleSelectChange={handleChange} pastDays={pastDays} />
       <PubTabs tabs={tabs} onChange={(activeKey: string) => {}} />
       <PubTable

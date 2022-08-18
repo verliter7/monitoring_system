@@ -245,11 +245,13 @@ export default class UserVitals {
   recordNextPage = (): void => {
     // 记录前一个页面的页面停留时间
     const time = Date.now();
+    const originUrl = window.location.href.split('?')[0].replace('/#', '');
+
     this.routeList[this.routeList.length - 1].endTime = time;
     this.routeList[this.routeList.length - 1].duration = time - this.routeList[this.routeList.length - 1].startTime;
     // 推一个新的页面停留记录
     this.routeList.push({
-      ...{ url: window.location.pathname, startTime: time, duration: 0, endTime: 0 },
+      ...{ originUrl, startTime: time, duration: 0, endTime: 0 },
     });
     this.metrics.set(metricsName.RD, this.routeList);
   };
@@ -258,8 +260,10 @@ export default class UserVitals {
     // 第一次进入页面时,记录
     window.addEventListener('load', () => {
       const time = Date.now();
+      const originUrl = window.location.href.split('?')[0].replace('/#', '');
+
       this.routeList.push({
-        ...{ url: window.location.pathname, startTime: time, duration: 0, endTime: 0 },
+        ...{ originUrl, startTime: time, duration: 0, endTime: 0 },
       });
     });
     // 单页面应用触发 replaceState 时的上报

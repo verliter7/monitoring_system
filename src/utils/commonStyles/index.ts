@@ -10,7 +10,6 @@ const styleObject = {
     textOverflow: 'ellipsis',
   },
   scroll: (axis?: 'X' | 'Y') => ({
-    [`overflow${axis ? `${axis}` : ''}`]: 'overlay',
     [`overflow${axis ? `${axis}` : ''}`]: 'auto',
   }),
 };

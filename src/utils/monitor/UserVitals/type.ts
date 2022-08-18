@@ -64,7 +64,7 @@ export interface OriginInformation {
 }
 
 export interface routerList {
-  url: string;
+  originUrl: string;
   startTime: number;
   endTime: number;
   duration: number;

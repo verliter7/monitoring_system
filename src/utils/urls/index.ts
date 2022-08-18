@@ -1,6 +1,7 @@
 const api = {
   getErrorCount: '/error/count', // 获取错误数量
-  getHttpErrorData: '/error/getHttpErrorData', // 获取错误数量
+  getJsErrorData: '/error/getJsErrorData', // 获取js错误信息
+  getHttpErrorData: '/error/getHttpErrorData', // 获取http错误信息
   getResourceErrorData: '/error/getResourceErrorData', // 获取资源加载错误数据
   getResourceCount: '/resource/getResourceCount', // 获取资源加载数据
   getHttpSuccessRate: '/http/getHttpSuccessRate', // 获取http请求成功率数据
