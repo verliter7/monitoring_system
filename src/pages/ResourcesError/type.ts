@@ -16,7 +16,6 @@ export interface IResourcesBackErrorRateData {
 export interface IResourceErrorRecord {
   key: string;
   date: string;
-  originUrl: string;
   requestUrl: string;
   count: number;
 }

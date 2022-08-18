@@ -1,7 +1,7 @@
 /* @jsxImportSource @emotion/react */
 import { forwardRef, memo, useImperativeHandle, useRef, useState } from 'react';
 import { Table } from 'antd';
-import { useMount } from '@/hooks';
+import { useMount, useUpdateEffect } from '@/hooks';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import type { ReactElement } from 'react';
 import type { IBaseTable, IBaseTableRef, IGetTableDataConfig, IPagination, ITableData } from './type';
@@ -16,7 +16,7 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
       getTableData,
       storage,
       reduxMark,
-      outerTableData = {} as ITableData,
+      outerTableData,
       showSizeChanger = true,
       position = ['bottomCenter'],
       pageSize = defaultSize,
@@ -108,6 +108,13 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
       // reduxTableData.records.length判断redux是否有表格数据
       getTableData && !reduxTableData.records.length && updateTableData();
     });
+
+    // 如果不写这里，在http监控的Msg表格中，切换表格页时，点击其他item项会出现不刷新的bug
+    // 因为切页导致tableData有数据然后finalTableData = tableData 从而导致点击其他item项表格不刷新的bug
+    // const finalTableData: ITableData = reduxTableData ? reduxTableData : tableData ? tableData : outerTableData;
+    useUpdateEffect(() => {
+      setTableData(void 0);
+    }, [outerTableData]);
 
     //将方法挂载到ref上，调用此公共组件的父组件都可以调用
     useImperativeHandle(ref, () => ({

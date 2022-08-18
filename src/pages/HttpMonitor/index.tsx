@@ -179,6 +179,8 @@ const HttpMonitor: FC = (): ReactElement => {
       ? tabMap[tabKey].content(listItemNames, allListItemInfo[activeKey], activeListItemInfo, handleListItemClick)
       : null;
   };
+  // 防止组件无关表格的刷新，导致表格不必要的刷新
+  const getAllHttpInfosBind = useCallback(getAllHttpInfos.bind(null, pastDays), [pastDays]);
   const tabs: ITab[] = [
     {
       tab: '成功率',
@@ -322,7 +324,7 @@ const HttpMonitor: FC = (): ReactElement => {
             }}
           >
             <PubTable
-              getTableData={getAllHttpInfos.bind(null, pastDays)}
+              getTableData={getAllHttpInfosBind}
               columns={allHttpInfoTableColumns}
               storage={tableStorage}
               reduxMark={reducerEnum.HM}

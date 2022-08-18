@@ -20,20 +20,9 @@ const columns: Record<string, any>[] = [
     title: '发生时间',
     dataIndex: 'date',
     key: 'date',
-    sorter: (a: IHttpErrorRecord, b: IHttpErrorRecord) => {
+    sorter: (b: IHttpErrorRecord, a: IHttpErrorRecord) => {
       return new Date(a.date).getTime() - new Date(b.date).getTime();
     },
-  },
-  {
-    title: '错误数',
-    dataIndex: 'count',
-    key: 'count',
-    sorter: (a: IHttpErrorRecord, b: IHttpErrorRecord) => a.count - b.count,
-  },
-  {
-    title: '页面',
-    dataIndex: 'originUrl',
-    key: 'originUrl',
   },
   {
     title: '请求地址',
@@ -41,25 +30,10 @@ const columns: Record<string, any>[] = [
     key: 'requestUrl',
   },
   {
-    title: '请求方式',
-    dataIndex: 'method',
-    key: 'method',
-  },
-  {
-    title: '状态码',
-    dataIndex: 'status',
-    key: 'status',
-  },
-  {
-    title: '响应信息',
-    dataIndex: 'httpMessage',
-    key: 'httpMessage',
-  },
-  {
-    title: '请求耗时',
-    dataIndex: 'duration',
-    key: 'duration',
-    sorter: (a: IHttpErrorRecord, b: IHttpErrorRecord) => a.duration - b.duration,
+    title: '错误数',
+    dataIndex: 'count',
+    key: 'count',
+    sorter: (b: IHttpErrorRecord, a: IHttpErrorRecord) => a.count - b.count,
   },
 ];
 const HttpError: FC = (): ReactElement => {
@@ -140,6 +114,7 @@ const HttpError: FC = (): ReactElement => {
       });
     });
   }, []);
+  const getHttpErrorDataBind = useCallback(getHttpErrorData.bind(null, pastDays), [pastDays]);
 
   const tabs: ITab[] = [
     {
@@ -222,7 +197,7 @@ const HttpError: FC = (): ReactElement => {
       <PubTabs tabs={tabs} onChange={(activeKey: string) => {}} />
       <PubTable
         columns={columns}
-        getTableData={getHttpErrorData.bind(null, pastDays)}
+        getTableData={getHttpErrorDataBind}
         storage={tableStorage}
         reduxMark={reducerEnum.HE}
         ref={tableRef}
