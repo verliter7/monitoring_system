@@ -1,11 +1,11 @@
 /* @jsxImportSource @emotion/react */
 import { useCallback, useRef } from 'react';
-import { Card, Select } from 'antd';
+import { Card } from 'antd';
 import PubTabs from '@/public/PubTabs';
 import PubTable from '@/public/PubTable';
 import PubHeader from '@/public/PubHeader';
+import PubErrorLine from '@/public/PubErrorLine';
 import { useCallbackState, useMount, useRequest, useUnmount } from '@/hooks';
-import ErrorCountLine from './ErrorCountLine';
 import { getResourceErrorCount, getResourceErrorData } from './service';
 import { useAppSelector, useAppDispatch } from '@/redux/hooks';
 import { cardStorage, chartStorage, pastDaysStorage, tableStorage } from '@/redux/resourceErrorSlice';
@@ -54,7 +54,7 @@ const ResourcesError: FC = (): ReactElement => {
   const [pastDays, setPastDays] = useCallbackState<string>(reduxPastDays);
   const dispatch = useAppDispatch();
   const getDecimal = (v1: number, v2: number) => (v2 === 0 ? 0 : Math.round((v1 / v2) * 100) / 100);
-  const { loading: resourceErrorCountLoading, run: getResourceErrorCountsRun } = useRequest(getResourceErrorCount, {
+  const { loading: resourceErrorCountLoading, run: getResourceErrorCountRun } = useRequest(getResourceErrorCount, {
     manual: true,
     onSuccess(res) {
       const {
@@ -114,7 +114,7 @@ const ResourcesError: FC = (): ReactElement => {
     setPastDays(value, () => {
       const { updateTableData, current, size } = tableRef.current as IBaseTableRef;
 
-      getResourceErrorCountsRun(value);
+      getResourceErrorCountRun(value);
       updateTableData({
         current,
         size,
@@ -124,7 +124,7 @@ const ResourcesError: FC = (): ReactElement => {
 
   useMount(() => {
     // backErrorCountData.length !== 0 代表数据已经缓存到redux上
-    backErrorCountData.length === 0 && getResourceErrorCountsRun(pastDays);
+    backErrorCountData.length === 0 && getResourceErrorCountRun(pastDays);
   });
 
   useUnmount(() => {
@@ -139,7 +139,7 @@ const ResourcesError: FC = (): ReactElement => {
       unit: '',
       content: (
         <Card>
-          <ErrorCountLine
+          <PubErrorLine
             config={{
               meta: {
                 errorCount: {
@@ -166,7 +166,7 @@ const ResourcesError: FC = (): ReactElement => {
       bottomCenter: errorRate.front,
       unit: '%',
       content: (
-        <ErrorCountLine
+        <PubErrorLine
           config={{
             meta: {
               errorRate: {
@@ -204,17 +204,12 @@ const ResourcesError: FC = (): ReactElement => {
   return (
     <div css={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <PubHeader handleSelectChange={handleChange} pastDays={pastDays} />
-      <PubTabs
-        tabs={tabs}
-        onChange={(activeKey: string) => {
-          console.log(activeKey);
-        }}
-      />
+      <PubTabs tabs={tabs} onChange={(activeKey: string) => {}} />
       <PubTable
         columns={columns}
         getTableData={getResourceErrorData.bind(null, pastDays)}
         storage={tableStorage}
-        reduxMark={reducerEnum.RS}
+        reduxMark={reducerEnum.RE}
         ref={tableRef}
       />
     </div>

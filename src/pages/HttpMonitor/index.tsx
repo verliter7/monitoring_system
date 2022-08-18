@@ -39,6 +39,11 @@ const allHttpInfoTableColumns = [
     key: 'originUrl',
   },
   {
+    title: '请求方式',
+    dataIndex: 'method',
+    key: 'method',
+  },
+  {
     title: 'HTTP状态码',
     dataIndex: 'status',
     key: 'status',
@@ -228,13 +233,9 @@ const HttpMonitor: FC = (): ReactElement => {
         display: 'flex',
         gap: '20px',
         position: 'relative',
-        height: 'calc(100vh - 112px)',
-        ...commonStyles.scroll('Y'),
         overflowX: 'hidden',
 
         '& > .ant-card': {
-          position: 'sticky',
-          top: '0',
           width: '417px',
         },
       }}
@@ -286,6 +287,9 @@ const HttpMonitor: FC = (): ReactElement => {
           flexDirection: 'column',
           flex: '1',
           justifyContent: 'space-between',
+          ...commonStyles.scroll('Y'),
+          overflowX: 'hidden',
+          height: 'calc(100vh - 112px)',
           width: 'calc(100% - 509px)',
         }}
       >
