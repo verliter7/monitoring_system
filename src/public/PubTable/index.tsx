@@ -60,10 +60,10 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
       getTableData
         ? updateTableData(pageRef.current)
         : setTableData({
-            ...pageRef.current,
-            records: outerTableDataRef.current?.records?.slice((page - 1) * pageSize, page * pageSize) ?? [],
-            total: (outerTableDataRef.current?.total as number) ?? 0,
-          });
+          ...pageRef.current,
+          records: outerTableDataRef.current?.records?.slice((page - 1) * pageSize, page * pageSize) ?? [],
+          total: (outerTableDataRef.current?.total as number) ?? 0,
+        });
     };
 
     // 页码切换后更新表格数据
@@ -106,7 +106,7 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
     useMount(() => {
       // 有传getTableData就在表格组件里面请求数据，没有就在外面传入表格数据
       // reduxTableData.records.length判断redux是否有表格数据
-      getTableData && !reduxTableData.records.length && updateTableData();
+      getTableData && !reduxTableData?.records.length && updateTableData();
     });
 
     // 如果不写这里，在http监控的Msg表格中，切换表格页时，点击其他item项会出现不刷新的bug
