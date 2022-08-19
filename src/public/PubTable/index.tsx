@@ -105,8 +105,8 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
 
     useMount(() => {
       // 有传getTableData就在表格组件里面请求数据，没有就在外面传入表格数据
-      // reduxTableData.records.length判断redux是否有表格数据
-      getTableData && !reduxTableData.records.length && updateTableData();
+      // reduxTableData.size不为零证明已经发起过请求
+      getTableData && !reduxTableData.size && updateTableData();
     });
 
     // 如果不写这里，在http监控的Msg表格中，切换表格页时，点击其他item项会出现不刷新的bug

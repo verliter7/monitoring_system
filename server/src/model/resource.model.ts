@@ -8,6 +8,7 @@ const ResourceModel = seq.define('resource', {
     type: DataTypes.STRING,
     primaryKey: true,
     allowNull: false,
+    unique: true,
     comment: '每个静态资源id',
   },
   requestUrl: {

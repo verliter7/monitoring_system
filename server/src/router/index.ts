@@ -1,4 +1,5 @@
 import Router from 'koa-router';
+import userRouter from './user.router';
 import errorRouter from './error.router';
 import httpRouter from './http.router';
 import performanceRouter from './performance.router';
@@ -9,6 +10,7 @@ import type { DefaultState, Context } from 'koa';
 
 const router = new Router<DefaultState, Context>({ prefix: '/api/v1' });
 
+router.use(userRouter.routes());
 router.use(errorRouter.routes());
 router.use(httpRouter.routes());
 router.use(performanceRouter.routes());

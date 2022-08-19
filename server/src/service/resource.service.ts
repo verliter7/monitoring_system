@@ -1,13 +1,14 @@
 import { Op } from 'sequelize';
 import ResourceModel from '@/model/resource.model';
+import UserModel from '@/model/user.model';
 import type { Optional } from 'sequelize/types';
 
 /**
  * @description: 向数据库插入一条静态资源请求信息
  * @param resourceInfo 静态资源请求信息
  */
-export async function createResource_s(resourceInfo: Optional<any, string>) {
-  const isExisted = !!(await findInfo(resourceInfo.resourceId));
+export async function createResource_s(aid: string, resourceInfo: Optional<any, string>) {
+  const isExisted = (await findInfo(resourceInfo.resourceId)) && (await findAid(aid));
   resourceInfo.timeStamp = parseInt(resourceInfo.timeStamp);
 
   return isExisted ? null : await ResourceModel.create(resourceInfo);
@@ -18,13 +19,23 @@ export async function createResource_s(resourceInfo: Optional<any, string>) {
  * @param resourceId 每一个静态资源的id
  */
 export async function findInfo(resourceId: string) {
-  const res = await ResourceModel.findOne({
+  const count = await ResourceModel.count({
     where: {
       resourceId,
     },
   });
 
-  return res;
+  return !!count;
+}
+
+export async function findAid(aid: string) {
+  const count = await UserModel.count({
+    where: {
+      aid,
+    },
+  });
+
+  return !!count;
 }
 
 const oneDayHours = 24;
@@ -34,7 +45,7 @@ const oneDayTime = oneDayHours * oneHourMilliseconds;
 /**
  * @description: 获取静态资源请求数量
  */
-export async function getResourceCount_s() {
+export async function getResourceCount_s(aid: string) {
   const now = Date.now();
   const queryConfigWhere = {
     timeStamp: {
@@ -44,7 +55,10 @@ export async function getResourceCount_s() {
   };
 
   const total = await ResourceModel.count({
-    where: queryConfigWhere,
+    where: {
+      aid,
+      ...queryConfigWhere,
+    },
   });
 
   return total;

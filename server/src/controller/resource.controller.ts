@@ -3,11 +3,12 @@ import type { Context } from 'koa';
 
 export async function createResource_c(ctx: Context) {
   const resourceInfos = ctx.request.body;
+  const { aid } = ctx.state;
 
   try {
     for (const r of resourceInfos) {
       r.ip = ctx.ip;
-      await createResource_s(r);
+      await createResource_s(aid, r);
     }
 
     ctx.defaultResponse();
@@ -19,8 +20,10 @@ export async function createResource_c(ctx: Context) {
 }
 
 export async function getResourceCount_c(ctx: Context) {
+  const { aid } = ctx.state;
+
   try {
-    const resourceCount = await getResourceCount_s();
+    const resourceCount = await getResourceCount_s(aid);
 
     ctx.defaultResponse({
       code: 200,

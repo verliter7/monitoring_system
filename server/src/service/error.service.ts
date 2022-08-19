@@ -1,6 +1,7 @@
 import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 import { uniq } from '@/utils';
+import UserModel from '@/model/user.model';
 import ErrorModel from '@/model/error.model';
 import ResourceModel from '@/model/resource.model';
 import HttpModel from '@/model/http.model';
@@ -11,21 +12,31 @@ import type { Model, Optional } from 'sequelize/types';
  * @description: 向数据库插入一条错误信息
  * @param errorInfo 错误信息
  */
-export async function createError_s(errorInfo: Optional<any, string>) {
-  const isExisted = !!(await findErrorInfo(errorInfo.errorId));
+export async function createError_s(aid: string, errorInfo: Optional<any, string>) {
+  const isExisted = (await findErrorInfo(errorInfo.errorId)) && (await findAid(aid));
   errorInfo.timeStamp = parseInt(errorInfo.timeStamp);
 
   return isExisted ? null : await ErrorModel.create(errorInfo);
 }
 
 export async function findErrorInfo(errorId: string) {
-  const res = await ErrorModel.findOne({
+  const count = await ErrorModel.count({
     where: {
       errorId,
     },
   });
 
-  return res;
+  return !!count;
+}
+
+export async function findAid(aid: string) {
+  const count = await UserModel.count({
+    where: {
+      aid,
+    },
+  });
+
+  return !!count;
 }
 
 export enum errorEnum {
@@ -59,12 +70,13 @@ const getQueryConfigWhere = (pastDays: number) => {
  * @description: 获取错误数量
  * @param type 错误类型
  */
-export async function getErrorCount_s(pastDays: number, type: ErrorType) {
+export async function getErrorCount_s(aid: string, pastDays: number, type: ErrorType) {
   const now = Date.now();
   const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.getDataValue('timeStamp'));
   const getQueryConfig = (type?: string) => {
     const config: Record<string, any> = {
       where: {
+        aid,
         type,
         timeStamp: {
           [Op.lt]: now,
@@ -128,16 +140,17 @@ export async function getErrorCount_s(pastDays: number, type: ErrorType) {
 /**
  * @description: 获取js请求错误信息（做成表格）
  */
-export async function getJsErrorData_s(...args: number[]) {
-  const [pastDays, current, size] = args;
+export async function getJsErrorData_s(aid: string, ...rest: number[]) {
+  const [pastDays, current, size] = rest;
   const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const timeFormat = 'YYYY-MM-DD HH:mm:ss';
   const records = process(
     await ErrorModel.findAll({
       attributes: ['errorId', 'timeStamp', 'errorType', 'errorStack', 'errorMsg'],
       where: {
-        ...queryConfigWhere,
+        aid,
         type: errorEnum.JE,
+        ...queryConfigWhere,
       },
     }),
   );
@@ -168,16 +181,17 @@ export async function getJsErrorData_s(...args: number[]) {
 /**
  * @description: 获取http请求错误信息（做成表格）
  */
-export async function getHttpErrorData_s(...args: number[]) {
-  const [pastDays, current, size] = args;
+export async function getHttpErrorData_s(aid: string, ...rest: number[]) {
+  const [pastDays, current, size] = rest;
   const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const timeFormat = 'YYYY-MM-DD HH:mm:ss';
   const records = process(
     await ErrorModel.findAll({
       attributes: ['errorId', 'timeStamp', 'requestUrl'],
       where: {
-        ...queryConfigWhere,
+        aid,
         type: errorEnum.HE,
+        ...queryConfigWhere,
       },
     }),
   );
@@ -209,16 +223,17 @@ export async function getHttpErrorData_s(...args: number[]) {
 /**
  * @description: 获取静态资源加载错误信息（做成表格）
  */
-export async function getResourceErrorData_s(...args: number[]) {
-  const [pastDays, current, size] = args;
+export async function getResourceErrorData_s(aid: string, ...rest: number[]) {
+  const [pastDays, current, size] = rest;
   const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const timeFormat = 'YYYY-MM-DD HH:mm:ss';
   const records = process(
     await ErrorModel.findAll({
       attributes: ['errorId', 'timeStamp', 'requestUrl'],
       where: {
-        ...queryConfigWhere,
+        aid,
         type: errorEnum.RE,
+        ...queryConfigWhere,
       },
     }),
   );
@@ -231,8 +246,9 @@ export async function getResourceErrorData_s(...args: number[]) {
       date: dayjs(timeStamp).format(timeFormat),
       count: await ErrorModel.count({
         where: {
-          ...queryConfigWhere,
+          aid,
           requestUrl,
+          ...queryConfigWhere,
         },
       }),
       requestUrl,
