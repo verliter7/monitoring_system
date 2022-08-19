@@ -8,7 +8,7 @@ import type { Optional } from 'sequelize/types';
  * @param resourceInfo 静态资源请求信息
  */
 export async function createResource_s(aid: string, resourceInfo: Optional<any, string>) {
-  const isExisted = (await findInfo(resourceInfo.resourceId)) && (await findAid(aid));
+  const isExisted = (await findResourceInfo(resourceInfo.resourceId)) && (await findAid(aid));
   resourceInfo.timeStamp = parseInt(resourceInfo.timeStamp);
 
   return isExisted ? null : await ResourceModel.create(resourceInfo);
@@ -18,7 +18,7 @@ export async function createResource_s(aid: string, resourceInfo: Optional<any, 
  * @description: 在数据库中查找某个静态资源请求
  * @param resourceId 每一个静态资源的id
  */
-export async function findInfo(resourceId: string) {
+export async function findResourceInfo(resourceId: string) {
   const count = await ResourceModel.count({
     where: {
       resourceId,
@@ -28,6 +28,10 @@ export async function findInfo(resourceId: string) {
   return !!count;
 }
 
+/**
+ * @description: 查找用户表是否存在该aid
+ * @param aid 应用id
+ */
 export async function findAid(aid: string) {
   const count = await UserModel.count({
     where: {

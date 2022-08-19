@@ -27,7 +27,7 @@ const useLazyPermissionsRouter = (
 
     return {
       pathname,
-      Component: permissionSet ? Component : NotAuthorization,
+      Component: permissionSet.has(pathname) ? Component : NotAuthorization,
     };
   });
 };

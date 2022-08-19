@@ -19,6 +19,10 @@ export async function createError_s(aid: string, errorInfo: Optional<any, string
   return isExisted ? null : await ErrorModel.create(errorInfo);
 }
 
+/**
+ * @description: 通过errorId查找改条错误是否已经上报过
+ * @param errorId 错误id
+ */
 export async function findErrorInfo(errorId: string) {
   const count = await ErrorModel.count({
     where: {
@@ -29,6 +33,10 @@ export async function findErrorInfo(errorId: string) {
   return !!count;
 }
 
+/**
+ * @description: 查找用户表是否存在该aid
+ * @param aid 应用id
+ */
 export async function findAid(aid: string) {
   const count = await UserModel.count({
     where: {

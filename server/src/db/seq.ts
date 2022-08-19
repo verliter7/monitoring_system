@@ -1,8 +1,10 @@
 import { Sequelize } from 'sequelize';
+import env from '@/config/config.default';
 
-const seq = new Sequelize('monitoring_system', 'root', 'Qz200297.', {
-  host: 'localhost',
-  port: 3306,
+const { MYSQL_DB, MYSQL_USER, MYSQL_PWD, MYSQL_HOST, MYSQL_PORT } = env as Record<string, any>;
+const seq = new Sequelize(MYSQL_DB, MYSQL_USER, MYSQL_PWD, {
+  host: MYSQL_HOST,
+  port: MYSQL_PORT,
   dialect: 'mysql',
   pool: {
     max: 5,
@@ -11,8 +13,8 @@ const seq = new Sequelize('monitoring_system', 'root', 'Qz200297.', {
   },
   define: {
     charset: 'utf8',
-    timestamps: true
-  }
+    timestamps: true,
+  },
 });
 
 seq

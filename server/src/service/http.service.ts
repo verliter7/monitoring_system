@@ -1,6 +1,7 @@
 import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 import { getRandomStr, uniq } from '@/utils';
+import UserModel from '@/model/user.model';
 import HttpModel from '@/model/http.model';
 import ErrorModel from '@/model/error.model';
 import type { Model, Optional } from 'sequelize/types';
@@ -10,28 +11,32 @@ import type { Model, Optional } from 'sequelize/types';
  * @param httpInfo http请求信息
  */
 export async function createHttp_s(aid: string, httpInfo: Optional<any, string>) {
-  const isExisted = (await findInfo(httpInfo.httpId)) && (await findAid(aid));
+  const isExisted = (await findErrorInfo(httpInfo.httpId)) && (await findAid(aid));
   httpInfo.timeStamp = parseInt(httpInfo.timeStamp);
 
   return isExisted ? null : await HttpModel.create(httpInfo);
 }
 
 /**
- * @description: 在数据库中查找某个http请求
- * @param httpId 每一个http请求的id
+ * @description: 通过errorId查找改条错误是否已经上报过
+ * @param errorId 错误id
  */
-export async function findInfo(httpId: string) {
-  const count = await HttpModel.count({
+export async function findErrorInfo(errorId: string) {
+  const count = await ErrorModel.count({
     where: {
-      httpId,
+      errorId,
     },
   });
 
   return !!count;
 }
 
+/**
+ * @description: 查找用户表是否存在该aid
+ * @param aid 应用id
+ */
 export async function findAid(aid: string) {
-  const count = await HttpModel.count({
+  const count = await UserModel.count({
     where: {
       aid,
     },

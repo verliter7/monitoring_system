@@ -1,14 +1,7 @@
 import { EngineInstance } from '..';
 import { MetricsStore as UserMetricsStore, IMetrics, metricsName, BehaviorStore } from './store';
-import {
-  PageInformation,
-  customAnalyticsData,
-  httpMetrics,
-  behaviorStack,
-  OriginInformation,
-  routerList,
-} from './type';
-import { wrHistory, proxyHistory, proxyHash, proxyXmlHttp, proxyFetch, getOriginInfo } from './event';
+import { PageInformation, customAnalyticsData, behaviorStack, OriginInformation, routerList } from './type';
+import { wrHistory, proxyHistory, proxyHash, getOriginInfo } from './event';
 import { transportHandlerType, transportKind, transportType } from '../Transport';
 import DimensionInstance from '../DimensionInstance';
 import type { initOptions } from '..';
@@ -173,15 +166,15 @@ export default class UserVitals {
   // 初始化 PV 的获取以及返回 数据上报：页面加载完上报一次，跳转一次路由上报一次
   initPV = (): void => {
     const handler = () => {
-      const metrics = {
-        // 还有一些标识用户身份的信息，由项目使用方传入，任意拓展 eg:userId
-        // 创建时间
-        timestamp: new Date().getTime(),
-        // 页面信息
-        pageInfo: this.getPageInfo(),
-        // 用户来路
-        originInformation: getOriginInfo(),
-      } as IMetrics;
+      // const metrics = {
+      //   // 还有一些标识用户身份的信息，由项目使用方传入，任意拓展 eg:userId
+      //   // 创建时间
+      //   timestamp: new Date().getTime(),
+      //   // 页面信息
+      //   pageInfo: this.getPageInfo(),
+      //   // 用户来路
+      //   originInformation: getOriginInfo(),
+      // } as IMetrics;
       // this.userSendHandler(metrics);
       // 一般来说， PV 可以立即上报
     };
