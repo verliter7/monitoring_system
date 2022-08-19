@@ -50,7 +50,6 @@ export async function getErrorCount_c(ctx: Context) {
 export async function getJsErrorData_c(ctx: Context) {
   try {
     const { pastDays = 1, current, size } = ctx.query;
-    const { aid } = ctx.state;
 
     if (!current || !size) return ctx.defaultError({ code: 400, message: '缺少current或者size参数' });
 

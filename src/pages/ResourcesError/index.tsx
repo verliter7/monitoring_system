@@ -201,7 +201,7 @@ const ResourcesError: FC = (): ReactElement => {
   return (
     <div css={{ marginRight: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <PubHeader handleSelectChange={handleChange} pastDays={pastDays} />
-      <PubTabs tabs={tabs} onChange={(activeKey: string) => {}} />
+      <PubTabs tabs={tabs} onChange={(activeKey: string) => { }} />
       <PubTable
         columns={columns}
         getTableData={getResourceErrorDataBind}
