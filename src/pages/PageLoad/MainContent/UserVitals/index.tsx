@@ -5,12 +5,7 @@ import { getUservitalsData } from '../../service';
 import type { ITab } from '@/public/PubTabs/type';
 import { useRequest } from '@/hooks';
 import PubLine from '@/public/PubLine'
-
-interface IViewData {
-  timeStamp: string,
-  count: number,
-  category: 'PV' | 'UV'
-}
+import { IViewData, IPaintData } from './type'
 
 const UserVitals: FC = (): ReactElement => {
   const [paintData, setPaintData] = useState([]);
@@ -53,19 +48,28 @@ const UserVitals: FC = (): ReactElement => {
     },
   });
 
+  const getLastData = (index: number):  IPaintData => {
+    return paintData[paintData.length - index]
+  }
+
+  const getLastViewData = (index: number, type: 'PV'|'UV'): IViewData => {
+    const data = ViewData.filter(item => item.category === type)
+    return data[data.length - index]
+  }
+
   const tabs: ITab[] = [
     {
       title: 'PV/UV趋势图',
-      middle: 123,
-      bottomCenter: 233,
+      middle: getLastViewData(1, 'PV').count,
+      bottomCenter: getLastViewData(2, 'PV').count,
       unit: '',
       content: <PubLine paintData={ViewData} title="PV/UV" type='count' loading={loading} smooth={true} seriesField='category'/>,
     },
     {
       title: '页面停留时间',
-      middle: 4.05,
-      bottomCenter: 4.08,
-      unit: '',
+      middle: getLastData(1).duration,
+      bottomCenter: getLastData(2).duration,
+      unit: 's',
       content: <PubLine paintData={paintData} title="页面停留时间" type='duration' loading={loading} />,
     },
   ];
@@ -74,7 +78,7 @@ const UserVitals: FC = (): ReactElement => {
     <PubTabs
       tabs={tabs}
       onChange={(activeKey: string) => {
-        console.log(activeKey);
+        // console.log(activeKey);
       }}
     />
   );
