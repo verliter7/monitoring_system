@@ -8,6 +8,7 @@ const HttpModel = seq.define('http', {
     type: DataTypes.STRING,
     primaryKey: true,
     allowNull: false,
+    unique: true,
     comment: '每个http请求id',
   },
   requestUrl: {

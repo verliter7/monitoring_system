@@ -1,6 +1,7 @@
 import { extend, RequestMethod, ResponseError } from 'umi-request';
 import { message } from 'antd';
 import type { IHttpRequestConfig, IHttpReq, IcodeMap } from './type';
+import HandleLocalStorage from '../HandleLocalStorage';
 
 // Fetch永生
 /**
@@ -44,6 +45,21 @@ class HttpReq implements IHttpReq {
   };
 
   private constructor() {
+    // 全局请求拦截器
+    HttpReq.requestInstance.interceptors.request.use((url, options) => {
+      const { token } = HandleLocalStorage.get('userInfo');
+
+      return {
+        url,
+        options: {
+          ...options,
+          headers: {
+            authorization: token,
+          },
+          interceptors: true,
+        },
+      };
+    });
     // 全局响应拦截器
     HttpReq.requestInstance.interceptors.response.use(async (response): Promise<any> => {
       const { status }: { status: number } = response;

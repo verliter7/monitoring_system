@@ -1,5 +1,4 @@
 import { Result } from 'antd';
-import { commonStyles } from '@/utils';
 import type { FC, ReactElement } from 'react';
 
 const PageNotFound: FC = (): ReactElement => {

@@ -295,7 +295,7 @@ const HttpMonitor: FC = (): ReactElement => {
           width: 'calc(100% - 509px)',
         }}
       >
-        <div css={{ marginRight: '32px' }}>
+        <div css={{ display: 'flex', flexDirection: 'column', gap: '20px', marginRight: '32px' }}>
           <PubHeader handleSelectChange={handleSelectChange} pastDays={pastDays} />
           <Card title={tabMap[activeKey].cartTitle} css={{ width: '100%' }}>
             {(() => {

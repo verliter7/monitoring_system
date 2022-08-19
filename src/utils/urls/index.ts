@@ -1,4 +1,6 @@
 const api = {
+  register: '/user/register', // 注册
+  login: '/user/login', // 登录
   getErrorCount: '/error/count', // 获取错误数量
   getJsErrorData: '/error/getJsErrorData', // 获取js错误表格信息
   getHttpErrorData: '/error/getHttpErrorData', // 获取http错误信息

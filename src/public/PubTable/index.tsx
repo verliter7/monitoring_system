@@ -60,10 +60,10 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
       getTableData
         ? updateTableData(pageRef.current)
         : setTableData({
-          ...pageRef.current,
-          records: outerTableDataRef.current?.records?.slice((page - 1) * pageSize, page * pageSize) ?? [],
-          total: (outerTableDataRef.current?.total as number) ?? 0,
-        });
+            ...pageRef.current,
+            records: outerTableDataRef.current?.records?.slice((page - 1) * pageSize, page * pageSize) ?? [],
+            total: (outerTableDataRef.current?.total as number) ?? 0,
+          });
     };
 
     // 页码切换后更新表格数据
@@ -94,9 +94,9 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
 
     const pagination: IPagination = {
       position, // 分页器位置统一设置在bottomCenter
-      total: finalTableData?.total, // 数据总数
-      current: finalTableData?.current, // 当前页数，后台会默认第一页
-      pageSize: finalTableData?.size, // 每页条数
+      total: finalTableData.total, // 数据总数
+      current: finalTableData.current, // 当前页数，后台会默认第一页
+      pageSize: finalTableData.size, // 每页条数
       showQuickJumper: true, //直接跳转到某一页
       showSizeChanger, //是否展示 pageSize 切换器
       onChange, // 页码改变的回调，参数是改变后的页码及每页条数
@@ -105,8 +105,8 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
 
     useMount(() => {
       // 有传getTableData就在表格组件里面请求数据，没有就在外面传入表格数据
-      // reduxTableData.records.length判断redux是否有表格数据
-      getTableData && !reduxTableData?.records.length && updateTableData();
+      // reduxTableData.size不为零证明已经发起过请求
+      getTableData && !reduxTableData.size && updateTableData();
     });
 
     // 如果不写这里，在http监控的Msg表格中，切换表格页时，点击其他item项会出现不刷新的bug
@@ -125,7 +125,7 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
     return (
       <Table
         scroll={{ x: 'max-content' }}
-        dataSource={finalTableData?.records}
+        dataSource={finalTableData.records}
         columns={tableColumns}
         pagination={pagination}
         loading={{ tip: '加载中...', spinning: loading, size: 'large' }}

@@ -9,8 +9,8 @@ import type { Model, Optional } from 'sequelize/types';
  * @description: 向数据库插入一条http请求信息
  * @param httpInfo http请求信息
  */
-export async function createHttp_s(httpInfo: Optional<any, string>) {
-  const isExisted = !!(await findInfo(httpInfo.httpId));
+export async function createHttp_s(aid: string, httpInfo: Optional<any, string>) {
+  const isExisted = (await findInfo(httpInfo.httpId)) && (await findAid(aid));
   httpInfo.timeStamp = parseInt(httpInfo.timeStamp);
 
   return isExisted ? null : await HttpModel.create(httpInfo);
@@ -21,13 +21,23 @@ export async function createHttp_s(httpInfo: Optional<any, string>) {
  * @param httpId 每一个http请求的id
  */
 export async function findInfo(httpId: string) {
-  const res = await HttpModel.findOne({
+  const count = await HttpModel.count({
     where: {
       httpId,
     },
   });
 
-  return res;
+  return !!count;
+}
+
+export async function findAid(aid: string) {
+  const count = await HttpModel.count({
+    where: {
+      aid,
+    },
+  });
+
+  return !!count;
 }
 
 const oneDayHours = 24;
@@ -52,20 +62,21 @@ const getQueryConfigWhere = (pastDays: number) => {
 /**
  * @description: 获取http调用成功率信息
  */
-export async function getHttpSuccessRate_s(pastDays: number) {
+export async function getHttpSuccessRate_s(aid: string, pastDays: number) {
   const { now, queryConfigWhere } = getQueryConfigWhere(pastDays);
   const successedHttpInfos = process(
     await HttpModel.findAll({
       attributes: ['timeStamp', 'requestUrl', 'status'],
-      where: queryConfigWhere,
+      where: { aid, ...queryConfigWhere },
     }),
   );
   const failedHttpInfos = process(
     await ErrorModel.findAll({
       attributes: ['timeStamp', 'requestUrl', 'status'],
       where: {
-        ...queryConfigWhere,
+        aid,
         type: 'httpError',
+        ...queryConfigWhere,
       },
     }),
   );
@@ -98,20 +109,21 @@ export async function getHttpSuccessRate_s(pastDays: number) {
 /**
  * @description: 获取httpMsg聚类信息
  */
-export async function getHttpMsgCluster_s(pastDays: number) {
+export async function getHttpMsgCluster_s(aid: string, pastDays: number) {
   const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const successedHttpInfos = process(
     await HttpModel.findAll({
       attributes: ['requestUrl', 'status', 'httpMessage'],
-      where: queryConfigWhere,
+      where: { aid, ...queryConfigWhere },
     }),
   );
   const failedHttpInfos = process(
     await ErrorModel.findAll({
       attributes: ['requestUrl', 'status', 'httpMessage'],
       where: {
-        ...queryConfigWhere,
+        aid,
         type: 'httpError',
+        ...queryConfigWhere,
       },
     }),
   );
@@ -146,17 +158,17 @@ type TimeConsumeInfo = Record<
 /**
  * @description: 获取http耗时信息
  */
-export async function getHttpTimeConsume_s(pastDays: number, type: 'success' | 'fail') {
+export async function getHttpTimeConsume_s(aid: string, pastDays: number, type: 'success' | 'fail') {
   const { now, queryConfigWhere } = getQueryConfigWhere(pastDays);
   const httpInfos = process(
     type === 'success'
       ? await HttpModel.findAll({
           attributes: ['timeStamp', 'requestUrl', 'duration'],
-          where: queryConfigWhere,
+          where: { aid, ...queryConfigWhere },
         })
       : await ErrorModel.findAll({
           attributes: ['timeStamp', 'requestUrl', 'duration'],
-          where: { ...queryConfigWhere, type: 'httpError' },
+          where: { aid, type: 'httpError', ...queryConfigWhere },
         }),
   );
 
@@ -205,8 +217,8 @@ export async function getHttpTimeConsume_s(pastDays: number, type: 'success' | '
  * @description: 获取所有http请求信息（做成表格）
  */
 
-export async function getAllHttpInfos_s(...args: number[]) {
-  const [pastDays, current, size] = args;
+export async function getAllHttpInfos_s(aid: string, ...rest: number[]) {
+  const [pastDays, current, size] = rest;
   const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const defaultQueryConfig = {
     attributes: ['timeStamp', 'originUrl', 'requestUrl', 'method', 'status', 'httpMessage', 'duration'],
@@ -216,13 +228,14 @@ export async function getAllHttpInfos_s(...args: number[]) {
   };
   const httpModelQueryConfig: Record<string, any> = {
     ...defaultQueryConfig,
-    where: queryConfigWhere,
+    where: { aid, ...queryConfigWhere },
   };
   const errorModelQueryConfig: Record<string, any> = {
     ...defaultQueryConfig,
     where: {
-      ...queryConfigWhere,
+      aid,
       type: 'httpError',
+      ...queryConfigWhere,
     },
   };
   const total = (await HttpModel.count(httpModelQueryConfig)) + (await ErrorModel.count(errorModelQueryConfig));

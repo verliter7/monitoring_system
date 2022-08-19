@@ -10,11 +10,12 @@ import type { ErrorType } from '@/service/error.service';
 
 export async function createError_c(ctx: Context) {
   const errorInfos = ctx.request.body;
+  const { aid } = ctx.state;
 
   try {
     for (const e of errorInfos) {
       e.ip = ctx.ip;
-      await createError_s(e);
+      await createError_s(aid, e);
     }
     ctx.defaultResponse();
   } catch (err) {
@@ -27,10 +28,11 @@ export async function createError_c(ctx: Context) {
 export async function getErrorCount_c(ctx: Context) {
   try {
     const { pastDays = 1, errorType } = ctx.query;
+    const { aid } = ctx.state;
 
     if (!errorType) return ctx.defaultError({ code: 400, message: '缺少errorType参数' });
 
-    const errorCount = await getErrorCount_s(Number(pastDays), errorType as ErrorType);
+    const errorCount = await getErrorCount_s(aid, Number(pastDays), errorType as ErrorType);
 
     ctx.defaultResponse({
       code: 200,
@@ -48,10 +50,10 @@ export async function getErrorCount_c(ctx: Context) {
 export async function getJsErrorData_c(ctx: Context) {
   try {
     const { pastDays = 1, current, size } = ctx.query;
-    console.log('收到了：', current, size, 666)
+
     if (!current || !size) return ctx.defaultError({ code: 400, message: '缺少current或者size参数' });
 
-    const jsErrors = await getJsErrorData_s(...[pastDays, current, size].map(Number));
+    const jsErrors = await getJsErrorData_s(aid, ...[pastDays, current, size].map(Number));
     ctx.defaultResponse({
       code: 200,
       data: jsErrors,
@@ -67,10 +69,11 @@ export async function getJsErrorData_c(ctx: Context) {
 export async function getResourceErrorData_c(ctx: Context) {
   try {
     const { pastDays = 1, current, size } = ctx.query;
+    const { aid } = ctx.state;
 
     if (!current || !size) return ctx.defaultError({ code: 400, message: '缺少current或者size参数' });
 
-    const resourcesErrors = await getResourceErrorData_s(...[pastDays, current, size].map(Number));
+    const resourcesErrors = await getResourceErrorData_s(aid, ...[pastDays, current, size].map(Number));
     ctx.defaultResponse({
       code: 200,
       data: resourcesErrors,
@@ -86,10 +89,11 @@ export async function getResourceErrorData_c(ctx: Context) {
 export async function getHttpErrorData_c(ctx: Context) {
   try {
     const { pastDays = 1, current, size } = ctx.query;
+    const { aid } = ctx.state;
 
     if (!current || !size) return ctx.defaultError({ code: 400, message: '缺少current或者size参数' });
 
-    const httpsErrors = await getHttpErrorData_s(...[pastDays, current, size].map(Number));
+    const httpsErrors = await getHttpErrorData_s(aid, ...[pastDays, current, size].map(Number));
     ctx.defaultResponse({
       code: 200,
       data: httpsErrors,
