@@ -4,6 +4,7 @@ import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [
     react({
       babel: {
@@ -43,7 +44,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8081', // 接口基地址
+        target: 'http://localhost:55456', // 接口基地址
         changeOrigin: true,
       },
     },

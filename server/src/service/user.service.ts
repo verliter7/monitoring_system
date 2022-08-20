@@ -1,9 +1,7 @@
 import jwt from 'jsonwebtoken';
-import env from '@/config/config.default';
+import { JWT_SECRET } from '@/config/config.default';
 import UserModel from '@/model/user.model';
 import { getRandomStr } from '@/utils';
-
-const { JWT_SECRET } = env as Record<string, string>;
 
 // 创建用户
 export async function createUser(username: string, password: string) {
