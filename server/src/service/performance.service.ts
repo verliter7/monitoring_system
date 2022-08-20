@@ -76,7 +76,7 @@ export async function getPerformanceData_s(type: string) {
   let data;
   switch (type) {
     case 'timing':
-      data = PerformanceTimingModel.findAll();
+      data = PerformanceTimingModel.findAll({ limit: 348 });
       break;
     case 'paint':
       data = PerformancePaintModel.findAll();

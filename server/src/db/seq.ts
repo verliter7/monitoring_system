@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize';
 
-const seq = new Sequelize('monitoring_system', 'root', 'Qz200297.', {
+const seq = new Sequelize('test', 'root', '123456', {
   host: 'localhost',
   port: 3306,
   dialect: 'mysql',
