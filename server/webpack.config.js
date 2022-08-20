@@ -19,7 +19,6 @@ module.exports = {
       },
     ],
   },
-  target: 'node',
   externals: [nodeExternals()],
   externalsPresets: { node: true },
   plugins: [new CleanWebpackPlugin()],

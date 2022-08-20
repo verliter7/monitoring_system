@@ -1,8 +1,7 @@
 import jwt from 'jsonwebtoken';
-import env from '@/config/config.default';
+import { JWT_SECRET } from '@/config/config.default';
 import type { Context, Next } from 'koa';
 
-const { JWT_SECRET } = env as Record<string, string>;
 const urls = [
   '/api/v1/user/register',
   '/api/v1/user/login',
@@ -19,7 +18,6 @@ export async function auth(ctx: Context, next: Next) {
     header: { authorization = '' },
     path,
   } = ctx.request;
-
   if (!urls.includes(path)) {
     jwt.verify(authorization, JWT_SECRET, (err, userInfo) => {
       if (err) {
