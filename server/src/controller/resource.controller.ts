@@ -13,6 +13,8 @@ export async function createResource_c(ctx: Context) {
 
   try {
     for (const r of resourceInfos) {
+      const { aid } = r;
+
       r.ip = ctx.ip;
       r.session = cookieObj.SESSION
       r.jsessionId = cookieObj.JSESSIONID

@@ -15,3 +15,17 @@ export function getRandomStr(len = 16) {
   }
   return pwd;
 }
+
+/**
+ * @description: 将查询字符串转换为对象 ?xxx=xxx => {xxx: xxx}
+ * @param search 查询字符串
+ */
+export function getQueryObj(search: string) {
+  const result: Record<string, string> = {};
+
+  for (const [key, value] of new URLSearchParams(search)) {
+    result[key] = value;
+  }
+
+  return result;
+}

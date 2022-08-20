@@ -84,7 +84,7 @@ export const PerformanceTimingModel = seq.define('timing', {
     type: DataTypes.FLOAT(30, 16),
     allowNull: false,
     comment: '结束时间',
-  }
+  },
 });
 
 export const PerformanceCLSModel = seq.define('cls', {
@@ -106,7 +106,7 @@ export const PerformanceCLSModel = seq.define('cls', {
     allowNull: true,
     comment: '累积布局偏移',
     defaultValue: '',
-  }
+  },
 });
 
 // PerformancePaintModel.sync({ force: true });

@@ -11,10 +11,10 @@ import type { Model, Optional } from 'sequelize/types';
  * @param httpInfo http请求信息
  */
 export async function createHttp_s(aid: string, httpInfo: Optional<any, string>) {
-  const isExisted = (await findErrorInfo(httpInfo.httpId)) && (await findAid(aid));
+  const isCreate = !(await findErrorInfo(httpInfo.httpId)) && (await findAid(aid));
   httpInfo.timeStamp = parseInt(httpInfo.timeStamp);
 
-  return isExisted ? null : await HttpModel.create(httpInfo);
+  return isCreate ? await HttpModel.create(httpInfo) : null;
 }
 
 /**
@@ -28,7 +28,7 @@ export async function findErrorInfo(errorId: string) {
     },
   });
 
-  return !!count;
+  return Boolean(count);
 }
 
 /**
@@ -42,7 +42,7 @@ export async function findAid(aid: string) {
     },
   });
 
-  return !!count;
+  return Boolean(count);
 }
 
 const oneDayHours = 24;
@@ -221,22 +221,17 @@ export async function getHttpTimeConsume_s(aid: string, pastDays: number, type: 
 /**
  * @description: 获取所有http请求信息（做成表格）
  */
-
 export async function getAllHttpInfos_s(aid: string, ...rest: number[]) {
   const [pastDays, current, size] = rest;
   const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const defaultQueryConfig = {
     attributes: ['timeStamp', 'originUrl', 'requestUrl', 'method', 'status', 'httpMessage', 'duration'],
-    limit: size,
-    offset: (current - 1) * size,
     order: [['timeStamp', 'DESC']],
   };
   const httpModelQueryConfig: Record<string, any> = {
-    ...defaultQueryConfig,
     where: { aid, ...queryConfigWhere },
   };
   const errorModelQueryConfig: Record<string, any> = {
-    ...defaultQueryConfig,
     where: {
       aid,
       type: 'httpError',
@@ -244,13 +239,12 @@ export async function getAllHttpInfos_s(aid: string, ...rest: number[]) {
     },
   };
   const total = (await HttpModel.count(httpModelQueryConfig)) + (await ErrorModel.count(errorModelQueryConfig));
-
   const allHttpInfos = [
-    ...process(await HttpModel.findAll(httpModelQueryConfig)),
-    ...process(await ErrorModel.findAll(errorModelQueryConfig)),
+    ...process(await HttpModel.findAll(Object.assign(defaultQueryConfig, httpModelQueryConfig) as any)),
+    ...process(await ErrorModel.findAll(Object.assign(defaultQueryConfig, errorModelQueryConfig) as any)),
   ]
     .sort((b, a) => a.timeStamp - b.timeStamp)
-    .slice(0, size)
+    .slice((current - 1) * size, current * size)
     .map((info) => ({
       ...info,
       key: getRandomStr(),

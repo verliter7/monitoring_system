@@ -8,10 +8,10 @@ import type { Optional } from 'sequelize/types';
  * @param resourceInfo 静态资源请求信息
  */
 export async function createResource_s(aid: string, resourceInfo: Optional<any, string>) {
-  const isExisted = (await findResourceInfo(resourceInfo.resourceId)) && (await findAid(aid));
+  const isCreate = !(await findResourceInfo(resourceInfo.resourceId)) && (await findAid(aid));
   resourceInfo.timeStamp = parseInt(resourceInfo.timeStamp);
 
-  return isExisted ? null : await ResourceModel.create(resourceInfo);
+  return isCreate ? await ResourceModel.create(resourceInfo) : null;
 }
 
 /**
@@ -25,7 +25,7 @@ export async function findResourceInfo(resourceId: string) {
     },
   });
 
-  return !!count;
+  return Boolean(count);
 }
 
 /**
@@ -39,7 +39,7 @@ export async function findAid(aid: string) {
     },
   });
 
-  return !!count;
+  return Boolean(count);
 }
 
 const oneDayHours = 24;

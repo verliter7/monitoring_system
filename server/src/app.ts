@@ -1,10 +1,10 @@
 import Koa from 'koa';
+import cors from '@koa/cors';
 import koaBody from 'koa-body';
 import router from './router';
-import env from '@/config/config.default';
+import { APP_PORT } from '@/config/config.default';
 import { auth } from './middleware/auth.middleware';
 
-const { APP_PORT } = env as Record<string, string>;
 declare module 'koa' {
   interface DefaultState {
     stateProperty: boolean;
@@ -30,6 +30,7 @@ interface IErrorParam {
 
 const app = new Koa();
 
+app.use(cors());
 app.use(
   koaBody({
     multipart: true,
