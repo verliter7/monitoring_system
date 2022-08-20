@@ -1,7 +1,9 @@
 import { extend, RequestMethod, ResponseError } from 'umi-request';
-import { message } from 'antd';
-import type { IHttpRequestConfig, IHttpReq, IcodeMap } from './type';
+import { message, Modal } from 'antd';
 import HandleLocalStorage from '../HandleLocalStorage';
+import { userInfoKey } from '../constant';
+import type { IHttpRequestConfig, IHttpReq, IcodeMap } from './type';
+import api from '../urls';
 
 // Fetch永生
 /**
@@ -43,28 +45,39 @@ class HttpReq implements IHttpReq {
     504: '充当网关或代理的服务器，未及时从远端服务器获取请求',
     505: '服务器不支持请求的HTTP协议的版本，无法完成处理',
   };
+  private static readonly NonInterceptionUrls: string[] = [api.login, api.register].map((url) => `/api/v1${url}`);
+  private static isModelMounted = false;
 
   private constructor() {
     // 全局请求拦截器
     HttpReq.requestInstance.interceptors.request.use((url, options) => {
-      const { token } = HandleLocalStorage.get('userInfo');
+      // 登录和注册接口不需要拦截
+      if (!HttpReq.NonInterceptionUrls.includes(url)) {
+        const { token } = HandleLocalStorage.get(userInfoKey);
 
-      return {
-        url,
-        options: {
-          ...options,
-          headers: {
-            authorization: token,
+        return {
+          url,
+          options: {
+            ...options,
+            headers: {
+              authorization: token,
+            },
+            interceptors: true,
           },
-          interceptors: true,
-        },
-      };
+        };
+      } else {
+        return {
+          url,
+          options,
+        };
+      }
     });
     // 全局响应拦截器
     HttpReq.requestInstance.interceptors.response.use(async (response): Promise<any> => {
       const { status }: { status: number } = response;
       const { code, message: errorText }: { code: number; message: string } = await response.clone().json();
       if (status === 200 && code !== 200) {
+        message.destroy();
         message.error(errorText);
       }
       return response;
@@ -89,6 +102,9 @@ class HttpReq implements IHttpReq {
   // 全局错误处理函数
   private static errorHandler(error: ResponseError) {
     const { response } = error;
+
+    message.destroy();
+
     if (response && response.status) {
       const errorText = HttpReq.codeMap[response.status] || response.statusText;
 
@@ -102,6 +118,38 @@ class HttpReq implements IHttpReq {
 
   send<P>(option: IHttpRequestConfig | string): Promise<P> {
     const { url, headers, method, body, requestType, responseType, signal } = option as IHttpRequestConfig;
+
+    // token过期重新登录
+    if (!HttpReq.NonInterceptionUrls.includes(url || (option as string))) {
+      const { expiresAt } = HandleLocalStorage.get(userInfoKey);
+      const now = Date.now();
+      let jumpHandle: () => void;
+      if (now > expiresAt) {
+        if (HttpReq.isModelMounted === false) {
+          HttpReq.isModelMounted = true;
+
+          Modal.confirm({
+            title: '登录超时，请重新登录',
+            content: '点击确定回到登录页',
+            onOk: () => {
+              jumpHandle();
+            },
+            onCancel: () => {
+              jumpHandle();
+            },
+          });
+        }
+
+        return new Promise(() => {
+          jumpHandle = () => {
+            const currentPathname = window.location.pathname;
+
+            HandleLocalStorage.remove([userInfoKey]);
+            window.location.replace(`/login?redirect=${currentPathname}`);
+          };
+        });
+      }
+    }
 
     if (typeof option === 'string') {
       return HttpReq.requestInstance(option);

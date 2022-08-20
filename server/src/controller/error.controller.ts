@@ -10,10 +10,11 @@ import type { ErrorType } from '@/service/error.service';
 
 export async function createError_c(ctx: Context) {
   const errorInfos = ctx.request.body;
-  const { aid } = ctx.state;
 
   try {
     for (const e of errorInfos) {
+      const { aid } = e;
+
       e.ip = ctx.ip;
       await createError_s(aid, e);
     }

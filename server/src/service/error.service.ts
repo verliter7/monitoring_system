@@ -13,10 +13,10 @@ import type { Model, Optional } from 'sequelize/types';
  * @param errorInfo 错误信息
  */
 export async function createError_s(aid: string, errorInfo: Optional<any, string>) {
-  const isExisted = (await findErrorInfo(errorInfo.errorId)) && (await findAid(aid));
+  const isCreate = !(await findErrorInfo(errorInfo.errorId)) && (await findAid(aid));
   errorInfo.timeStamp = parseInt(errorInfo.timeStamp);
 
-  return isExisted ? null : await ErrorModel.create(errorInfo);
+  return isCreate ? await ErrorModel.create(errorInfo) : null;
 }
 
 /**
@@ -30,7 +30,7 @@ export async function findErrorInfo(errorId: string) {
     },
   });
 
-  return !!count;
+  return Boolean(count);
 }
 
 /**
@@ -44,7 +44,7 @@ export async function findAid(aid: string) {
     },
   });
 
-  return !!count;
+  return Boolean(count);
 }
 
 export enum errorEnum {

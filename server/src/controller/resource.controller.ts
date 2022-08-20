@@ -3,10 +3,11 @@ import type { Context } from 'koa';
 
 export async function createResource_c(ctx: Context) {
   const resourceInfos = ctx.request.body;
-  const { aid } = ctx.state;
 
   try {
     for (const r of resourceInfos) {
+      const { aid } = r;
+
       r.ip = ctx.ip;
       await createResource_s(aid, r);
     }

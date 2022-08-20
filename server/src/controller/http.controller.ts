@@ -9,12 +9,13 @@ import type { Context } from 'koa';
 
 export async function createHttp_c(ctx: Context) {
   const httpInfos = ctx.request.body;
-  const { aid } = ctx.state;
 
   try {
-    for (const e of httpInfos) {
-      e.ip = ctx.ip;
-      await createHttp_s(aid, e);
+    for (const h of httpInfos) {
+      const { aid } = h;
+
+      h.ip = ctx.ip;
+      await createHttp_s(aid, h);
     }
 
     ctx.defaultResponse();

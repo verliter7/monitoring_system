@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import NotAuthorization from '@/components/NotAuthorization';
 import { HandleLocalStorage } from '@/utils';
+import { userInfoKey } from '@/utils/constant';
 import type { FC, LazyExoticComponent, ComponentType } from 'react';
 
 interface IReturn {
@@ -19,7 +20,7 @@ const useLazyPermissionsRouter = (
   }[],
 ): IReturn[] => {
   const pagesImporters = import.meta.glob<boolean, string, { default: ComponentType<any> }>('@/pages/*/index.tsx');
-  const { permissions } = HandleLocalStorage.get('userInfo');
+  const { permissions } = HandleLocalStorage.get(userInfoKey);
 
   return routerConfig.map(({ pathname, componentPath }) => {
     const Component = lazy(pagesImporters[componentPath]);
