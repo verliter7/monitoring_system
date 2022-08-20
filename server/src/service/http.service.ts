@@ -11,10 +11,10 @@ import type { Model, Optional } from 'sequelize/types';
  * @param httpInfo http请求信息
  */
 export async function createHttp_s(aid: string, httpInfo: Optional<any, string>) {
-  const isExisted = (await findErrorInfo(httpInfo.httpId)) && (await findAid(aid));
+  const isCreate = !(await findErrorInfo(httpInfo.httpId)) && (await findAid(aid));
   httpInfo.timeStamp = parseInt(httpInfo.timeStamp);
 
-  return isExisted ? null : await HttpModel.create(httpInfo);
+  return isCreate ? await HttpModel.create(httpInfo) : null;
 }
 
 /**
@@ -28,7 +28,7 @@ export async function findErrorInfo(errorId: string) {
     },
   });
 
-  return !!count;
+  return Boolean(count);
 }
 
 /**
@@ -42,7 +42,7 @@ export async function findAid(aid: string) {
     },
   });
 
-  return !!count;
+  return Boolean(count);
 }
 
 const oneDayHours = 24;

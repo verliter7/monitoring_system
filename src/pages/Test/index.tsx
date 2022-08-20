@@ -154,7 +154,7 @@ const Test: FC = (): ReactElement => {
         type="primary"
         onClick={() => {
           const script = document.createElement('script');
-          script.src = `http://localhost:8081/resources/${getRandomStr()}.js`;
+          script.src = `http://bilibili.com/resources/${getRandomStr()}.js`;
           document.head.appendChild(script);
         }}
       >

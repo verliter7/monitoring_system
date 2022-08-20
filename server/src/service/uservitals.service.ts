@@ -3,10 +3,10 @@ import UservitalsModel from '@/model/uservitals.model';
 import type { Optional } from 'sequelize/types';
 
 export async function createUservitals_s(aid: string, uservitalsInfo: Optional<any, string>) {
-  const isExisted = await findAid(aid);
+  const isCreate = await findAid(aid);
   uservitalsInfo.timeStamp = parseInt(uservitalsInfo.timeStamp);
 
-  return isExisted ? null : await UservitalsModel.create(uservitalsInfo);
+  return isCreate ? await UservitalsModel.create(uservitalsInfo) : null;
 }
 
 /**
@@ -20,7 +20,7 @@ export async function findAid(aid: string) {
     },
   });
 
-  return !!count;
+  return Boolean(count);
 }
 
 export async function getUservitalsData_s(aid: string) {

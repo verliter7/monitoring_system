@@ -4,8 +4,8 @@ import type { Optional } from 'sequelize/types';
 
 export async function createUservitals_c(ctx: Context) {
   const uservitalsInfo = ctx.request.body as Optional<any, string>;
+  const { aid } = uservitalsInfo;
   uservitalsInfo.ip = ctx.ip;
-  const { aid } = ctx.state;
 
   try {
     await createUservitals_s(aid, uservitalsInfo);

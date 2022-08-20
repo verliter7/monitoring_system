@@ -6,10 +6,10 @@ import zhCN from 'antd/es/locale/zh_CN';
 import { Global, css } from '@emotion/react';
 import App from './App';
 import store from '@/redux/store';
-import WebSdk from './utils/monitor';
+import WebSdk from './monitor';
 
 new WebSdk({
-  aid: '10086',
+  aid: 'eMBYxfwKY7a6GJ4p',
 });
 
 const globalStyles = css`
@@ -21,6 +21,10 @@ const globalStyles = css`
   #root {
     height: 100%;
     width: 100%;
+  }
+
+  .user-modal-wrapper {
+    overflow: hidden;
   }
 `;
 

@@ -5,20 +5,24 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Form, Input, message, Tabs } from 'antd';
 import { login, register } from './service';
 import { useRequest } from '@/hooks';
-import { HandleLocalStorage } from '@/utils';
+import { HandleLocalStorage, getQueryObj } from '@/utils';
+import { loginPagePath } from '@/utils/constant';
 import monitor from '@/assets/monitor.png';
+import loginBg from '@/assets/login-bg.svg';
 import type { FC, ReactElement } from 'react';
 import type { TabKey } from './type';
 
 const { TabPane } = Tabs;
 const Login: FC = (): ReactElement => {
+  const [formRef] = Form.useForm();
   const navigate = useNavigate();
   const [tabKey, setTabKey] = useState<TabKey>('login');
   const { loading: registerLoading, run: registerRun } = useRequest(register, {
     manual: true,
     onSuccess: (res) => {
       if (res.code === 200) {
-        message.success('注册成功!');
+        message.success('注册成功,快去登陆吧');
+        formRef.resetFields();
       }
     },
   });
@@ -28,7 +32,9 @@ const Login: FC = (): ReactElement => {
       if (res.code === 200) {
         message.success('登录成功!');
         HandleLocalStorage.set({ userInfo: res.data });
-        navigate('/monitor');
+
+        const { redirect } = getQueryObj(window.location.search);
+        navigate(redirect ?? loginPagePath);
       }
     },
   });
@@ -43,7 +49,7 @@ const Login: FC = (): ReactElement => {
   };
   const getTabContent = (btnMark: string) => {
     return (
-      <Form onFinish={onFinish}>
+      <Form onFinish={onFinish} form={formRef}>
         <Form.Item name="username" rules={[{ required: true, message: '请输入用户名!' }]}>
           <Input prefix={<UserOutlined />} placeholder="请输入密码" />
         </Form.Item>
@@ -61,7 +67,7 @@ const Login: FC = (): ReactElement => {
   };
 
   return (
-    <div css={{ display: 'flex', justifyContent: 'center', height: '100vh' }}>
+    <div css={{ display: 'flex', justifyContent: 'center', height: '100vh', backgroundImage: `url(${loginBg})` }}>
       <div
         css={{
           marginTop: '100px',
@@ -78,7 +84,7 @@ const Login: FC = (): ReactElement => {
         <h1 css={{ marginTop: '10px', color: 'rgba(0,0,0,.45)', fontSize: '14px', textAlign: 'center' }}>
           监控平台后台管理
         </h1>
-        <Tabs defaultActiveKey="login" onChange={onChange} centered activeKey={tabKey}>
+        <Tabs defaultActiveKey="login" onChange={onChange} centered activeKey={tabKey} size="large">
           <TabPane tab="登录" key="login">
             {getTabContent('登录')}
           </TabPane>

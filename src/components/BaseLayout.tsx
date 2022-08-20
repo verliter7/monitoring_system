@@ -2,10 +2,12 @@
 import { useState, createElement } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined } from '@ant-design/icons';
-import { Avatar, Layout, Menu, Popover } from 'antd';
+import { Avatar, Button, Descriptions, Layout, Menu, Modal, notification, Popconfirm } from 'antd';
 import { meunConfig } from '@/router/routerConfig';
 import HomePageRouters from '@/router/HomePageRouters';
+import { useMount } from '@/hooks';
 import { commonStyles, HandleLocalStorage } from '@/utils';
+import { notLoginPagePath, userInfoKey } from '@/utils/constant';
 import type { FC, ReactElement } from 'react';
 
 const { Header, Sider, Content } = Layout;
@@ -13,11 +15,33 @@ const { Header, Sider, Content } = Layout;
 const BaseLayout: FC = (): ReactElement => {
   const { pathname } = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const { username, aid } = HandleLocalStorage.get('userInfo');
+
+  const handleAvatarClick = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+  const logout = () => {
+    HandleLocalStorage.remove([userInfoKey]);
+    window.location.replace(notLoginPagePath);
+  };
+
+  useMount(() => {
+    notification.info({
+      message: '点击右上角头像查看用户信息',
+      placement: 'top',
+      duration: 6,
+    });
+  });
 
   return (
     <Layout
       css={{
+        overflow: 'hidden',
         height: '100%',
       }}
     >
@@ -25,6 +49,19 @@ const BaseLayout: FC = (): ReactElement => {
         <Menu theme="light" mode="inline" selectedKeys={[pathname]} items={meunConfig} />
       </Sider>
       <Layout className="site-layout">
+        <Modal
+          title="用户信息"
+          visible={isModalVisible}
+          onCancel={handleCancel}
+          footer={null}
+          maskClosable
+          wrapClassName="user-modal-wrapper"
+        >
+          <Descriptions layout="vertical" bordered>
+            <Descriptions.Item label="用户名">{username}</Descriptions.Item>
+            <Descriptions.Item label="应用id">{aid}</Descriptions.Item>
+          </Descriptions>
+        </Modal>
         <Header
           css={{
             display: 'flex',
@@ -33,6 +70,7 @@ const BaseLayout: FC = (): ReactElement => {
             gap: '20px',
             padding: '0px',
             height: '48px',
+            lineHeight: '48px',
             backgroundColor: '#ffffff',
 
             '& > .trigger': {
@@ -48,19 +86,20 @@ const BaseLayout: FC = (): ReactElement => {
             className: 'trigger',
             onClick: () => setCollapsed(!collapsed),
           })}
-          <Popover
-            content={
-              <>
-                <span>用户名: {username}</span>
-                <br />
-                <span>应用id: {aid}</span>
-              </>
-            }
-            title="账户信息"
-            placement="bottomRight"
-          >
-            <Avatar icon={<UserOutlined />} css={{ marginRight: '20px' }} />
-          </Popover>
+          <div css={{ display: 'flex', alignItems: 'center', gap: '20px', paddingRight: '20px' }}>
+            <Popconfirm
+              placement="bottomRight"
+              title="确定退出登录吗?"
+              onConfirm={logout}
+              okText="确定"
+              cancelText="取消"
+            >
+              <Button>退出登录</Button>
+            </Popconfirm>
+            <span css={{ lineHeight: '28px', cursor: 'pointer' }} onClick={handleAvatarClick}>
+              <Avatar icon={<UserOutlined />} />
+            </span>
+          </div>
         </Header>
         <Content
           css={{
