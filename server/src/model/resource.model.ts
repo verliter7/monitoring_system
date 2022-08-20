@@ -78,6 +78,6 @@ const ResourceModel = seq.define('resource', {
   },
 });
 
-ResourceModel.sync({ force: true });
+// ResourceModel.sync({ force: true });
 
 export default ResourceModel;

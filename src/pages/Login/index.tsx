@@ -51,7 +51,7 @@ const Login: FC = (): ReactElement => {
     return (
       <Form onFinish={onFinish} form={formRef}>
         <Form.Item name="username" rules={[{ required: true, message: '请输入用户名!' }]}>
-          <Input prefix={<UserOutlined />} placeholder="请输入密码" />
+          <Input prefix={<UserOutlined />} placeholder="请输入用户名" />
         </Form.Item>
         <Form.Item name="password" rules={[{ required: true, message: '请输入密码!' }]}>
           <Input.Password prefix={<LockOutlined />} type="password" placeholder="请输入密码" />
