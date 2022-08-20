@@ -1,18 +1,20 @@
 /* @jsxImportSource @emotion/react */
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Card, Empty, Radio, Tabs } from 'antd';
+import { useCallback, useRef, useState } from 'react';
+import { Card, Empty, Radio, Spin, Tabs } from 'antd';
 import PubTable from '@/public/PubTable';
+import PubHeader from '@/public/PubHeader';
 import SortIcon from './views/SortIcon';
-import { useRequest, useCallbackState, useMount, useUpdateEffect } from '@/hooks';
+import { useRequest, useCallbackState, useMount, useUpdateEffect, useUnmount } from '@/hooks';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { tableStorage } from '@/redux/httpMonitorSlice';
+import { pastDaysStorage, tableStorage } from '@/redux/httpMonitorSlice';
 import { reducerEnum } from '@/redux/store';
 import tabMap from './tabMap';
 import { getAllHttpInfos } from './service';
-import { Eventemit, commonStyles } from '@/utils';
+import { commonStyles } from '@/utils';
 import { sortEnum, ITab, tabKeyEnum, RankType, Content, IHttpInfo } from './type';
 import type { FC, ReactElement } from 'react';
 import type { RadioChangeEvent } from 'antd';
+import type { IBaseTableRef } from '@/public/PubTable/type';
 
 const allHttpInfoTableColumns = [
   {
@@ -37,6 +39,11 @@ const allHttpInfoTableColumns = [
     key: 'originUrl',
   },
   {
+    title: '请求方式',
+    dataIndex: 'method',
+    key: 'method',
+  },
+  {
     title: 'HTTP状态码',
     dataIndex: 'status',
     key: 'status',
@@ -55,18 +62,26 @@ const allHttpInfoTableColumns = [
   },
 ];
 const HttpMonitor: FC = (): ReactElement => {
-  const { allListItemInfo } = useAppSelector(
+  const { pastDays: reduxPastDays, allListItemInfo } = useAppSelector(
     (state) => state.httpMonitor,
-    (pre, cur) => pre.allListItemInfo === cur.allListItemInfo,
+    (pre, cur) => pre.pastDays === cur.pastDays && pre.allListItemInfo === cur.allListItemInfo,
   );
   const dispatch = useAppDispatch();
   // 用useRef缓存所有的item项信息
   const sortTypeRef = useRef<sortEnum>(sortEnum.DF);
+  const isMountedRef = useRef<Record<tabKeyEnum, boolean>>({
+    successRate: false,
+    msgCluster: false,
+    successTimeConsume: false,
+    failTimeConsume: false,
+  });
+  const tableRef = useRef<IBaseTableRef | null>(null);
   // 激活项item信息即要展示的item项信息
   const [activeListItemInfo, setActiveListItemInfo] = useState<Record<string, any>>({});
   // item项列表名字
   const [listItemNames, setListItemNames] = useState<string[]>([]);
   const [activeKey, setActiveKey] = useState(tabKeyEnum.SR);
+  const [pastDays, setPastDays] = useCallbackState<string>(reduxPastDays);
   const [radioValue, setRadioValue] = useCallbackState<RankType>(tabMap[tabKeyEnum.SR].rankType);
   // 获得安全范围百分比，不会出现NaN、Infinity等
   const getSafeRate = (num1: number, num2: number) => (num2 === 0 ? 100 : Number(((num1 / num2) * 100).toFixed(2)));
@@ -110,6 +125,7 @@ const HttpMonitor: FC = (): ReactElement => {
     const tabKey = activeKey as tabKeyEnum;
     const { rankType } = tabMap[tabKey];
 
+    isMountedRef.current[tabKey] = true;
     allListItemInfo[tabKey]
       ? handleSortClick(sortTypeRef.current, rankType, tabKey, allListItemInfo)
       : runMap[tabKey]();
@@ -141,12 +157,30 @@ const HttpMonitor: FC = (): ReactElement => {
     },
     [],
   );
+  const handleSelectChange = useCallback((value: string) => {
+    setPastDays(value, () => {
+      const { updateTableData, current, size } = tableRef.current as IBaseTableRef;
+      updateTableData({
+        current,
+        size,
+      });
+
+      for (const k in runMap) {
+        const tabKey = k as tabKeyEnum;
+        if (Object.prototype.hasOwnProperty.call(runMap, k) && isMountedRef.current[tabKey]) {
+          runMap[k as tabKeyEnum](value);
+        }
+      }
+    });
+  }, []);
   // 获取tab内容项
   const getContent = (tabKey: tabKeyEnum) => {
     return activeKey === tabKey
       ? tabMap[tabKey].content(listItemNames, allListItemInfo[activeKey], activeListItemInfo, handleListItemClick)
       : null;
   };
+  // 防止组件无关表格的刷新，导致表格不必要的刷新
+  const getAllHttpInfosBind = useCallback(getAllHttpInfos.bind(null, pastDays), [pastDays]);
   const tabs: ITab[] = [
     {
       tab: '成功率',
@@ -182,28 +216,16 @@ const HttpMonitor: FC = (): ReactElement => {
     handleSortClick(sortTypeRef.current, radioValue, tabKey, allListItemInfo);
   };
 
-  const eventemitCb = (e: Event) => {
-    const { allListItemInfo } = (e as CustomEvent).detail;
-
-    for (const k in runMap) {
-      const tabKey = k as tabKeyEnum;
-      if (Object.prototype.hasOwnProperty.call(runMap, k) && allListItemInfo[tabKey]) {
-        runMap[k as tabKeyEnum]();
-      }
-    }
-  };
-
-  useMount(allListItemInfo[tabKeyEnum.SR] ? initState : runMap[tabKeyEnum.SR]);
+  useMount(() => {
+    allListItemInfo[tabKeyEnum.SR] ? initState() : runMap[tabKeyEnum.SR](pastDays);
+    isMountedRef.current[tabKeyEnum.SR] = true;
+  });
 
   useUpdateEffect(initState, [allListItemInfo]);
 
-  useEffect(() => {
-    Eventemit.addEventListener('HttpMonitor', eventemitCb);
-
-    return () => {
-      Eventemit.removeEventListener('HttpMonitor', eventemitCb);
-    };
-  }, []);
+  useUnmount(() => {
+    dispatch(pastDaysStorage(pastDays));
+  });
 
   const loading = successRateLoaing || msgClusterLoaing || successTimeConsumeLoaing || failTimeConsumeLoaing;
 
@@ -213,13 +235,9 @@ const HttpMonitor: FC = (): ReactElement => {
         display: 'flex',
         gap: '20px',
         position: 'relative',
-        height: 'calc(100vh - 112px)',
-        ...commonStyles.scroll('Y'),
         overflowX: 'hidden',
 
         '& > .ant-card': {
-          position: 'sticky',
-          top: '0',
           width: '417px',
         },
       }}
@@ -271,38 +289,49 @@ const HttpMonitor: FC = (): ReactElement => {
           flexDirection: 'column',
           flex: '1',
           justifyContent: 'space-between',
+          ...commonStyles.scroll('Y'),
+          overflowX: 'hidden',
+          height: 'calc(100vh - 112px)',
           width: 'calc(100% - 509px)',
         }}
       >
-        <Card loading={loading} title={tabMap[activeKey].cartTitle} css={{ width: '100%' }}>
-          {(() => {
-            const { getChartOrTable, dataType } = tabMap[activeKey];
+        <div css={{ display: 'flex', flexDirection: 'column', gap: '20px', marginRight: '32px' }}>
+          <PubHeader handleSelectChange={handleSelectChange} pastDays={pastDays} />
+          <Card title={tabMap[activeKey].cartTitle} css={{ width: '100%' }}>
+            {(() => {
+              const { getChartOrTable, dataType } = tabMap[activeKey];
 
-            return activeListItemInfo?.[dataType] ? (
-              getChartOrTable(activeListItemInfo[dataType])
-            ) : (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-            );
-          })()}
-        </Card>
-        <Card
-          title="API链路追踪"
-          css={{
-            flex: '1',
-            width: '100%',
-            '.ant-table-content': {
-              ...commonStyles.scroll(),
-            },
-          }}
-        >
-          <PubTable
-            getTableData={getAllHttpInfos}
-            columns={allHttpInfoTableColumns}
-            defaultPageSize={5}
-            storage={tableStorage}
-            reduxMark={reducerEnum.HM}
-          />
-        </Card>
+              return activeListItemInfo?.[dataType] && loading === false ? (
+                getChartOrTable(activeListItemInfo[dataType], loading)
+              ) : (
+                <Spin tip="图表加载中..." spinning={loading} size="large">
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    css={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '175px' }}
+                  />
+                </Spin>
+              );
+            })()}
+          </Card>
+          <Card
+            title="API链路追踪"
+            css={{
+              flex: '1',
+              width: '100%',
+              '.ant-table-content': {
+                ...commonStyles.scroll(),
+              },
+            }}
+          >
+            <PubTable
+              getTableData={getAllHttpInfosBind}
+              columns={allHttpInfoTableColumns}
+              storage={tableStorage}
+              reduxMark={reducerEnum.HM}
+              ref={tableRef}
+            />
+          </Card>
+        </div>
       </main>
     </section>
   );

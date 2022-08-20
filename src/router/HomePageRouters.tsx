@@ -1,20 +1,19 @@
-import { lazy, Suspense, memo } from 'react';
+import { Suspense, memo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import meunConfig from './meunConfig';
+import { routerConfig } from './routerConfig';
 import Loading from '@/components/Loading';
 import PageNotFound from '@/components/PageNotFound';
-import type { FC, ReactElement, ComponentType } from 'react';
-
-const pagesImporters = import.meta.glob<boolean, string, { default: ComponentType<any> }>('@/pages/*/index.tsx');
+import { useLazyPermissionsRouter } from '@/hooks';
+import type { FC, ReactElement } from 'react';
 
 const HomePageRouters: FC = (): ReactElement => {
+  const lazyRouters = useLazyPermissionsRouter(routerConfig);
+
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
-        <Route path="/" element={<Navigate to={meunConfig[0].pathname} />} />
-        {meunConfig.map(({ pathname, componentPath }) => {
-          const Component = lazy(pagesImporters[componentPath]);
-
+        <Route path="/" element={<Navigate to={`/monitor${routerConfig[0].pathname}`} />} />
+        {lazyRouters.map(({ pathname, Component }) => {
           return <Route path={pathname} element={<Component />} key={pathname} />;
         })}
         <Route path="*" element={<PageNotFound />} />

@@ -7,7 +7,7 @@ export function pocessStackInfo(stackInfo: string) {
     .split('\n')
     .slice(1)
     .map((info) => info.replace(reg, ''))
-    .join('-');
+    .join('$$');
 }
 
 export const getErrorKey = (event: ErrorEvent | Event) => {

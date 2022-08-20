@@ -10,23 +10,28 @@ export const getResourceCount: HttpReqType<{ total: number }> = () => {
   });
 };
 
-export const getResourceErrorCount: HttpReqType<IErrorConutByTimeData> = () => {
+export const getResourceErrorCount: HttpReqType<IErrorConutByTimeData> = (pastDays: string) => {
   return HttpReq.send({
     url: api.getErrorCount,
     method: 'get',
     body: {
+      pastDays,
       errorType: 'resourceError',
     },
   });
 };
 
-export const getResourceErrorData: HttpReqType<ResourceErrorData> = ({ current, size }: IGetTableDataConfig) => {
+export const getResourceErrorData: HttpReqType<ResourceErrorData> = (
+  pastDays: string,
+  { current, size }: IGetTableDataConfig,
+) => {
   return HttpReq.send({
     url: api.getResourceErrorData,
     method: 'get',
     body: {
       current,
       size,
+      pastDays,
     },
   });
 };

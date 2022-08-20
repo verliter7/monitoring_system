@@ -1,6 +1,7 @@
 import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 import { getRandomStr, uniq } from '@/utils';
+import UserModel from '@/model/user.model';
 import HttpModel from '@/model/http.model';
 import ErrorModel from '@/model/error.model';
 import type { Model, Optional } from 'sequelize/types';
@@ -9,25 +10,39 @@ import type { Model, Optional } from 'sequelize/types';
  * @description: 向数据库插入一条http请求信息
  * @param httpInfo http请求信息
  */
-export async function createHttp_s(httpInfo: Optional<any, string>) {
-  const isExisted = !!(await findInfo(httpInfo.httpId));
+export async function createHttp_s(aid: string, httpInfo: Optional<any, string>) {
+  const isExisted = (await findErrorInfo(httpInfo.httpId)) && (await findAid(aid));
   httpInfo.timeStamp = parseInt(httpInfo.timeStamp);
 
   return isExisted ? null : await HttpModel.create(httpInfo);
 }
 
 /**
- * @description: 在数据库中查找某个http请求
- * @param httpId 每一个http请求的id
+ * @description: 通过errorId查找改条错误是否已经上报过
+ * @param errorId 错误id
  */
-export async function findInfo(httpId: string) {
-  const res = await HttpModel.findOne({
+export async function findErrorInfo(errorId: string) {
+  const count = await ErrorModel.count({
     where: {
-      httpId,
+      errorId,
     },
   });
 
-  return res;
+  return !!count;
+}
+
+/**
+ * @description: 查找用户表是否存在该aid
+ * @param aid 应用id
+ */
+export async function findAid(aid: string) {
+  const count = await UserModel.count({
+    where: {
+      aid,
+    },
+  });
+
+  return !!count;
 }
 
 const oneDayHours = 24;
@@ -35,30 +50,38 @@ const oneHourMilliseconds = 60 * 60 * 1000;
 const oneDayTime = oneDayHours * oneHourMilliseconds;
 const timeFormat = 'YYYY-MM-DD HH:00';
 const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.get());
+const getQueryConfigWhere = (pastDays: number) => {
+  const now = Date.now();
+
+  return {
+    now,
+    queryConfigWhere: {
+      timeStamp: {
+        [Op.lt]: now,
+        [Op.gt]: now - oneDayTime * pastDays,
+      },
+    },
+  };
+};
 
 /**
  * @description: 获取http调用成功率信息
  */
-export async function getHttpSuccessRate_s() {
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
+export async function getHttpSuccessRate_s(aid: string, pastDays: number) {
+  const { now, queryConfigWhere } = getQueryConfigWhere(pastDays);
   const successedHttpInfos = process(
     await HttpModel.findAll({
       attributes: ['timeStamp', 'requestUrl', 'status'],
-      where: queryConfigWhere,
+      where: { aid, ...queryConfigWhere },
     }),
   );
   const failedHttpInfos = process(
     await ErrorModel.findAll({
       attributes: ['timeStamp', 'requestUrl', 'status'],
       where: {
-        ...queryConfigWhere,
+        aid,
         type: 'httpError',
+        ...queryConfigWhere,
       },
     }),
   );
@@ -70,7 +93,7 @@ export async function getHttpSuccessRate_s() {
     if (!successRateInfos[requestUrl]) {
       const successRateInfo: Record<string, [number, number]> = {};
 
-      for (let i = oneDayHours; i >= 0; i--) {
+      for (let i = oneDayHours * pastDays; i >= 0; i--) {
         const time = dayjs(now - i * oneHourMilliseconds).format(timeFormat);
 
         successRateInfo[time] = [0, 0];
@@ -91,26 +114,21 @@ export async function getHttpSuccessRate_s() {
 /**
  * @description: 获取httpMsg聚类信息
  */
-export async function getHttpMsgCluster_s() {
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
+export async function getHttpMsgCluster_s(aid: string, pastDays: number) {
+  const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const successedHttpInfos = process(
     await HttpModel.findAll({
       attributes: ['requestUrl', 'status', 'httpMessage'],
-      where: queryConfigWhere,
+      where: { aid, ...queryConfigWhere },
     }),
   );
   const failedHttpInfos = process(
     await ErrorModel.findAll({
       attributes: ['requestUrl', 'status', 'httpMessage'],
       where: {
-        ...queryConfigWhere,
+        aid,
         type: 'httpError',
+        ...queryConfigWhere,
       },
     }),
   );
@@ -145,23 +163,17 @@ type TimeConsumeInfo = Record<
 /**
  * @description: 获取http耗时信息
  */
-export async function getHttpTimeConsume_s(type: 'success' | 'fail') {
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
+export async function getHttpTimeConsume_s(aid: string, pastDays: number, type: 'success' | 'fail') {
+  const { now, queryConfigWhere } = getQueryConfigWhere(pastDays);
   const httpInfos = process(
     type === 'success'
       ? await HttpModel.findAll({
           attributes: ['timeStamp', 'requestUrl', 'duration'],
-          where: queryConfigWhere,
+          where: { aid, ...queryConfigWhere },
         })
       : await ErrorModel.findAll({
           attributes: ['timeStamp', 'requestUrl', 'duration'],
-          where: { ...queryConfigWhere, type: 'httpError' },
+          where: { aid, type: 'httpError', ...queryConfigWhere },
         }),
   );
 
@@ -170,7 +182,7 @@ export async function getHttpTimeConsume_s(type: 'success' | 'fail') {
   for (const { timeStamp, requestUrl, duration } of httpInfos) {
     const timeConsumeInfo: TimeConsumeInfo = {};
 
-    for (let i = oneDayHours; i >= 0; i--) {
+    for (let i = oneDayHours * pastDays; i >= 0; i--) {
       const time = dayjs(now - i * oneHourMilliseconds).format(timeFormat);
 
       timeConsumeInfo[time] = {
@@ -210,29 +222,25 @@ export async function getHttpTimeConsume_s(type: 'success' | 'fail') {
  * @description: 获取所有http请求信息（做成表格）
  */
 
-export async function getAllHttpInfos_s(current: number, size: number) {
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
+export async function getAllHttpInfos_s(aid: string, ...rest: number[]) {
+  const [pastDays, current, size] = rest;
+  const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const defaultQueryConfig = {
-    attributes: ['timeStamp', 'originUrl', 'requestUrl', 'status', 'httpMessage', 'duration'],
+    attributes: ['timeStamp', 'originUrl', 'requestUrl', 'method', 'status', 'httpMessage', 'duration'],
     limit: size,
     offset: (current - 1) * size,
     order: [['timeStamp', 'DESC']],
   };
   const httpModelQueryConfig: Record<string, any> = {
     ...defaultQueryConfig,
-    where: queryConfigWhere,
+    where: { aid, ...queryConfigWhere },
   };
   const errorModelQueryConfig: Record<string, any> = {
     ...defaultQueryConfig,
     where: {
-      ...queryConfigWhere,
+      aid,
       type: 'httpError',
+      ...queryConfigWhere,
     },
   };
   const total = (await HttpModel.count(httpModelQueryConfig)) + (await ErrorModel.count(errorModelQueryConfig));

@@ -1,13 +1,14 @@
 import { Op } from 'sequelize';
 import ResourceModel from '@/model/resource.model';
-import type { Model, Optional } from 'sequelize/types';
+import UserModel from '@/model/user.model';
+import type { Optional } from 'sequelize/types';
 
 /**
  * @description: 向数据库插入一条静态资源请求信息
  * @param resourceInfo 静态资源请求信息
  */
-export async function createResource_s(resourceInfo: Optional<any, string>) {
-  const isExisted = !!(await findInfo(resourceInfo.requestUrl));
+export async function createResource_s(aid: string, resourceInfo: Optional<any, string>) {
+  const isExisted = (await findResourceInfo(resourceInfo.resourceId)) && (await findAid(aid));
   resourceInfo.timeStamp = parseInt(resourceInfo.timeStamp);
 
   return isExisted ? null : await ResourceModel.create(resourceInfo);
@@ -15,16 +16,30 @@ export async function createResource_s(resourceInfo: Optional<any, string>) {
 
 /**
  * @description: 在数据库中查找某个静态资源请求
- * @param requestUrl 每一个静态资源请求的url
+ * @param resourceId 每一个静态资源的id
  */
-export async function findInfo(requestUrl: string) {
-  const res = await ResourceModel.findOne({
+export async function findResourceInfo(resourceId: string) {
+  const count = await ResourceModel.count({
     where: {
-      requestUrl,
+      resourceId,
     },
   });
 
-  return res;
+  return !!count;
+}
+
+/**
+ * @description: 查找用户表是否存在该aid
+ * @param aid 应用id
+ */
+export async function findAid(aid: string) {
+  const count = await UserModel.count({
+    where: {
+      aid,
+    },
+  });
+
+  return !!count;
 }
 
 const oneDayHours = 24;
@@ -34,7 +49,7 @@ const oneDayTime = oneDayHours * oneHourMilliseconds;
 /**
  * @description: 获取静态资源请求数量
  */
-export async function getResourceCount_s() {
+export async function getResourceCount_s(aid: string) {
   const now = Date.now();
   const queryConfigWhere = {
     timeStamp: {
@@ -44,7 +59,10 @@ export async function getResourceCount_s() {
   };
 
   const total = await ResourceModel.count({
-    where: queryConfigWhere,
+    where: {
+      aid,
+      ...queryConfigWhere,
+    },
   });
 
   return total;

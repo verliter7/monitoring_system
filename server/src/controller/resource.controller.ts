@@ -9,6 +9,7 @@ export async function createResource_c(ctx: Context) {
     let arr = item.split('=')
     cookieObj[arr[0]] = arr[1]
   })
+  const { aid } = ctx.state;
 
   try {
     for (const r of resourceInfos) {
@@ -16,7 +17,7 @@ export async function createResource_c(ctx: Context) {
       r.session = cookieObj.SESSION
       r.jsessionId = cookieObj.JSESSIONID
       r.name = r.requestUrl.split('/').pop()
-      await createResource_s(r);
+      await createResource_s(aid, r);
     }
 
     ctx.defaultResponse();
@@ -28,8 +29,10 @@ export async function createResource_c(ctx: Context) {
 }
 
 export async function getResourceCount_c(ctx: Context) {
+  const { aid } = ctx.state;
+
   try {
-    const resourceCount = await getResourceCount_s();
+    const resourceCount = await getResourceCount_s(aid);
 
     ctx.defaultResponse({
       code: 200,

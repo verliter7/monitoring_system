@@ -1,7 +1,7 @@
 import { extend, RequestMethod, ResponseError } from 'umi-request';
 import { message } from 'antd';
-import { JType } from '..';
 import type { IHttpRequestConfig, IHttpReq, IcodeMap } from './type';
+import HandleLocalStorage from '../HandleLocalStorage';
 
 // Fetch永生
 /**
@@ -45,6 +45,21 @@ class HttpReq implements IHttpReq {
   };
 
   private constructor() {
+    // 全局请求拦截器
+    HttpReq.requestInstance.interceptors.request.use((url, options) => {
+      const { token } = HandleLocalStorage.get('userInfo');
+
+      return {
+        url,
+        options: {
+          ...options,
+          headers: {
+            authorization: token,
+          },
+          interceptors: true,
+        },
+      };
+    });
     // 全局响应拦截器
     HttpReq.requestInstance.interceptors.response.use(async (response): Promise<any> => {
       const { status }: { status: number } = response;
@@ -88,7 +103,7 @@ class HttpReq implements IHttpReq {
   send<P>(option: IHttpRequestConfig | string): Promise<P> {
     const { url, headers, method, body, requestType, responseType, signal } = option as IHttpRequestConfig;
 
-    if (JType.isString(option)) {
+    if (typeof option === 'string') {
       return HttpReq.requestInstance(option);
     }
 

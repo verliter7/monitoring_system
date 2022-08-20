@@ -1,5 +1,9 @@
 const api = {
+  register: '/user/register', // 注册
+  login: '/user/login', // 登录
   getErrorCount: '/error/count', // 获取错误数量
+  getJsErrorData: '/error/getJsErrorData', // 获取js错误表格信息
+  getHttpErrorData: '/error/getHttpErrorData', // 获取http错误信息
   getResourceErrorData: '/error/getResourceErrorData', // 获取资源加载错误数据
   getResourceCount: '/resource/getResourceCount', // 获取静态资源数量
   getResourceData: '/resource/getResourceData', // 获取静态资源数据

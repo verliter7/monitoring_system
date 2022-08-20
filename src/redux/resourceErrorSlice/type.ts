@@ -5,14 +5,29 @@ export interface IResourcesBackErrorCountData {
   errorCount: number;
 }
 
+export interface IResourcesBackErrorRateData {
+  time: string;
+  errorRate: number;
+}
+
 export interface IResourcesErrorSum {
   front: number;
   back: number;
 }
 
+export interface IHttpErrorRate {
+  front: number;
+  back: number;
+}
+
+export interface IResourcesErrorCardData {
+  errorSum: IResourcesErrorSum;
+  errorRate: IHttpErrorRate;
+}
+
 export interface IResourcesErrorChartData {
   backErrorCountData: IResourcesBackErrorCountData[];
-  errorSum: IResourcesErrorSum;
+  backErrorRateData: IResourcesBackErrorRateData[];
 }
 
 export interface IResourcesErrorTableData {
@@ -23,6 +38,8 @@ export interface IResourcesErrorTableData {
 }
 
 export interface IResourcesErrorState {
+  pastDays: string;
+  card: IResourcesErrorCardData;
   chart: IResourcesErrorChartData;
   table: IResourcesErrorTableData;
 }

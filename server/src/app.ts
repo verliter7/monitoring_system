@@ -1,7 +1,10 @@
 import Koa from 'koa';
 import koaBody from 'koa-body';
 import router from './router';
+import env from '@/config/config.default';
+import { auth } from './middleware/auth.middleware';
 
+const { APP_PORT } = env as Record<string, string>;
 declare module 'koa' {
   interface DefaultState {
     stateProperty: boolean;
@@ -39,14 +42,14 @@ app.use(async (ctx, next) => {
       code: 200,
       data: {},
       message: '',
-      success: false,
+      success: true,
     };
 
     ctx.body = params ? Object.assign(defaultParams, params) : params;
   };
 
   ctx.defaultError = (error) => {
-    const defaultError = { code: 400, message: '发生未知错误！' };
+    const defaultError = { code: 400, data: {}, message: '发生未知错误！', success: false };
 
     ctx.body = error ? Object.assign(defaultError, error) : error;
   };
@@ -59,8 +62,10 @@ app.use(async (ctx, next) => {
   await next();
 });
 
+app.use(auth);
+
 app.use(router.routes()).use(router.allowedMethods());
 
-app.listen(8081, () => {
-  console.log(`server is running on http://localhost:8081`);
+app.listen(APP_PORT, () => {
+  console.log(`server is running on http://localhost:${APP_PORT}`);
 });

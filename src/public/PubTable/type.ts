@@ -1,7 +1,6 @@
 import { reducerEnum } from '@/redux/store';
 import type { HttpReqDataType } from '@/utils/HttpReq/type';
 import type { ActionCreatorWithPayload } from '@reduxjs/toolkit';
-import type { IResourcesErrorTableData } from '@/redux/resourceErrorSlice/type';
 
 export interface IGetTableDataConfig {
   current: number; // 当前页
@@ -25,7 +24,13 @@ export interface IBaseTable {
   reduxMark?: reducerEnum; // redux标识
   showSizeChanger?: boolean; // 是否展示页码切换器
   position?: [PaginationPosition];
-  defaultPageSize?: number; // 默认页码大小
+  pageSize?: number; // 页码大小
+}
+
+export interface IBaseTableRef {
+  updateTableData: (config?: IGetTableDataConfig) => Promise<void>;
+  current: number;
+  size: number;
 }
 
 export interface IPagination {

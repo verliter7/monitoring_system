@@ -8,6 +8,7 @@ const ErrorModel = seq.define('error', {
     type: DataTypes.STRING,
     primaryKey: true,
     allowNull: false,
+    unique: true,
     comment: '每条错误数据的Id',
   },
   kind: {

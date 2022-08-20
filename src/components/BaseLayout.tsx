@@ -1,21 +1,19 @@
 /* @jsxImportSource @emotion/react */
 import { useState, createElement } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
-import { Button, Layout, Menu, Popconfirm } from 'antd';
-import meunConfig from '@/router/meunConfig';
+import { useLocation } from 'react-router-dom';
+import { MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined } from '@ant-design/icons';
+import { Avatar, Layout, Menu, Popover } from 'antd';
+import { meunConfig } from '@/router/routerConfig';
 import HomePageRouters from '@/router/HomePageRouters';
-import IconFont from '@/components/Iconfont';
-import { Eventemit, commonStyles } from '@/utils';
-import { useAppSelector } from '@/redux/hooks';
+import { commonStyles, HandleLocalStorage } from '@/utils';
 import type { FC, ReactElement } from 'react';
 
 const { Header, Sider, Content } = Layout;
 
 const BaseLayout: FC = (): ReactElement => {
-  const reduxState = useAppSelector((state) => state);
+  const { pathname } = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
+  const { username, aid } = HandleLocalStorage.get('userInfo');
 
   return (
     <Layout
@@ -24,22 +22,14 @@ const BaseLayout: FC = (): ReactElement => {
       }}
     >
       <Sider trigger={null} collapsible collapsed={collapsed} css={{ backgroundColor: '#ffffff' }}>
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          items={meunConfig.map(({ pathname, icon, label }) => ({
-            key: pathname,
-            icon: <IconFont type={icon} />,
-            label: <Link to={pathname}>{label}</Link>,
-          }))}
-        />
+        <Menu theme="light" mode="inline" selectedKeys={[pathname]} items={meunConfig} />
       </Sider>
       <Layout className="site-layout">
         <Header
           css={{
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             gap: '20px',
             padding: '0px',
             height: '48px',
@@ -58,25 +48,28 @@ const BaseLayout: FC = (): ReactElement => {
             className: 'trigger',
             onClick: () => setCollapsed(!collapsed),
           })}
-          <Popconfirm
-            placement="bottom"
-            title="确认重载该页面的数据吗？"
-            onConfirm={() => {
-              Eventemit.dispatchEvent('HttpMonitor', { allListItemInfo: reduxState.httpMonitor });
-            }}
-            okText="确认"
-            cancelText="取消"
-            disabled={!reduxState.httpMonitor.successRate || true}
+          <Popover
+            content={
+              <>
+                <span>用户名: {username}</span>
+                <br />
+                <span>应用id: {aid}</span>
+              </>
+            }
+            title="账户信息"
+            placement="bottomRight"
           >
-            <Button type="default">reload</Button>
-          </Popconfirm>
+            <Avatar icon={<UserOutlined />} css={{ marginRight: '20px' }} />
+          </Popover>
         </Header>
         <Content
           css={{
             ...commonStyles.scroll('Y'),
             overflowX: 'hidden',
             margin: '16px',
+            marginRight: '0',
             padding: '16px',
+            paddingRight: '0px',
             minHeight: '280px',
           }}
         >

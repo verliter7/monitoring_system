@@ -19,6 +19,13 @@ const ResourceModel = seq.define('resource', {
     allowNull: false,
     comment: '资源名字',
   },
+  resourceId: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+    allowNull: false,
+    unique: true,
+    comment: '每个静态资源id',
+  },
   requestUrl: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -71,6 +78,6 @@ const ResourceModel = seq.define('resource', {
   },
 });
 
-// ResourceModel.sync({ force: true });
+ResourceModel.sync({ force: true });
 
 export default ResourceModel;

@@ -1,150 +1,271 @@
 import { Op } from 'sequelize';
 import dayjs from 'dayjs';
+import { uniq } from '@/utils';
+import UserModel from '@/model/user.model';
 import ErrorModel from '@/model/error.model';
+import ResourceModel from '@/model/resource.model';
+import HttpModel from '@/model/http.model';
+import UservitalsModel from '@/model/uservitals.model';
 import type { Model, Optional } from 'sequelize/types';
 
 /**
  * @description: 向数据库插入一条错误信息
  * @param errorInfo 错误信息
  */
-export async function createError_s(errorInfo: Optional<any, string>) {
-  const isExisted = !!(await findErrorInfo(errorInfo.errorId));
+export async function createError_s(aid: string, errorInfo: Optional<any, string>) {
+  const isExisted = (await findErrorInfo(errorInfo.errorId)) && (await findAid(aid));
   errorInfo.timeStamp = parseInt(errorInfo.timeStamp);
 
   return isExisted ? null : await ErrorModel.create(errorInfo);
 }
 
+/**
+ * @description: 通过errorId查找改条错误是否已经上报过
+ * @param errorId 错误id
+ */
 export async function findErrorInfo(errorId: string) {
-  const res = await ErrorModel.findOne({
+  const count = await ErrorModel.count({
     where: {
       errorId,
     },
   });
 
-  return res;
+  return !!count;
 }
+
+/**
+ * @description: 查找用户表是否存在该aid
+ * @param aid 应用id
+ */
+export async function findAid(aid: string) {
+  const count = await UserModel.count({
+    where: {
+      aid,
+    },
+  });
+
+  return !!count;
+}
+
+export enum errorEnum {
+  JE = 'jsError',
+  PE = 'promiseError',
+  HE = 'httpError',
+  RE = 'resourceError',
+}
+
+export type ErrorType = 'jsError' | 'promiseError' | 'httpError' | 'resourceError';
+
+const oneDayHours = 24;
+const oneHourMilliseconds = 60 * 60 * 1000;
+const oneDayTime = oneDayHours * oneHourMilliseconds;
+const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.get());
+const getQueryConfigWhere = (pastDays: number) => {
+  const now = Date.now();
+
+  return {
+    now,
+    queryConfigWhere: {
+      timeStamp: {
+        [Op.lt]: now,
+        [Op.gt]: now - oneDayTime * pastDays,
+      },
+    },
+  };
+};
 
 /**
  * @description: 获取错误数量
  * @param type 错误类型
  */
-export async function getErrorCount_s(type: string) {
-  const oneDayHours = 24;
-  const oneHourMilliseconds = 60 * 60 * 1000;
-  const oneDayTime = oneDayHours * oneHourMilliseconds;
+export async function getErrorCount_s(aid: string, pastDays: number, type: ErrorType) {
   const now = Date.now();
   const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.getDataValue('timeStamp'));
-  const getQueryConfig = (ago: number) => ({
-    where: {
-      type,
-      timeStamp: {
-        [Op.lt]: now - (ago - 1) * oneDayTime,
-        [Op.gt]: now - ago * oneDayTime,
+  const getQueryConfig = (type?: string) => {
+    const config: Record<string, any> = {
+      where: {
+        aid,
+        type,
+        timeStamp: {
+          [Op.lt]: now,
+          [Op.gt]: now - 2 * pastDays * oneDayTime,
+        },
       },
-    },
-    attributes: ['timeStamp'],
-  });
-  const frontErrorCreatTimes = process(await ErrorModel.findAll(getQueryConfig(2)));
-  const backErrorCreatTimes = process(await ErrorModel.findAll(getQueryConfig(1)));
-  const frontErrorConutByTime: Record<string, number> = {};
-  const backErrorConutByTime: Record<string, number> = {};
-  const timeFormat = 'YYYY-MM-DD HH:00';
+      attributes: ['timeStamp'],
+      order: [['timeStamp', 'DESC']],
+    };
 
-  for (let i = oneDayHours; i >= 0; i--) {
-    const frontTime = dayjs(now - oneDayTime - i * oneHourMilliseconds).format(timeFormat);
-    const backTime = dayjs(now - i * oneHourMilliseconds).format(timeFormat);
+    type === void 0 && delete config.where.type;
 
-    frontErrorConutByTime[frontTime] = 0;
-    backErrorConutByTime[backTime] = 0;
+    return config;
+  };
+
+  const allErrorCreatTimes = process(await ErrorModel.findAll(getQueryConfig(type)));
+  let allCreatTimes: any[] = [];
+
+  switch (type) {
+    case errorEnum.JE:
+      allCreatTimes = process(await UservitalsModel.findAll(getQueryConfig()));
+      break;
+    case errorEnum.RE:
+      allCreatTimes = process(await ResourceModel.findAll(getQueryConfig()));
+      break;
+    case errorEnum.HE:
+      allCreatTimes = [...allErrorCreatTimes, ...process(await HttpModel.findAll(getQueryConfig()))];
+      break;
+    default:
+      break;
   }
 
-  frontErrorCreatTimes.forEach((time: number) => {
-    const frontTime = dayjs(time).format(timeFormat);
-    frontErrorConutByTime[frontTime] !== void 0 && frontErrorConutByTime[frontTime]++;
+  const frontErrorConutByTime: Record<string, [number, number]> = {};
+  const backErrorConutByTime: Record<string, [number, number]> = {};
+  const timeFormat = 'YYYY-MM-DD HH:00';
+  const oneCycleTime = oneDayHours * pastDays * 2 - 1;
+
+  for (let i = oneCycleTime; i >= 0; i--) {
+    const formatTime = dayjs(now - i * oneHourMilliseconds).format(timeFormat);
+
+    i > oneCycleTime / 2 ? (frontErrorConutByTime[formatTime] = [0, 0]) : (backErrorConutByTime[formatTime] = [0, 0]);
+  }
+
+  allErrorCreatTimes.forEach((time: number) => {
+    const formatTime = dayjs(time).format(timeFormat);
+
+    Reflect.has(frontErrorConutByTime, formatTime) && frontErrorConutByTime[formatTime][0]++;
+    Reflect.has(backErrorConutByTime, formatTime) && backErrorConutByTime[formatTime][0]++;
   });
-  backErrorCreatTimes.forEach((time: number) => {
-    const backTime = dayjs(time).format(timeFormat);
-    backErrorConutByTime[backTime] !== void 0 && backErrorConutByTime[backTime]++;
+
+  allCreatTimes.forEach((time: number) => {
+    const formatTime = dayjs(time).format(timeFormat);
+
+    Reflect.has(frontErrorConutByTime, formatTime) && frontErrorConutByTime[formatTime][1]++;
+    Reflect.has(backErrorConutByTime, formatTime) && backErrorConutByTime[formatTime][1]++;
   });
 
   return { frontErrorConutByTime, backErrorConutByTime };
 }
 
-enum typeEnum {
-  HP = 'httpError',
-  JS = 'jsError',
-  RS = 'resourcesError',
-  PL = 'pageLoad',
-}
-
 /**
- * @description: 获取静态资源加载错误信息（做成表格）
- * @param current 当前页数
- * @param size 当前页大小
+ * @description: 获取js请求错误信息（做成表格）
  */
-export async function getResourceErrorData_s(current: number, size: number) {
-  const oneDayHours = 24;
-  const oneHourMilliseconds = 60 * 60 * 1000;
-  const oneDayTime = oneDayHours * oneHourMilliseconds;
-  const now = Date.now();
-  const queryConfigWhere = {
-    timeStamp: {
-      [Op.lt]: now,
-      [Op.gt]: now - oneDayTime,
-    },
-  };
-  const TYPE = 'resourceError';
+export async function getJsErrorData_s(aid: string, ...rest: number[]) {
+  const [pastDays, current, size] = rest;
+  const { queryConfigWhere } = getQueryConfigWhere(pastDays);
   const timeFormat = 'YYYY-MM-DD HH:mm:ss';
-  const process = (infos: Model<any, any>[]) => infos.map((errorInfo) => errorInfo.get());
   const records = process(
     await ErrorModel.findAll({
-      attributes: ['errorId', 'timeStamp', 'originUrl', 'requestUrl'],
+      attributes: ['errorId', 'timeStamp', 'errorType', 'errorStack', 'errorMsg'],
       where: {
+        aid,
+        type: errorEnum.JE,
         ...queryConfigWhere,
-        type: TYPE,
       },
-      limit: size,
-      offset: (current - 1) * size,
-      order: [['timeStamp', 'DESC']],
     }),
   );
+  const uniqRecords = uniq(
+    records,
+    (a, b) => a.errorType === b.errorType && a.errorStack === b.errorStack && a.errorMsg === b.errorMsg,
+  );
+  const finalRecords: any[] = [];
 
-  const total = await ErrorModel.count({
-    where: {
-      ...queryConfigWhere,
-      type: TYPE,
-    },
-  });
-
-  const getResourceErrorCount = (requestUrl: string) => {
-    let count = 0;
-
-    for (const record of records) {
-      if (record.requestUrl === requestUrl) {
-        count++;
-      }
-    }
-
-    return count;
-  };
+  for (const { errorId, timeStamp, ...rest } of uniqRecords) {
+    finalRecords.push({
+      key: errorId,
+      date: dayjs(timeStamp).format(timeFormat),
+      count: await ErrorModel.count({
+        where: Object.assign(queryConfigWhere, rest),
+      }),
+      ...rest,
+    });
+  }
 
   return {
     current,
     size,
-    total,
-    type: typeEnum.RS,
-    records: records.map((record) => {
-      const { errorId, timeStamp, originUrl, requestUrl } = record;
-
-      const finalRecord = {
-        key: errorId,
-        date: dayjs(timeStamp).format(timeFormat),
-        originUrl,
-        requestUrl,
-        count: getResourceErrorCount(requestUrl),
-      };
-
-      return finalRecord;
+    total: finalRecords.length,
+    records: finalRecords.slice((current - 1) * size, current * size),
+  };
+}
+/**
+ * @description: 获取http请求错误信息（做成表格）
+ */
+export async function getHttpErrorData_s(aid: string, ...rest: number[]) {
+  const [pastDays, current, size] = rest;
+  const { queryConfigWhere } = getQueryConfigWhere(pastDays);
+  const timeFormat = 'YYYY-MM-DD HH:mm:ss';
+  const records = process(
+    await ErrorModel.findAll({
+      attributes: ['errorId', 'timeStamp', 'requestUrl'],
+      where: {
+        aid,
+        type: errorEnum.HE,
+        ...queryConfigWhere,
+      },
     }),
+  );
+  const uniqRecords = uniq(records, (a, b) => a.requestUrl === b.requestUrl);
+  const finalRecords: any[] = [];
+
+  for (const { errorId, timeStamp, requestUrl } of uniqRecords) {
+    finalRecords.push({
+      key: errorId,
+      date: dayjs(timeStamp).format(timeFormat),
+      count: await ErrorModel.count({
+        where: {
+          ...queryConfigWhere,
+          requestUrl,
+        },
+      }),
+      requestUrl,
+    });
+  }
+
+  return {
+    current,
+    size,
+    total: finalRecords.length,
+    records: finalRecords.slice((current - 1) * size, current * size),
+  };
+}
+
+/**
+ * @description: 获取静态资源加载错误信息（做成表格）
+ */
+export async function getResourceErrorData_s(aid: string, ...rest: number[]) {
+  const [pastDays, current, size] = rest;
+  const { queryConfigWhere } = getQueryConfigWhere(pastDays);
+  const timeFormat = 'YYYY-MM-DD HH:mm:ss';
+  const records = process(
+    await ErrorModel.findAll({
+      attributes: ['errorId', 'timeStamp', 'requestUrl'],
+      where: {
+        aid,
+        type: errorEnum.RE,
+        ...queryConfigWhere,
+      },
+    }),
+  );
+  const uniqRecords = uniq(records, (a, b) => a.requestUrl === b.requestUrl);
+  const finalRecords: any[] = [];
+
+  for (const { errorId, timeStamp, requestUrl } of uniqRecords) {
+    finalRecords.push({
+      key: errorId,
+      date: dayjs(timeStamp).format(timeFormat),
+      count: await ErrorModel.count({
+        where: {
+          aid,
+          requestUrl,
+          ...queryConfigWhere,
+        },
+      }),
+      requestUrl,
+    });
+  }
+  return {
+    current,
+    size,
+    total: finalRecords.length,
+    records: finalRecords.slice((current - 1) * size, current * size),
   };
 }

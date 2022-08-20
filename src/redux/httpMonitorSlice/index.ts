@@ -9,6 +9,7 @@ import type {
 import type { IHttpMonitorState } from './type';
 
 const initialState: IHttpMonitorState = {
+  pastDays: '1',
   allListItemInfo: {},
   table: { records: [], current: 1, size: 0, total: 0 },
 } as any;
@@ -17,6 +18,9 @@ export const httpMonitorSlice = createSlice({
   name: 'httpMonitor',
   initialState,
   reducers: {
+    pastDaysStorage: (state, action: PayloadAction<string>) => {
+      state.pastDays = action.payload;
+    },
     successRateStorage: (state, action: PayloadAction<Record<string, ITabSuccessRateItemInfo>>) => {
       state.allListItemInfo.successRate = action.payload;
     },
@@ -36,6 +40,7 @@ export const httpMonitorSlice = createSlice({
 });
 
 export const {
+  pastDaysStorage,
   successRateStorage,
   msgClusterStorage,
   successTimeConsumeStorage,

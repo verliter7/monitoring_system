@@ -166,7 +166,7 @@ export default class PerformanceVitals {
   // 初始化 CLS 的获取以及返回 累积布局移动 计算积分
   initCLS = (): void => {
     let clsValue = 0;
-    let clsEntries = [];
+    let clsEntries: LayoutShift[] = [];
 
     let sessionValue = 0;
     let sessionEntries: Array<LayoutShift> = [];

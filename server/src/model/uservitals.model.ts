@@ -4,10 +4,10 @@ import defalutConfig from './defalutConfig';
 
 const UservitalsModel = seq.define('duration', {
   ...defalutConfig,
-  url: {
+  originUrl: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: 'url地址',
+    comment: '源地址',
     defaultValue: '',
   },
   startTime: {
@@ -29,6 +29,7 @@ const UservitalsModel = seq.define('duration', {
     defaultValue: 0,
   },
 });
+
 // UservitalsModel.sync({ force: true });
 
 export default UservitalsModel;
