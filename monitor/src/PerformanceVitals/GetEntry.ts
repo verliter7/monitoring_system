@@ -133,7 +133,7 @@ export const getResourceFlow = (
       requestStart,
       duration,
       startTime,
-      responseEnd
+      responseEnd,
     } = entry;
     const dimensionInstance = new DimensionInstance(options);
     const resourceId = hashCode(
@@ -183,8 +183,6 @@ export const getResourceFlow = (
       resourceFlowSet.clear();
     }
   };
-
-
 
   observe('resource', entryHandler, true);
 };

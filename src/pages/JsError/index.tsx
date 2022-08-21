@@ -25,14 +25,23 @@ const columns: Record<string, any>[] = [
     },
   },
   {
-    title: '源url',
-    dataIndex: 'originUrl',
-    key: 'originUrl',
+    title: '错误栈',
+    dataIndex: 'errorStack',
+    key: 'errorStack',
+    render: (_: any, record: Record<string, any>) => {
+      return (
+        <div css={{ display: 'flex', flexDirection: 'column' }}>
+          <span css={{ color: '#167BFE' }}>{record.errorMsg}</span>
+          <span css={{ color: '#8BA8D1' }}>{record.errorStack.split('$$')[0]}</span>
+        </div>
+      );
+    },
+    ellipsis: true,
   },
   {
-    title: 'src属性',
-    dataIndex: 'requestUrl',
-    key: 'requestUrl',
+    title: '错误类型',
+    dataIndex: 'errorType',
+    key: 'errorType',
   },
   {
     title: '错误数',
@@ -204,13 +213,15 @@ const JsError: FC = (): ReactElement => {
   return (
     <div css={{ marginRight: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <PubHeader handleSelectChange={handleChange} pastDays={pastDays} />
-      <PubTabs tabs={tabs} onChange={(activeKey: string) => { }} />
+      <PubTabs tabs={tabs} onChange={(activeKey: string) => {}} />
       <PubTable
         columns={columns}
         getTableData={getJSErrorData.bind(null, pastDays)}
         storage={tableStorage}
         reduxMark={reducerEnum.JE}
         ref={tableRef}
+        tableSize="small"
+        fontSize="12px"
       />
     </div>
   );

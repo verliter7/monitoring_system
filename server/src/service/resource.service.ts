@@ -73,6 +73,6 @@ export async function getResourceCount_s(aid: string) {
  * @returns
  */
 export async function getResourceData_s() {
-  const data = await ResourceModel.findAll()
-  return data
+  const data = await ResourceModel.findAll();
+  return data;
 }

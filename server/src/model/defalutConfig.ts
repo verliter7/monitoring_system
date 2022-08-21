@@ -9,7 +9,6 @@ const defalutConfig = {
   aid: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true,
     comment: '每一个应用的key，通过注册获得',
   },
   userMonitorId: {
