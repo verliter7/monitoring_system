@@ -60,8 +60,6 @@ export default class UserVitals {
 
   // 封装用户行为的上报入口
   userSendHandler = (data: IMetrics, type: transportType) => {
-    console.log(data);
-
     // 进行通知内核实例进行上报;
     this.engineInstance.transportInstance.kernelTransportHandler(
       transportKind.business,
@@ -70,7 +68,7 @@ export default class UserVitals {
         ...new DimensionInstance(this.options),
         ...data,
       },
-      transportHandlerType.xmlTransport,
+      transportHandlerType.initTransport,
     );
   };
 
@@ -121,8 +119,9 @@ export default class UserVitals {
       language: language.substr(0, 2),
       userAgent,
       winScreen: `${width}x${height}`,
-      docScreen: `${document.documentElement.clientWidth || document.body.clientWidth}x${document.documentElement.clientHeight || document.body.clientHeight
-        }`,
+      docScreen: `${document.documentElement.clientWidth || document.body.clientWidth}x${
+        document.documentElement.clientHeight || document.body.clientHeight
+      }`,
     };
   };
 

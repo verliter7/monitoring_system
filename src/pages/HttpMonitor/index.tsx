@@ -236,9 +236,13 @@ const HttpMonitor: FC = (): ReactElement => {
         gap: '20px',
         position: 'relative',
         overflowX: 'hidden',
+        height: '100%',
 
         '& > .ant-card': {
-          width: '417px',
+          height: '100%',
+          width: '440px',
+
+          '& > .ant-card-body': { ...commonStyles.scroll('Y'), height: 'calc(100% - 60px)' },
         },
       }}
     >
@@ -292,7 +296,7 @@ const HttpMonitor: FC = (): ReactElement => {
           ...commonStyles.scroll('Y'),
           overflowX: 'hidden',
           height: 'calc(100vh - 112px)',
-          width: 'calc(100% - 509px)',
+          width: 'calc(100% - 528px)',
         }}
       >
         <div css={{ display: 'flex', flexDirection: 'column', gap: '20px', marginRight: '32px' }}>
