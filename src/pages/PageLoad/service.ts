@@ -17,3 +17,10 @@ export const getUservitalsData: HttpReqType<any> = () => {
     method: 'get',
   });
 };
+
+export const getResourceData: HttpReqType<any> = () => {
+  return HttpReq.send({
+    url: api.getResourceData,
+    method: 'get',
+  });
+};

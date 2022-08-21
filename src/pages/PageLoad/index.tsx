@@ -7,7 +7,7 @@ const PageLoad: FC = (): ReactElement => {
 
   return (
     <>
-      <PubTapBar />
+      {/* <PubTapBar /> */}
       <MainContent />
     </>
   )

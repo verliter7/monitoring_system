@@ -7,8 +7,8 @@ const UserPerformance: FC = (): ReactElement => {
   return (
     <>
       <RenderingMetrics />
-      <UserInteraction />
-      <OverallSatisfaction />
+      {/* <UserInteraction />
+      <OverallSatisfaction /> */}
     </>
   )
 }

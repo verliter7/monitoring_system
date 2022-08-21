@@ -4,6 +4,21 @@ import defalutConfig from './defalutConfig';
 
 const ResourceModel = seq.define('resource', {
   ...defalutConfig,
+  session: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: '会话id',
+  },
+  jsessionId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: '会话id',
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: '资源名字',
+  },
   resourceId: {
     type: DataTypes.STRING,
     primaryKey: true,
@@ -15,6 +30,16 @@ const ResourceModel = seq.define('resource', {
     type: DataTypes.STRING,
     allowNull: false,
     comment: '静态资源请求地址',
+  },
+  startTime: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: '开始时间',
+  },
+  responseEnd: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    comment: '结束时间',
   },
   duration: {
     type: DataTypes.STRING,

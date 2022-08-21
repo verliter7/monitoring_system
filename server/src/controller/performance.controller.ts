@@ -20,7 +20,8 @@ export async function createPerformance_c(ctx: Context) {
 
 export async function getPerformanceData_c(ctx: Context) {
   const { type } = ctx.query;
-  const { aid } = ctx.state;
+  const { aid } = ctx.request.body;
+  console.log(aid);
 
   try {
     const data = await getPerformanceData_s(aid, type as string);

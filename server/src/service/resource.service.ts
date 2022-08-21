@@ -67,3 +67,12 @@ export async function getResourceCount_s(aid: string) {
 
   return total;
 }
+
+/**
+ * 获取所有资源数据
+ * @returns
+ */
+export async function getResourceData_s() {
+  const data = await ResourceModel.findAll()
+  return data
+}

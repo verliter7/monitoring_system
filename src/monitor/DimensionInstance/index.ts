@@ -16,6 +16,8 @@ export default class DimensionInstance {
   timeStamp: number;
   originUrl: string;
   userMonitorId: string;
+  // sessionId: string;
+  // jsessionId: string;
   osName?: string;
   osVersion?: string;
   egName?: string;
@@ -44,5 +46,6 @@ export default class DimensionInstance {
     this.bsName = bsName;
     this.bsVersion = bsVersion;
     this.ua = getUA();
+    // this.sessionId = document.cookie.
   }
 }

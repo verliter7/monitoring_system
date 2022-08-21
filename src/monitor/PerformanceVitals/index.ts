@@ -12,10 +12,11 @@ import {
 } from './GetEntry';
 import BuilderInstance from './BuilderInstance';
 import { EngineInstance } from '..';
-import { transportType } from '../Transport';
+import { transportHandlerType, transportKind, transportType } from '../Transport';
 import { resourceUrl } from '../utils/urls';
 import type { initOptions } from '..';
 import type { LayoutShift, ResourceFlowTiming } from './type';
+import DimensionInstance from '../DimensionInstance';
 
 export const afterLoad = (callback: any) => {
   //Document.readyState 属性描述了document 的加载状态 complete加载完成
@@ -88,15 +89,15 @@ export default class PerformanceVitals {
     //   ...this.builderInstance.performanceDataBuilder(type)
     // }
     // console.log(a);
-    // this.engineInstance.transportInstance.kernelTransportHandler(
-    //   transportKind.performance,
-    //   type,
-    //   {
-    //     ...new DimensionInstance(this.options),
-    //     ...this.builderInstance.performanceDataBuilder(type)
-    //   },
-    //   transportHandlerType.xmlTransport,
-    // );
+    this.engineInstance.transportInstance.kernelTransportHandler(
+      transportKind.performance,
+      type,
+      {
+        ...new DimensionInstance(this.options),
+        ...this.builderInstance.performanceDataBuilder(type)
+      },
+      transportHandlerType.xmlTransport,
+    );
   }
 
   //W3C标准化在 w3c/paint-timing 定义了 首次非网页背景像素渲染（fp）(白屏时间) 和  首次内容渲染（fcp)(灰屏时间)，我们可以直接去取;

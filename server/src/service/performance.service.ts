@@ -71,20 +71,20 @@ export async function createPerformance_s(aid: string, performanceInfo: Optional
       ip,
     };
     for (let type of timingType) {
-      data.timingType = type;
-      data.describe = typeDescribe[type];
-      let [end, start] = performanceInfo[type].split('-');
-      data.during = Number(end) - Number(start);
-      data.start = Number(start);
-      data.end = Number(end);
-      await PerformanceTimingModel.create(data);
+      data.timingType = type
+      data.describe = typeDescribe[type]
+      let [end, start] = performanceInfo[type].split('-')
+      data.during = Number(end) - Number(start)
+      data.start = Number(start)
+      data.end = Number(end)
+      await PerformanceTimingModel.create(data)
     }
   }
   if (performanceInfo.type === 'paint') {
-    result = await PerformancePaintModel.create(performanceInfo);
+    result = await PerformancePaintModel.create(performanceInfo)
   }
   if (performanceInfo.type === 'CLS') {
-    result = await PerformanceCLSModel.create(performanceInfo);
+    result = await PerformanceCLSModel.create(performanceInfo)
   }
   return result;
 }
@@ -107,7 +107,7 @@ export async function getPerformanceData_s(aid: string, type: string) {
   let data;
   switch (type) {
     case 'timing':
-      data = PerformanceTimingModel.findAll();
+      data = PerformanceTimingModel.findAll({ limit: 348 });
       break;
     case 'paint':
       data = PerformancePaintModel.findAll();

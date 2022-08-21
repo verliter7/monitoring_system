@@ -132,6 +132,8 @@ export const getResourceFlow = (
       responseStart,
       requestStart,
       duration,
+      startTime,
+      responseEnd
     } = entry;
     const dimensionInstance = new DimensionInstance(options);
     const resourceId = hashCode(
@@ -153,6 +155,10 @@ export const getResourceFlow = (
         resourceId,
         // name 资源地址
         requestUrl: name,
+        // 开始时间
+        startTime,
+        // 结束时间
+        responseEnd,
         // responseEnd - startTime 即开始发起请求到完整收到资源、传输连接关闭的时间
         duration,
         // transferSize 资源传输大小
@@ -177,6 +183,8 @@ export const getResourceFlow = (
       resourceFlowSet.clear();
     }
   };
+
+
 
   observe('resource', entryHandler, true);
 };
