@@ -94,9 +94,9 @@ export default class PerformanceVitals {
       type,
       {
         ...new DimensionInstance(this.options),
-        ...this.builderInstance.performanceDataBuilder(type)
+        ...this.builderInstance.performanceDataBuilder(type),
       },
-      transportHandlerType.xmlTransport,
+      transportHandlerType.initTransport,
     );
   }
 
