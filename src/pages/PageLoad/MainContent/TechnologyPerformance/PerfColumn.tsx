@@ -1,9 +1,7 @@
-import { FC, ReactElement, useContext, useEffect, useState } from 'react';
+import { FC, ReactElement, useEffect, useState } from 'react';
 import { Column } from '@ant-design/plots';
-import { TooltipItem } from '@antv/l7plot';
-import { Spin } from 'antd';
+import { Spin, Card } from 'antd';
 import { ITimingData } from './type';
-import { DataContext } from '.';
 
 interface IProps {
   data: ITimingData[]
@@ -48,7 +46,9 @@ const PerfColumn: FC<IProps> = ({ data, loading }): ReactElement => {
 
   return (
     <Spin tip="图表加载中..." spinning={loading} size="large">
-      <Column {...config} />
+      <Card css={{ backgroundColor: '#fff' }} >
+        <Column {...config} />
+      </Card>
     </Spin>
   )
 };

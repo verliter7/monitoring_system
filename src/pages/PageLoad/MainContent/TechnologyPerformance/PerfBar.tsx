@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { FC, ReactElement } from 'react';
 import { Bar } from '@ant-design/plots';
-// import { TooltipItem } from '@antv/l7plot';
 import { ITimingData } from './type';
-import { Spin } from 'antd';
+import { Spin, Card } from 'antd';
 
 interface IProps {
   data: ITimingData[]
@@ -46,10 +45,11 @@ const PerfBar: FC<IProps> = ({ data, loading }): ReactElement => {
 
   return (
     <Spin tip="图表加载中..." spinning={loading} size="large">
-      <Bar {...config} />
+      <Card css={{ backgroundColor: '#fff' }} >
+        <Bar {...config} />
+      </Card>
     </Spin>
   )
-
 };
 
 export default PerfBar

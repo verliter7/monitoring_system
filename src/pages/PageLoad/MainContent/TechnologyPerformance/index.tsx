@@ -1,4 +1,5 @@
-import { FC, ReactElement, useState, useEffect, createContext } from 'react'
+/* @jsxImportSource @emotion/react */
+import { FC, ReactElement, useState, createContext } from 'react'
 import PerfBar from './PerfBar'
 import PerfColumn from './PerfColumn'
 import { useRequest } from '@/hooks';
@@ -17,10 +18,10 @@ const TechnologyPerformance: FC = (): ReactElement => {
   })
 
   return (
-    <>
+    <div css={{ marginRight: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <PerfColumn data={timingData} loading={loading} />
       <PerfBar data={timingData} loading={loading} />
-    </>
+    </div>
   )
 }
 

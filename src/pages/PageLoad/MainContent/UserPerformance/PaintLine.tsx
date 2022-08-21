@@ -1,5 +1,5 @@
 import { Line } from '@ant-design/plots';
-import { Spin } from 'antd';
+import { Spin, Card } from 'antd';
 import type { FC, ReactElement } from 'react';
 import type { HPaintData } from './type';
 
@@ -24,15 +24,13 @@ const PaintLine: FC<IProps> = ({ paintData, type, title, loading }): ReactElemen
     padding: 'auto' as 'auto',
     xField: 'timeStamp',
     yField: type,
-    xAxis: {
-      // tickCount: 5,
-      // tickInterval: 4,
-    },
   };
 
   return (
     <Spin tip="图表加载中..." spinning={loading} size="large">
-      <Line {...config} />
+      <Card css={{ backgroundColor: '#fff' }} >
+        <Line {...config} />
+      </Card>
     </Spin>
   )
 };

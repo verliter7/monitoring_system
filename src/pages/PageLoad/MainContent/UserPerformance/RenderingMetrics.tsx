@@ -16,14 +16,14 @@ const RenderingMetrics: FC = (): ReactElement => {
 
   const { loading } = useRequest(() => getPerformanceData('paint'), {
     onSuccess(res) {
-      if (res.code === 2000) {
+      if (res.code === 200) {
         let data = res.data.map((item: IPaintData) => {
           return {
             FP: parseInt(item.FP) || 0,
             FCP: parseInt(item.FCP) || 0,
             FMP: parseInt(item.FMP) || 0,
             LCP: parseInt(item.LCP) || 0,
-            FID: parseInt(item.FID) || 0,
+            FID: Number(item.FID.substring(0, item.FID.indexOf(".") + 3)) || 0,
             timeStamp: new Date(item.timeStamp).toLocaleString(undefined, { year: "numeric", month: "numeric", day: "numeric", hour: 'numeric', minute: 'numeric', second: 'numeric' }),
           }
         })
@@ -34,7 +34,6 @@ const RenderingMetrics: FC = (): ReactElement => {
 
   const { loading: loading2 } = useRequest(() => getPerformanceData('CLS'), {
     onSuccess(res) {
-      console.log(res.data);
       let data = res.data.map((item: ICLSData) => {
         return {
           CLS: Number(item.CLS) || 0,
@@ -69,13 +68,13 @@ const RenderingMetrics: FC = (): ReactElement => {
       unit: 'ms',
       content: <PaintLine paintData={paintData} title='首次内容绘制时间(FCP)' type='FCP' loading={loading} />,
     },
-    {
-      title: '首次有效绘制时间(FMP)',
-      middle: getLastData(1)?.FMP || 0,
-      bottomCenter: getLastData(2)?.FMP || 0,
-      unit: 'ms',
-      content: <PaintLine paintData={paintData} title='首次有效绘制时间(FMP)' type='FMP' loading={loading} />,
-    },
+    // {
+    //   title: '首次有效绘制时间(FMP)',
+    //   middle: getLastData(1)?.FMP || 0,
+    //   bottomCenter: getLastData(2)?.FMP || 0,
+    //   unit: 'ms',
+    //   content: <PaintLine paintData={paintData} title='首次有效绘制时间(FMP)' type='FMP' loading={loading} />,
+    // },
     {
       title: '最大内容绘画时间(LCP)',
       middle: getLastData(1)?.LCP || 0,
