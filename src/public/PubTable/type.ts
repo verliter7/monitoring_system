@@ -25,6 +25,8 @@ export interface IBaseTable {
   showSizeChanger?: boolean; // 是否展示页码切换器
   position?: [PaginationPosition];
   pageSize?: number; // 页码大小
+  tableSize?: 'small' | 'middle' | 'large'; // 表格尺寸
+  fontSize?: string; // 表格字体大小
 }
 
 export interface IBaseTableRef {

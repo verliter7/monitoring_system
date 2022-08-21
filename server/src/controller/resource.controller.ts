@@ -3,22 +3,21 @@ import type { Context } from 'koa';
 
 export async function createResource_c(ctx: Context) {
   const resourceInfos = ctx.request.body;
-  let cookie = ctx.request.get("Cookie")
-  let cookieObj: Record<string, any> = {}
+  let cookie = ctx.request.get('Cookie');
+  let cookieObj: Record<string, any> = {};
   cookie.split('; ').forEach((item) => {
-    let arr = item.split('=')
-    cookieObj[arr[0]] = arr[1]
-  })
-  const { aid } = ctx.state;
+    let arr = item.split('=');
+    cookieObj[arr[0]] = arr[1];
+  });
 
   try {
     for (const r of resourceInfos) {
       const { aid } = r;
 
       r.ip = ctx.ip;
-      r.session = cookieObj.SESSION
-      r.jsessionId = cookieObj.JSESSIONID
-      r.name = r.requestUrl.split('/').pop()
+      r.session = cookieObj.SESSION;
+      r.jsessionId = cookieObj.JSESSIONID;
+      r.name = r.requestUrl.split('/').pop();
       await createResource_s(aid, r);
     }
 

@@ -6,11 +6,6 @@ import zhCN from 'antd/es/locale/zh_CN';
 import { Global, css } from '@emotion/react';
 import App from './App';
 import store from '@/redux/store';
-import WebSdk from './monitor';
-
-new WebSdk({
-  aid: 'eMBYxfwKY7a6GJ4p',
-});
 
 const globalStyles = css`
   html,

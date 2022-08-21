@@ -30,7 +30,12 @@ interface IErrorParam {
 
 const app = new Koa();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: '*',
+    credentials: true,
+  }),
+);
 app.use(
   koaBody({
     multipart: true,

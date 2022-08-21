@@ -20,6 +20,8 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
       showSizeChanger = true,
       position = ['bottomCenter'],
       pageSize = defaultSize,
+      tableSize = 'middle',
+      fontSize = '14px',
     },
     ref,
   ): ReactElement => {
@@ -41,7 +43,7 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
     const tableColumns: Record<string, any>[] = columns.map((column) => {
       const { width, ...rest } = column;
       const listStyle = () => ({
-        style: { width: width ? width : 100, whiteSpace: 'nowrap' },
+        style: { width: width ? width : 100, whiteSpace: 'nowrap', fontSize },
       });
 
       return {
@@ -129,6 +131,7 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
         columns={tableColumns}
         pagination={pagination}
         loading={{ tip: '加载中...', spinning: loading, size: 'large' }}
+        size={tableSize}
         bordered
       />
     );

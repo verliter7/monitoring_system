@@ -6,12 +6,12 @@ const ResourceModel = seq.define('resource', {
   ...defalutConfig,
   session: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     comment: '会话id',
   },
   jsessionId: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
     comment: '会话id',
   },
   name: {
