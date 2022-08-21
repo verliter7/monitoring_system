@@ -60,15 +60,15 @@ const UserVitals: FC = (): ReactElement => {
   const tabs: ITab[] = [
     {
       title: 'PV/UV趋势图',
-      middle: getLastViewData(1, 'PV')?.count,
-      bottomCenter: getLastViewData(2, 'PV')?.count,
+      middle: getLastViewData(1, 'PV')?.count ? getLastViewData(1, 'PV')?.count : 0,
+      bottomCenter: getLastViewData(2, 'PV')?.count ? getLastViewData(2, 'PV')?.count : 0,
       unit: '',
       content: <PubLine paintData={ViewData} title="PV/UV" type='count' loading={loading} smooth={true} seriesField='category'/>,
     },
     {
       title: '页面停留时间',
-      middle: getLastData(1)?.duration,
-      bottomCenter: getLastData(2)?.duration,
+      middle: getLastData(1)?.duration ? getLastData(1)?.duration : 0,
+      bottomCenter: getLastData(2)?.duration? getLastData(2)?.duration : 0,
       unit: 's',
       content: <PubLine paintData={paintData} title="页面停留时间" type='duration' loading={loading} />,
     },
