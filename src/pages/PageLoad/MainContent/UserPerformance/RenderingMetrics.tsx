@@ -6,7 +6,6 @@ import useMount from '@/hooks/useMount';
 import PaintLine from './PaintLine';
 import { getPerformanceData } from '../../service';
 import type { ITab } from '@/public/PubTabs/type';
-// import PubLine from '@/public/PubLine'
 import { useRequest } from '@/hooks';
 import type { HPaintData, IPaintData, ICLSData } from './type';
 
@@ -36,7 +35,7 @@ const RenderingMetrics: FC = (): ReactElement => {
     onSuccess(res) {
       let data = res.data.map((item: ICLSData) => {
         return {
-          CLS: Number(item.CLS) || 0,
+          CLS: Number(item.CLS.substring(0, item.CLS.indexOf(".") + 4)) || 0,
           timeStamp: new Date(item.timeStamp).toLocaleString(undefined, { year: "numeric", month: "numeric", day: "numeric", hour: 'numeric', minute: 'numeric', second: 'numeric' }),
         }
       })
@@ -49,8 +48,8 @@ const RenderingMetrics: FC = (): ReactElement => {
    * @param index 倒数第一个就是 1 第二个就是 2
    * @returns
    */
-  const getLastData = (index: number): HPaintData => {
-    return paintData[paintData.length - index]
+  const getLastData = (index: number, data: Array<HPaintData | ICLSData> = paintData): any => {
+    return data[data.length - index]
   }
 
   const tabs: ITab[] = [
@@ -91,8 +90,8 @@ const RenderingMetrics: FC = (): ReactElement => {
     },
     {
       title: '累积布局移动(CLS)',
-      middle: getLastData(1)?.FMP || 0,
-      bottomCenter: getLastData(2)?.FMP || 0,
+      middle: getLastData(1, CLSData)?.CLS || 0,
+      bottomCenter: getLastData(2, CLSData)?.CLS || 0,
       unit: 'ms',
       content: <PaintLine paintData={CLSData} title='累积布局移动(CLS)' type='CLS' loading={loading2} />,
     },
