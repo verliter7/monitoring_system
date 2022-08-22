@@ -17,7 +17,7 @@ export async function createResource_c(ctx: Context) {
       r.ip = ctx.ip;
       r.session = cookieObj.SESSION;
       r.jsessionId = cookieObj.JSESSIONID;
-      r.name = r.requestUrl.split('/').pop();
+      r.name = r.requestUrl.split('/').pop() || r.requestUrl;
       await createResource_s(aid, r);
     }
 
