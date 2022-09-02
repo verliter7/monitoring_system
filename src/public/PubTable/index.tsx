@@ -41,9 +41,9 @@ const PubTable = forwardRef<IBaseTableRef, IBaseTable>(
     const finalTableData: ITableData = reduxTableData ? reduxTableData : tableData ? tableData : outerTableData;
     // 获取表格配置
     const tableColumns: Record<string, any>[] = columns.map((column) => {
-      const { width, ...rest } = column;
+      const { width, whiteSpace = 'nowrap', ...rest } = column;
       const listStyle = () => ({
-        style: { width: width ? width : 100, whiteSpace: 'nowrap', fontSize },
+        style: { width: width ? width : 100, whiteSpace, fontSize },
       });
 
       return {

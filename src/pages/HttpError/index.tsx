@@ -170,20 +170,6 @@ const HttpError: FC = (): ReactElement => {
         />
       ),
     },
-    {
-      title: '影响用户数',
-      middle: 276,
-      bottomCenter: 346,
-      unit: '',
-      content: <div>3</div>,
-    },
-    {
-      title: '影响用户比例',
-      middle: 3.96,
-      bottomCenter: 2.42,
-      unit: '%',
-      content: <div>4</div>,
-    },
   ];
 
   useMount(() => {

@@ -1,8 +1,28 @@
 import { createUser, userExistJudge, userPasswordJudge } from '@/service/user.service';
 import type { Context } from 'koa';
 
+const ipSet = new Set<string>();
+
 export async function register(ctx: Context) {
+  const { ip } = ctx;
+
+  if (ipSet.has(ip)) {
+    ctx.defaultResponse({
+      code: 400,
+      message: '2小时内不能连续注册多个账号',
+    });
+
+    return;
+  }
+
   const { username, password } = ctx.request.body;
+  const twoHours = 2 * 60 * 60 * 1000;
+
+  ipSet.add(ip);
+
+  setTimeout(() => {
+    ipSet.delete(ip);
+  }, twoHours);
 
   try {
     const isUserExist = await userExistJudge(username);

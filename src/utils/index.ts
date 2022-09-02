@@ -1,5 +1,6 @@
 export { default as HttpReq } from './HttpReq';
 export { default as HandleLocalStorage } from './HandleLocalStorage';
+export { default as getLazyPermissionsRouter } from './getLazyPermissionsRouter';
 export { default as commonStyles } from './commonStyles';
 export { default as api } from './urls';
 
