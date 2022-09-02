@@ -14,7 +14,6 @@ import type { TabKey } from './type';
 
 const { TabPane } = Tabs;
 const Login: FC = (): ReactElement => {
-  const [formRef] = Form.useForm();
   const navigate = useNavigate();
   const [tabKey, setTabKey] = useState<TabKey>('login');
   const { loading: registerLoading, run: registerRun } = useRequest(register, {
@@ -22,7 +21,6 @@ const Login: FC = (): ReactElement => {
     onSuccess: (res) => {
       if (res.code === 200) {
         message.success('注册成功,快去登陆吧');
-        formRef.resetFields();
       }
     },
   });
@@ -49,7 +47,7 @@ const Login: FC = (): ReactElement => {
   };
   const getTabContent = (btnMark: string) => {
     return (
-      <Form onFinish={onFinish} form={formRef}>
+      <Form onFinish={onFinish}>
         <Form.Item name="username" rules={[{ required: true, message: '请输入用户名!' }]}>
           <Input prefix={<UserOutlined />} placeholder="请输入用户名" />
         </Form.Item>

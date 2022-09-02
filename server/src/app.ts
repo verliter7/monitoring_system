@@ -29,6 +29,7 @@ interface IErrorParam {
 }
 
 const app = new Koa();
+app.proxy = true;
 
 app.use(
   cors({

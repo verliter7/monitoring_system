@@ -33,7 +33,6 @@ class WebSdk {
   public transportInstance: TransportInstance;
 
   constructor(options: initOptions) {
-    // this.configInstance = new ConfigInstance(this, options);
     this.transportInstance = new TransportInstance(this, {
       transportUrl: new Map([
         [transportKind.stability, errorUrl],
@@ -45,7 +44,6 @@ class WebSdk {
     this.userInstance = new UserVitals(this, options);
     this.performanceInstance = new PerformanceVitals(this, options);
     this.errorCatchInstance = new ErrorVitals(this, options);
-    // this.errorCatchInstance = new ErrorVitals(this);
   }
 }
 

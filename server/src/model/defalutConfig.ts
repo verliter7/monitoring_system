@@ -34,7 +34,7 @@ const defalutConfig = {
   osVersion: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: '操作系统名称',
+    comment: '操作系统版本',
   },
   ua: {
     type: DataTypes.STRING,

@@ -68,12 +68,12 @@ export default class ErrorVitals {
     const handler = (e: ErrorEvent) => {
       if (getErrorKey(e) !== ErrorType.JS) return;
       const { error, message: errorMsg, lineno, colno } = e;
-      const errorType = error.toString().split(':')[0];
-      const errorStack = error.stack;
+      const errorType = error ? error.toString().split(':')[0] : 'unknownError';
+      const errorStack = error?.stack;
       const jsError = new JsError(
         {
           errorType,
-          errorStack: pocessStackInfo(errorStack),
+          errorStack: errorStack ? pocessStackInfo(errorStack) : 'nothing',
           errorMsg,
           errPos: `${lineno}:${colno}`,
         },
@@ -119,7 +119,7 @@ export default class ErrorVitals {
   initPromiseError() {
     const handler = (e: PromiseRejectionEvent) => {
       // fetch取消错误，下面拦截fetch请求已经做过处理
-      if (e.reason.code === 20) return;
+      if (e.reason?.code === 200) return;
 
       const defaultErrorParams = {
         errorType: ErrorType.UJ,
@@ -181,7 +181,7 @@ export default class ErrorVitals {
           ajaxData: { url: requestUrl, method },
           status,
           statusText,
-          responseText,
+          response,
         } = this;
 
         const requestUrlStr = requestUrl instanceof URL ? requestUrl.href : requestUrl;
@@ -196,16 +196,14 @@ export default class ErrorVitals {
           duration: `${Date.now() - start}`,
         };
 
-        let httpMessage: string;
+        let httpMessage: string = EMPTYRESPONSE;
 
-        try {
-          httpMessage = /{\\"message\\": (.*)}/.test(responseText)
-            ? JSON.parse(responseText).message
-            : statusText
-            ? statusText
-            : EMPTYRESPONSE;
-        } catch (e) {
-          httpMessage = EMPTYRESPONSE;
+        if (typeof response === 'string' && /{(.*)"message":(.*)}/.test(response)) {
+          try {
+            httpMessage = JSON.parse(response).message || statusText || EMPTYRESPONSE;
+          } catch (e) {}
+        } else if (typeof response === 'object') {
+          httpMessage = response.message || statusText || EMPTYRESPONSE;
         }
 
         // 根据状态码判断是否ajax请求是否出错

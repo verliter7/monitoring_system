@@ -1,14 +1,14 @@
 /* @jsxImportSource @emotion/react */
-import { useState, createElement } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, createElement, Suspense } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined } from '@ant-design/icons';
 import { Avatar, Button, Descriptions, Layout, Menu, Modal, notification, Popconfirm } from 'antd';
 import { meunConfig } from '@/router/routerConfig';
-import HomePageRouters from '@/router/HomePageRouters';
 import { useMount } from '@/hooks';
 import { commonStyles, HandleLocalStorage } from '@/utils';
 import { notLoginPagePath, userInfoKey } from '@/utils/constant';
 import type { FC, ReactElement } from 'react';
+import Loading from './Loading';
 
 const { Header, Sider, Content } = Layout;
 
@@ -112,7 +112,9 @@ const BaseLayout: FC = (): ReactElement => {
             minHeight: '280px',
           }}
         >
-          <HomePageRouters />
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
         </Content>
       </Layout>
     </Layout>

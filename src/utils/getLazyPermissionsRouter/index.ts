@@ -10,10 +10,10 @@ interface IReturn {
 }
 
 /**
- * @description: 自定义懒加载权限控制hooks
+ * @description: 自定义懒加载权限控制方法
  */
 
-const useLazyPermissionsRouter = (
+const getLazyPermissionsRouter = (
   routerConfig: {
     pathname: string;
     componentPath: string;
@@ -33,4 +33,4 @@ const useLazyPermissionsRouter = (
   });
 };
 
-export default useLazyPermissionsRouter;
+export default getLazyPermissionsRouter;

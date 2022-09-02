@@ -43,7 +43,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'https://frontend-exam.aliyun.topviewclub.cn', // 接口基地址
+        target: 'https://frontend-exam.aliyun.topviewclub.cn/', // 接口基地址
         changeOrigin: true,
       },
     },
